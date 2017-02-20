@@ -154,6 +154,10 @@ class CPAC {
 
 		new AC_Notice_Review();
 
+		//if ( ! ac_is_version_gte( 4 ) ) {
+			new AC_Rollback();
+		//}
+
 		// Hooks
 		add_action( 'init', array( $this, 'localize' ) );
 		add_filter( 'plugin_action_links', array( $this, 'add_settings_link' ), 1, 2 );
