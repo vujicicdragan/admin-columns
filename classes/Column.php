@@ -314,8 +314,9 @@ class AC_Column {
 	 *
 	 * @return string
 	 */
-	public function format_value( $value ) {
-		$object_id = $value;
+
+	// TODO: needs seconds argument?
+	public function format_value( $value, $object_id = null ) {
 
 		foreach ( $this->get_settings() as $setting ) {
 			if ( $setting instanceof AC_Settings_FormatInterface ) {
@@ -378,7 +379,7 @@ class AC_Column {
 	 * @return mixed
 	 */
 	public function get_value( $object_id ) {
-		return $this->format_value( $this->get_raw_value( $object_id ) );
+		return $this->format_value( $this->get_raw_value( $object_id ), $object_id );
 	}
 
 	/**

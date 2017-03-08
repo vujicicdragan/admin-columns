@@ -54,7 +54,11 @@ class AC_Helper_String {
 	 * @return string
 	 */
 	public function trim_words( $string = '', $num_words = 30, $more = null ) {
-		return $string ? wp_trim_words( $string, $num_words, $more ) : false;
+		if ( ! $string ) {
+			return false;
+		}
+
+		return wp_trim_words( $string, $num_words, $more );
 	}
 
 	/**
@@ -63,8 +67,10 @@ class AC_Helper_String {
 	 *
 	 * @return string
 	 */
-	public function trim_characters( $string, $limit = 10 ) {
-		return is_numeric( $limit ) && 0 < $limit && strlen( $string ) > $limit ? substr( $string, 0, $limit ) . __( '&hellip;' ) : $string;
+	public function trim_characters( $string, $limit = 10, $trail = '&hellip;' ) {
+		$limit = absint( $limit );
+
+		return 0 < $limit && strlen( $string ) > $limit ? substr( $string, 0, $limit ) . $trail : $string;
 	}
 
 	/**

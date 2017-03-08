@@ -31,7 +31,7 @@ class AC_Column_CustomField extends AC_Column_Meta {
 			return count( $this->get_meta_value( $object_id, $this->get_meta_key(), false ) );
 		}
 
-		return $this->format_value( $this->get_raw_value( $object_id ) );
+		return $this->format_value( $this->get_raw_value( $object_id ), $object_id );
 	}
 
 	public function get_meta_key() {

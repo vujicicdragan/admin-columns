@@ -28,12 +28,6 @@ class AC_Settings_Setting_CustomFieldType extends AC_Settings_Setting
 			case 'excerpt' :
 				$settings[] = new AC_Settings_Setting_CharacterLimit( $this->column );
 				break;
-			case 'title_by_id' :
-				$settings[] = new AC_Settings_Setting_Post( $this->column );
-				break;
-			case 'user_by_id' :
-				$settings[] = new AC_Settings_Setting_User( $this->column );
-				break;
 			case 'link' :
 				$settings[] = new AC_Settings_Setting_LinkLabel( $this->column );
 				break;
@@ -68,7 +62,8 @@ class AC_Settings_Setting_CustomFieldType extends AC_Settings_Setting
 	public function create_view() {
 		$select = $this->create_element( 'select' );
 
-		$select->set_attribute( 'data-refresh', 'column' )
+		$select->set_attribute( 'data-label', 'update' )
+		       ->set_attribute( 'data-refresh', 'column' )
 		       ->set_options( $this->get_field_type_options() );
 
 		$select->set_description( $this->get_description() );
@@ -157,7 +152,6 @@ class AC_Settings_Setting_CustomFieldType extends AC_Settings_Setting
 	 * @return string|bool
 	 */
 	public function format( $meta_data, $object_id = null ) {
-		$value = false;
 
 		switch ( $this->get_field_type() ) {
 			case 'image' :
@@ -169,11 +163,25 @@ class AC_Settings_Setting_CustomFieldType extends AC_Settings_Setting
 				break;
 
 			case 'title_by_id' :
+				$string = ac_helper()->array->implode_recursive( ', ', $meta_data );
+				$ids = ac_helper()->string->string_to_array_integers( $string );
+
+				// TODO: also see ACP_Settings_Setting_CustomFieldType
+
+				$value = array();
+				foreach ( $ids as $id ) {
+					$value[] = ac_helper()->html->link( get_edit_post_link( $id ), ac_helper()->post->get_post_title( $id ) );
+				}
+				break;
+
 			case 'user_by_id' :
 				$string = ac_helper()->array->implode_recursive( ', ', $meta_data );
-				$value = ac_helper()->string->string_to_array_integers( $string );
+				$ids = ac_helper()->string->string_to_array_integers( $string );
 
-				$value = new AC_Collection( $value );
+				$value = array();
+				foreach ( $ids as $id ) {
+					$value[] = ac_helper()->html->link( get_edit_user_link( $id ), ac_helper()->user->get_display_name( $id ) );
+				}
 				break;
 
 			case "checkmark" :
@@ -186,9 +194,7 @@ class AC_Settings_Setting_CustomFieldType extends AC_Settings_Setting
 				break;
 
 			case "count" :
-				if ( $this->column instanceof AC_Column_Meta ) {
-					$value = $meta_data ? count( $meta_data ) : ac_helper()->string->get_empty_char();
-				}
+				$value = $meta_data ? count( $meta_data ) : ac_helper()->string->get_empty_char();
 				break;
 
 			case "has_content" :
