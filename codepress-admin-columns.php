@@ -10,7 +10,7 @@ Text Domain: codepress-admin-columns
 Domain Path: /languages
 License: GPLv2
 
-Copyright 2011-2016  AdminColumns.com  info@admincolumns.com
+Copyright 2011-2017  AdminColumns.com  info@admincolumns.com
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 2 as published by
@@ -51,18 +51,9 @@ class CPAC {
 	private $plugin_basename;
 
 	/**
-	 * Admin Columns add-ons class instance
-	 *
-	 * @since 2.2
-	 * @access private
-	 * @var AC_Addons
-	 */
-	private $addons;
-
-	/**
 	 * Admin Columns settings class instance
 	 *
-	 * @since 2.2
+	 * @since  2.2
 	 * @access private
 	 * @var AC_Admin
 	 */
@@ -107,6 +98,11 @@ class CPAC {
 	private $notices;
 
 	/**
+	 * @var AC_API
+	 */
+	private $api;
+
+	/**
 	 * @since 2.5
 	 */
 	private static $_instance = null;
@@ -145,12 +141,11 @@ class CPAC {
 		new AC_ThirdParty_WooCommerce();
 		new AC_ThirdParty_WPML();
 
-		// Includes
+		// Init
 		$this->admin = new AC_Admin();
-		$this->addons = new AC_Addons();
-
 		$this->table_screen = new AC_TableScreen();
 		$this->helper = new AC_Helper();
+		$this->api = new AC_API();
 
 		new AC_Notice_Review();
 
@@ -172,6 +167,7 @@ class CPAC {
 		register_activation_hook( __FILE__, array( $this, 'set_capabilities' ) );
 
 		add_action( 'admin_init', array( $this, 'set_capabilities_multisite' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
 	}
 
 	public function ready() {
@@ -182,7 +178,7 @@ class CPAC {
 	 * @return AC_Autoloader
 	 */
 	public function autoloader() {
-		require_once $this->get_plugin_dir() . 'classes/autoloader.php';
+		require_once $this->get_plugin_dir() . 'classes/Autoloader.php';
 
 		return AC_Autoloader::instance();
 	}
@@ -233,7 +229,7 @@ class CPAC {
 
 	/**
 	 * @since 2.2
-	 * @uses load_plugin_textdomain()
+	 * @uses  load_plugin_textdomain()
 	 */
 	public function localize() {
 		load_plugin_textdomain( 'codepress-admin-columns', false, dirname( $this->plugin_basename ) . '/languages/' );
@@ -287,7 +283,7 @@ class CPAC {
 	 * Add a settings link to the Admin Columns entry in the plugin overview screen
 	 *
 	 * @since 1.0
-	 * @see filter:plugin_action_links
+	 * @see   filter:plugin_action_links
 	 */
 	public function add_settings_link( $links, $file ) {
 		if ( $file === $this->plugin_basename ) {
@@ -305,6 +301,14 @@ class CPAC {
 	}
 
 	/**
+	 * @since NEWVERSION
+	 * @return AC_API
+	 */
+	public function api() {
+		return $this->api;
+	}
+
+	/**
 	 * @since 2.2
 	 * @return AC_Admin Settings class instance
 	 */
@@ -316,10 +320,10 @@ class CPAC {
 	 * Get admin columns add-ons class instance
 	 *
 	 * @since 2.2
-	 * @return AC_Addons Add-ons class instance
+	 * @return AC_Admin_Page_Addons Add-ons class instance
 	 */
 	public function addons() {
-		return $this->addons;
+		return $this->admin()->get_page( 'addons' );
 	}
 
 	/**
@@ -332,6 +336,10 @@ class CPAC {
 		$groups->register_group( 'custom_field', __( 'Custom Fields', 'codepress-admin-columns' ), 6 );
 		$groups->register_group( 'plugin', __( 'Plugins', 'codepress-admin-columns' ), 7 );
 		$groups->register_group( 'custom', __( 'Custom', 'codepress-admin-columns' ), 40 );
+
+		foreach ( $this->addons()->get_missing_addons() as $addon ) {
+			$groups->register_group( $addon->get_slug(), $addon->get_title(), 5 );
+		}
 
 		$this->column_groups = $groups;
 
@@ -382,6 +390,25 @@ class CPAC {
 		}
 
 		return $screens[ $key ];
+	}
+
+	/**
+	 * @param WP_Screen $wp_screen
+	 *
+	 * @return AC_ListScreen|bool
+	 */
+	public function get_list_screen_by_wpscreen( $wp_screen ) {
+		if ( ! $wp_screen instanceof WP_Screen ) {
+			return false;
+		}
+
+		foreach ( $this->get_list_screens() as $list_screen ) {
+			if ( $list_screen->is_current_screen( $wp_screen ) ) {
+				return $list_screen;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -527,10 +554,10 @@ class CPAC {
 
 	/**
 	 * @param string $message Message body
-	 * @param string $type Updated or error
+	 * @param string $type    'updated', 'error' or 'notice-warning'
 	 */
 	public function notice( $message, $type = 'updated' ) {
-		$this->notices[] = '<div class="cpac_message ' . esc_attr( $type ) . '"><p>' . $message . '</p></div>';
+		$this->notices[] = '<div class="ac-message notice ' . esc_attr( $type ) . '"><p>' . $message . '</p></div>';
 	}
 
 	/**
@@ -540,6 +567,14 @@ class CPAC {
 		return $this->admin()->get_page( 'columns' );
 	}
 
+	/**
+	 * @since NEWVERSION
+	 */
+	public function admin_scripts() {
+		wp_register_script( 'ac-sitewide-notices', AC()->get_plugin_url() . "assets/js/message" . AC()->minified() . ".js", array( 'jquery' ), AC()->get_version() );
+		wp_register_style( 'ac-sitewide-notices', AC()->get_plugin_url() . "assets/css/message" . AC()->minified() . ".css", array(), AC()->get_version(), 'all' );
+
+	}
 }
 
 /**

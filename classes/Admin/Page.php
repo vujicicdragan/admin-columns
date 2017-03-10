@@ -25,6 +25,13 @@ abstract class AC_Admin_Page {
 	private $show_in_menu = true;
 
 	/**
+	 * Display pages
+	 *
+	 * @return void
+	 */
+	public abstract function display();
+
+	/**
 	 * Is this the default to to display when no active page is present
 	 *
 	 * @return bool
@@ -88,13 +95,6 @@ abstract class AC_Admin_Page {
 	}
 
 	/**
-	 * Display pages
-	 *
-	 * @return void
-	 */
-	public abstract function display();
-
-	/**
 	 * Cast page to an array
 	 *
 	 * @return array
@@ -122,14 +122,14 @@ abstract class AC_Admin_Page {
 	 * @return bool
 	 */
 	public function verify_nonce( $action ) {
-		return wp_verify_nonce( filter_input( INPUT_POST, '_cpac_nonce' ), $action );
+		return wp_verify_nonce( filter_input( INPUT_POST, '_ac_nonce' ), $action );
 	}
 
 	/**
 	 * Nonce Field
 	 */
 	public function nonce_field( $action ) {
-		wp_nonce_field( $action, '_cpac_nonce', false );
+		wp_nonce_field( $action, '_ac_nonce', false );
 	}
 
 }

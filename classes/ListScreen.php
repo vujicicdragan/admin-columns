@@ -62,7 +62,7 @@ abstract class AC_ListScreen {
 	/**
 	 * Name of the base PHP file (without extension).
 	 *
-	 * @see WP_Screen::base
+	 * @see   WP_Screen::base
 	 *
 	 * @since 2.0
 	 * @var string
@@ -72,7 +72,7 @@ abstract class AC_ListScreen {
 	/**
 	 * The unique ID of the screen.
 	 *
-	 * @see WP_Screen::id
+	 * @see   WP_Screen::id
 	 *
 	 * @since 2.5
 	 * @var string
@@ -99,7 +99,7 @@ abstract class AC_ListScreen {
 	/**
 	 * @var string Layout ID
 	 */
-	private $layout;
+	private $layout_id;
 
 	/**
 	 * @var string Storage key used for saving column data to the database
@@ -115,6 +115,11 @@ abstract class AC_ListScreen {
 	 * @var bool True when column settings can not be overwritten
 	 */
 	private $read_only = false;
+
+	/**
+	 * @var bool
+	 */
+	private $network_only = false;
 
 	/**
 	 * Contains the hook that contains the manage_value callback
@@ -147,6 +152,10 @@ abstract class AC_ListScreen {
 	}
 
 	public function get_singular_label() {
+		if ( null === $this->singular_label ) {
+			$this->set_singular_label( $this->label );
+		}
+
 		return $this->singular_label;
 	}
 
@@ -232,19 +241,19 @@ abstract class AC_ListScreen {
 	/**
 	 * @return string
 	 */
-	public function get_layout() {
-		return $this->layout;
+	public function get_layout_id() {
+		return $this->layout_id;
 	}
 
 	/**
-	 * @param string $layout
+	 * @param string $layout_id
 	 *
 	 * @return $this
 	 */
-	public function set_layout( $layout ) {
-		$this->layout = $layout;
+	public function set_layout_id( $layout_id ) {
+		$this->layout_id = $layout_id;
 
-		$this->set_storage_key( $this->get_key() . $this->layout );
+		$this->set_storage_key( $this->get_key() . $layout_id );
 
 		return $this;
 	}
@@ -301,10 +310,24 @@ abstract class AC_ListScreen {
 	}
 
 	/**
-	 * @param bool $bool
+	 * @param bool $read_only
 	 */
 	public function set_read_only( $read_only ) {
 		$this->read_only = (bool) $read_only;
+	}
+
+	/**
+	 * Settings can not be overwritten
+	 */
+	public function is_network_only() {
+		return $this->network_only;
+	}
+
+	/**
+	 * @param bool $network_only
+	 */
+	public function set_network_only( $network_only ) {
+		$this->network_only = (bool) $network_only;
 	}
 
 	/**
@@ -312,14 +335,14 @@ abstract class AC_ListScreen {
 	 * @return string Link
 	 */
 	public function get_screen_link() {
-		return add_query_arg( array( 'page' => $this->page, 'layout' => $this->layout ), admin_url( $this->get_screen_base() . '.php' ) );
+		return add_query_arg( array( 'page' => $this->page, 'layout' => $this->get_layout_id() ), admin_url( $this->get_screen_base() . '.php' ) );
 	}
 
 	/**
 	 * @since 2.0
 	 */
 	public function get_edit_link() {
-		return add_query_arg( array( 'cpac_key' => $this->key, 'layout_id' => $this->layout ), AC()->admin_columns_screen()->get_link() );
+		return add_query_arg( array( 'list_screen' => $this->key, 'layout_id' => $this->get_layout_id() ), AC()->admin_columns_screen()->get_link() );
 	}
 
 	/**
@@ -365,7 +388,13 @@ abstract class AC_ListScreen {
 	public function get_column_by_name( $name ) {
 		$columns = $this->get_columns();
 
-		return isset( $columns[ $name ] ) ? $columns[ $name ] : false;
+		foreach ( $columns as $column ) {
+			if ( $column->get_name() === $name ) {
+				return $column;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -391,33 +420,12 @@ abstract class AC_ListScreen {
 	}
 
 	/**
-	 * Display column value
-	 *
-	 * @since NEWVERSION
+	 * @param string $type Column type
 	 */
-	public function get_display_value_by_column_name( $column_name, $id, $value = null ) {
-		if ( $column = $this->get_column_by_name( $column_name ) ) {
-			$value = $column->get_value( $id );
-
-			/**
-			 * @deprecated NEWVERSION
-			 */
-			$value = apply_filters_deprecated( "cac/column/value", array( $value, $id, $column, $this ), 'NEWVERSION', 'ac/column/value' );
-
-			/**
-			 * Column display value
-			 *
-			 * @since NEWVERSION
-			 *
-			 * @param string $value Column display value
-			 * @param int $id Object ID
-			 * @param AC_Column $column Column object
-			 * @param AC_ListScreen $this
-			 */
-			$value = apply_filters( 'ac/column/value', $value, $id, $column, $this );
+	public function deregister_column_type( $type ) {
+		if ( isset( $this->column_types[ $type ] ) ) {
+			unset( $this->column_types[ $type ] );
 		}
-
-		return $value;
 	}
 
 	/**
@@ -429,7 +437,7 @@ abstract class AC_ListScreen {
 		}
 
 		// Skip original columns that do not exist
-		if ( $column->is_original() && ! $this->original_column_exists( $column->get_type() ) ) {
+		if ( $column->is_original() && ! $this->original_column_exists( $column ) ) {
 			return false;
 		}
 
@@ -475,12 +483,12 @@ abstract class AC_ListScreen {
 	}
 
 	/**
-	 * @param string $type
+	 * @param AC_Column $column
 	 *
 	 * @return bool
 	 */
-	private function original_column_exists( $type ) {
-		return $this->get_original_label( $type ) ? true : false;
+	private function original_column_exists( $column ) {
+		return $this->get_original_label( $column->get_type() ) ? true : false;
 	}
 
 	/**
@@ -496,9 +504,13 @@ abstract class AC_ListScreen {
 				continue;
 			}
 
-			$column = new AC_Column_Default();
+			$column = new AC_Column();
 
-			$this->register_column_type( $column->set_type( $type ) );
+			$column
+				->set_type( $type )
+				->set_original( true );
+
+			$this->register_column_type( $column );
 		}
 
 		// Register plugin columns
@@ -517,7 +529,7 @@ abstract class AC_ListScreen {
 
 		// Placeholder columns
 		foreach ( AC()->addons()->get_addons() as $addon ) {
-			if ( $addon->is_plugin_active() && ! $addon->is_addon_active() ) {
+			if ( $addon->is_plugin_active() && ! $addon->is_active() ) {
 				$this->register_column_type( $addon->get_placeholder_column() );
 			}
 		}
@@ -525,7 +537,7 @@ abstract class AC_ListScreen {
 		$this->register_column_type( new AC_Column_CustomField() );
 		$this->register_column_type( new AC_Column_UsedByMenu() );
 
-		$this->register_column_types_from_dir( AC()->get_plugin_dir() . 'classes/Column/' . $this->get_group_dir(), 'AC_' );
+		$this->register_column_types_from_dir( $this->get_local_column_path(), 'AC_' );
 
 		/**
 		 * Register column types
@@ -537,7 +549,7 @@ abstract class AC_ListScreen {
 	}
 
 	/**
-	 * @param string $dir Absolute path to the column directory
+	 * @param string $dir    Absolute path to the column directory
 	 * @param string $prefix Autoload prefix
 	 */
 	public function register_column_types_from_dir( $dir, $prefix ) {
@@ -554,25 +566,19 @@ abstract class AC_ListScreen {
 	 *
 	 * @return string
 	 */
-	public function get_group_dir() {
-		$array = explode( '_', str_replace( '-', '_', $this->get_group() ) );
-		$array = array_map( 'ucfirst', $array );
+	public function get_local_column_path() {
+		$path = AC()->get_plugin_dir() . 'classes/Column/' . AC_Autoloader::string_to_classname( $this->get_group() );
 
-		return implode( $array );
-	}
-
-	/**
-	 * @param string $column_type
-	 */
-	public function deregister_column_type( $column_type ) {
-		if ( isset( $this->column_types[ $column_type ] ) ) {
-			unset( $this->column_types[ $column_type ] );
+		if ( ! is_dir( $path ) ) {
+			return false;
 		}
+
+		return $path;
 	}
 
 	/**
-	 * @param array $settings Column options
-	 * @param string $name Unique column name
+	 * @param array  $settings Column options
+	 * @param string $name     Unique column name
 	 *
 	 * @return AC_Column|false
 	 */
@@ -592,6 +598,10 @@ abstract class AC_ListScreen {
 
 		$column->set_list_screen( $this )
 		       ->set_type( $settings['type'] );
+
+		if ( $this->original_column_exists( $column ) ) {
+			$column->set_original( true );
+		}
 
 		if ( $column->is_original() ) {
 			$name = $column->get_type();
@@ -634,7 +644,7 @@ abstract class AC_ListScreen {
 		if ( null === $this->columns ) {
 			foreach ( $this->get_original_columns() as $type => $label ) {
 				if ( $column = $this->create_column( array( 'type' => $type, 'label' => $label ) ) ) {
-					$this->register_column( $column );
+					$this->register_column( $column->set_original( true ) );
 				}
 			}
 		}
@@ -699,7 +709,7 @@ abstract class AC_ListScreen {
 			}
 
 			// New column, new key
-			if ( ! in_array( $key, array_keys( $current_settings ), true ) ) {
+			if ( ! $column->is_original() && ! in_array( $key, array_keys( $current_settings ), true ) ) {
 				$key = uniqid();
 			}
 
@@ -729,9 +739,12 @@ abstract class AC_ListScreen {
 	 * Populate settings from the database
 	 */
 	public function populate_settings() {
+
+		// Load from DB
 		$this->set_settings( get_option( self::OPTIONS_KEY . $this->get_storage_key() ) );
 
-		do_action( 'ac/list_screen/settings', $this );
+		// Load from API
+		AC()->api()->set_column_settings( $this );
 	}
 
 	/**
@@ -743,6 +756,8 @@ abstract class AC_ListScreen {
 		}
 
 		$this->settings = $settings;
+
+		return $this;
 	}
 
 	/**
@@ -782,15 +797,48 @@ abstract class AC_ListScreen {
 	/**
 	 * @return bool
 	 */
-	public function delete() {
-		return delete_option( self::OPTIONS_KEY . $this->get_storage_key() );
+	public function delete_default_headings() {
+		return delete_option( $this->get_default_key() );
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function delete_default_headings() {
-		return delete_option( $this->get_default_key() );
+	public function delete() {
+		return delete_option( self::OPTIONS_KEY . $this->get_storage_key() );
+	}
+
+	/**
+	 * @param string $column_name
+	 * @param int    $id
+	 * @param null   $original_value
+	 *
+	 * @return string
+	 */
+	public function get_display_value_by_column_name( $column_name, $id, $original_value = null ) {
+		$column = $this->get_column_by_name( $column_name );
+
+		if ( ! $column ) {
+			return $original_value;
+		}
+
+		$value = $column->get_value( $id );
+
+		// You can overwrite the display value for original columns by making sure get_value() does not return NULL.
+		if ( $column->is_original() && is_null( $value ) ) {
+			return $original_value;
+		}
+
+		/**
+		 * Column display value
+		 *
+		 * @since NEWVERSION
+		 *
+		 * @param string    $value  Column display value
+		 * @param int       $id     Object ID
+		 * @param AC_Column $column Column object
+		 */
+		return apply_filters( 'ac/column/value', $value, $id, $column );
 	}
 
 }

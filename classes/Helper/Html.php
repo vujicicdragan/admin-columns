@@ -48,18 +48,26 @@ class AC_Helper_Html {
 			$label = $url;
 		}
 
+		if ( ! $label ) {
+		    return false;
+        }
+
 		if ( ! $this->contains_html( $label ) ) {
 			$label = esc_html( $label );
 		}
 
-		return $label || '0' === $label ? '<a href="' . esc_url( $url ) . '"' . $this->get_attributes( $attributes ) . '>' . $label . '</a>' : false;
+		$allowed = wp_allowed_protocols();
+		$allowed[] = 'skype';
+		$allowed[] = 'call';
+
+		return '<a href="' . esc_url( $url, $allowed ) . '"' . $this->get_attributes( $attributes ) . '>' . $label . '</a>';
 	}
 
 	/**
 	 * @since 2.5
 	 */
 	public function divider() {
-		return '<span class="cpac-divider"></span>';
+		return '<span class="ac-divider"></span>';
 	}
 
 	/**
@@ -69,8 +77,8 @@ class AC_Helper_Html {
 	 * @return string
 	 */
 	public function tooltip( $label, $tooltip ) {
-	    if ( $label ) {
-		    $label = '<div class="cpac-tip" data-tip="' . esc_attr( $tooltip ) . '">' . $label . '</div>';
+	    if ( $label && $tooltip ) {
+		    $label = '<span data-tip="' . esc_attr( $tooltip ) . '">' . $label . '</span>';
 	    }
 
 	    return $label;
@@ -98,11 +106,11 @@ class AC_Helper_Html {
 	private function get_attributes( $attributes ) {
 		$_attributes = array();
 
-		foreach ( array( 'title', 'id', 'class', 'style', 'target' ) as $attribute ) {
-			if ( ! empty( $attributes[ $attribute ] ) ) {
-				$_attributes[] = $this->get_attribute_as_string( $attribute, $attributes[ $attribute ] );
-			}
-		}
+		foreach ( $attributes as $attribute => $value ) {
+		    if ( in_array( $attribute, array( 'title', 'id', 'class', 'style', 'target' ) ) || 'data-' === substr( $attribute, 0, 5 ) ) {
+			    $_attributes[] = $this->get_attribute_as_string( $attribute, $value );
+		    }
+        }
 
 		return ' ' . implode( ' ', $_attributes );
 	}
@@ -133,8 +141,23 @@ class AC_Helper_Html {
 	 *
 	 * @return string
 	 */
-	public function implode( $array ) {
-		return is_array( $array ) ? implode( $this->divider(), $array ) : $array;
+	public function implode( $array, $divider = true ) {
+	    if ( ! is_array( $array ) ) {
+	        return $array;
+        }
+
+        // Remove empty values
+		$array = $this->remove_empty( $array );
+
+	    if ( true === $divider ) {
+		    $divider = $this->divider();
+        }
+
+		return implode( $divider, $array );
+	}
+
+	public function remove_empty( $array ) {
+        return array_filter( $array, array( ac_helper()->string, 'is_not_empty' ) );
 	}
 
 	/**
@@ -153,6 +176,25 @@ class AC_Helper_Html {
 		}
 
 		return $html;
+	}
+
+	/**
+     * Small HTML block with grey background and rounded corners
+     *
+	 * @param string|array $items
+	 *
+	 * @return string
+	 */
+	public function small_block( $items ) {
+	    $blocks = array();
+
+        foreach ( (array) $items as $item ) {
+            if ( $item && is_string( $item ) ) {
+	            $blocks[] = '<span class="ac-small-block">' . $item . '</span>';
+            }
+        }
+
+        return implode( $blocks );
 	}
 
 }

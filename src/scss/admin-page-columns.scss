@@ -52,7 +52,7 @@
  * Structure
  * ----------------------------------------------------------------------------
  */
-.columns-container {
+.ac-admin {
 	margin-right: 300px;
 	max-width: 740px;
 
@@ -60,7 +60,7 @@
 		display: none;
 	}
 
-	.columns-left {
+	.ac-left {
 		float: left;
 		width: 100%;
 
@@ -86,12 +86,12 @@
 		}
 	}
 
-	.columns-right {
+	.ac-right {
 		float: right;
 		margin-right: -300px;
 		width: 280px;
 
-		.columns-right-inside.fixed {
+		.ac-right-inside.fixed {
 			width: 280px;
 		}
 	}
@@ -104,7 +104,7 @@
 	}
 
 	&.saving {
-		.columns-right-inside {
+		.ac-right-inside {
 			.spinner {
 				visibility: visible;
 			}
@@ -121,7 +121,7 @@
 	}
 
 	&.stored {
-		.columns-right .sidebox.form-actions {
+		.ac-right .sidebox.form-actions {
 			.submit {
 				&.save {
 					display: none;
@@ -152,15 +152,23 @@
  * Columns
  * ----------------------------------------------------------------------------
  */
-.columns-left {
+.ac-left {
 
-	.cpac-notice {
+	.ac-notice {
 		background: #fff;
 		border-left: 4px solid #ffba00;
 		-webkit-box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 		box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 		margin-bottom: 15px;
 		padding: 1px 12px;
+	}
+
+	.ajax-message {
+		display: none;
+	}
+
+	.ac-message {
+		margin-top: 0 !important;
 	}
 
 	.ac-boxes {
@@ -193,12 +201,13 @@
 			// indicators
 			.meta span {
 				cursor: default !important;
+				opacity: 0.45;
 
 				&:before {
 					color: #808080 !important;
 				}
-				&.off {
-					opacity: 0.5;
+				&.on {
+					opacity: 1;
 				}
 			}
 
@@ -398,7 +407,7 @@
 		.help-msg {
 			margin: 10px 0 0;
 			color: #666;
-			font-size: 12px;
+			font-size: 13px;
 		}
 	}
 
@@ -449,13 +458,46 @@
 		width: 99.95%;
 	}
 
+	input[type=checkbox],
 	input[type=radio] {
 		width: auto;
 		margin-right: 4px;
 	}
+	.checkbox-labels,
 	.radio-labels {
 		> label {
 			padding-right: 10px;
+			vertical-align: top;
+		}
+		&.vertical {
+			input[type=radio] {
+				margin-right: 6px;
+			}
+			> label {
+				display: block;
+				margin-bottom: 5px;
+			}
+		}
+	}
+}
+
+.ac-setting-input-date {
+
+	.ac-setting-input-more {
+		input[type=text] {
+			display: inline-block;
+			width: 60px;
+			margin-right: 5px;
+		}
+	}
+
+	.ac-setting-input-date__value {
+		display: inline-block;
+		width: 105px;
+	}
+	.ac-setting-input-date__example {
+		.spinner {
+			float: none;
 			vertical-align: top;
 		}
 	}
@@ -815,7 +857,7 @@
  * Sidebar
  * ----------------------------------------------------------------------------
  */
-.columns-right {
+.ac-right {
 	.sidebox {
 		background: none repeat scroll 0 0 #FFFFFF;
 		border: 1px solid $border-gray-dark;
@@ -1110,6 +1152,10 @@
 		padding: 0;
 	}
 
+	h2 {
+		color: #fff;
+	}
+
 	h3 {
 		font-size: 34px;
 		a {
@@ -1155,6 +1201,7 @@
 
 		li {
 			padding-bottom: 3px;
+
 			a {
 				color: #fff;
 				text-decoration: none;
@@ -1170,17 +1217,28 @@
 			}
 
 			&.acp-integration {
-				padding: 6px 0;
+				padding: 0;
+				min-height: 23px;
+				line-height: 23px;
+
 				img {
-					height: 21px;
+					height: 23px;
 					display: inline-block;
 					vertical-align: middle;
-					margin-right: 5px;
+					margin-right: 3px;
 
-					&.woocommerce {
-						height: 24px;
+					&.ac-addon-pods {
+						margin-top: -4px;
+					}
+					&.ac-addon-types {
+						height: 18px
+					}
+					&.cac-addon-acf {
+						margin-top: -4px;
+						height: 15px
 					}
 				}
+
 				a:before {
 					content: '+';
 				}
@@ -1239,18 +1297,18 @@
  * ----------------------------------------------------------------------------
  */
 @media only screen and (max-width: 900px) {
-	.columns-container {
+	.ac-admin {
 		margin-right: 0;
 
 		.menu {
 			float: none;
 		}
 
-		.columns-left {
+		.ac-left {
 			float: none;
 		}
 
-		.columns-right {
+		.ac-right {
 			float: none;
 			margin-top: 0;
 			margin-right: 0;

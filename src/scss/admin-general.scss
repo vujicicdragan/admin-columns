@@ -24,6 +24,36 @@
 
 }
 
+.ac-badge {
+	display: inline-block;
+	background: #d54e21;
+	border-radius: 10px;
+	font-size: 9px;
+	line-height: 17px;
+	padding: 0 6px;
+	margin: -1px 0 0 4px;
+	vertical-align: middle;
+	color: #fff;
+	font-weight: 600;
+}
+
+a.external {
+	&:after {
+		content: "\f504";
+		display: inline-block;
+		margin-left: 4px;
+		font-size: 17px;
+		color: #797979;
+		line-height: 1;
+		font-family: dashicons, serif;
+		text-decoration: none;
+		font-weight: normal;
+		font-style: normal;
+		vertical-align: top;
+		text-align: center;
+	}
+}
+
 /**
  * Button
  * ----------------------------------------------------------------------------
@@ -37,14 +67,11 @@
  * Message
  * ----------------------------------------------------------------------------
  */
+// TODO: remove
 .cpac_message {
 	&.error.warning {
 		border-left: 4px solid #ffba00;
 	}
-}
-
-.ajax-message {
-	display: none;
 }
 
 /**
@@ -76,28 +103,10 @@
 }
 
 /**
- * Notifications
- * ----------------------------------------------------------------------------
- */
-.cac-notification.updated {
-	border-left-color: #0071aa;
-
-	.learnmore {
-		float: right;
-
-		&:after {
-			content: "\f139";
-			font: normal 20px/1 'dashicons';
-			float: right;
-		}
-	}
-}
-
-/**
  * Table
  * ----------------------------------------------------------------------------
  */
-table.cpac-form-table {
+table.ac-form-table {
 	max-width: 1100px;
 	margin-top: 20px;
 
@@ -106,25 +115,17 @@ table.cpac-form-table {
 		vertical-align: top;
 	}
 
-	td.padding-22 {
-		padding-top: 22px;
-	}
-
-	td {
-	}
-
 	&.settings {
-		tr td {
-			padding-top: 74px;
-		}
-
-		tr:first-child {
+		tr {
 			th {
-				padding-top: 0;
-			}
+				h2 {
+					margin: 0;
+				}
 
+				font-weight: normal;
+			}
 			td {
-				padding-top: 54px;
+				padding-top: 58px;
 			}
 		}
 	}
@@ -177,22 +178,12 @@ body.rtl {
 		}
 	}
 
-	.cpac-menu .subsubsub {
-		margin-left: 14px;
-		margin-right: 0;
-	}
-
-	.columns-container {
-		margin-left: 300px;
-		margin-right: 0;
-	}
-
-	.columns-left {
+	.ac-left {
 		float: right;
 
 		// Columns
-		.cpac-columns {
-			.cpac-column {
+		.ac-columns {
+			.ac-column {
 
 				// Column Header
 				.column-meta {
@@ -277,7 +268,7 @@ body.rtl {
 		}
 	}
 
-	.columns-right {
+	.ac-right {
 		float: left;
 		margin-left: -300px;
 		margin-right: 0;

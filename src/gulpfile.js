@@ -11,10 +11,10 @@ var gulp = require( 'gulp' ),
 	cssnano = require( 'gulp-cssnano' ),
 	rename = require( 'gulp-rename' ),
 	uglify = require( 'gulp-uglify' ),
-	plumber = require( 'gulp-plumber' );
-	wpPot = require( 'gulp-wp-pot' );
-	gettext = require( 'gulp-gettext' );
-	iconfont = require( 'gulp-iconfont' );
+	plumber = require( 'gulp-plumber' ),
+	wpPot = require( 'gulp-wp-pot' ),
+	gettext = require( 'gulp-gettext' ),
+	iconfont = require( 'gulp-iconfont' ),
 	consolidate = require( 'gulp-consolidate' );
 
 var iconfontdir = "iconfont/";
@@ -39,10 +39,13 @@ gulp.task( 'styles', function() {
 	return gulp.src( [
 		'scss/admin-page-addons.scss',
 		'scss/admin-page-columns.scss',
+		'scss/admin-page-settings.scss',
+		'scss/admin-page-help.scss',
 		'scss/admin-general.scss',
 		'scss/admin-welcome.scss',
-		'scss/list-screen.scss',
-		'scss/plugin-screen.scss'
+		'scss/table.scss',
+		'scss/plugin-screen.scss',
+		'scss/message.scss'
 	] )
 		.pipe( plumber( { errorHandler : onError } ) )
 		.pipe( sass() )
@@ -60,7 +63,7 @@ gulp.task( 'language', function() {
 		.pipe( wpPot( {
 			domain : 'codepress-admin-columns',
 			destFile : 'codepress-admin-columns.pot',
-			package : 'Codepress Admin Columns',
+			package : 'Admin Columns',
 			bugReport : 'https://www.admincolumns.com',
 			lastTranslator : 'Codepress <info@codepress.nl',
 			team : 'Admin Columns <info@admincolumns.com>'

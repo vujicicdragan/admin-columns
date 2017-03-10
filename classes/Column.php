@@ -3,7 +3,7 @@
 /**
  * @since NEWVERSION
  */
-abstract class AC_Column {
+class AC_Column {
 
 	/**
 	 * @var string Unique Name
@@ -31,7 +31,7 @@ abstract class AC_Column {
 	private $original;
 
 	/**
-	 * @var AC_Settings_Setting[]
+	 * @var AC_Settings_Column[]
 	 */
 	private $settings;
 
@@ -141,6 +141,10 @@ abstract class AC_Column {
 	public function get_group() {
 		if ( null === $this->group ) {
 			$this->set_group( 'custom' );
+
+			if ( $this->is_original() ) {
+				$this->set_group( 'default' );
+			}
 		}
 
 		return $this->group;
@@ -205,16 +209,16 @@ abstract class AC_Column {
 	}
 
 	/**
-	 * @param AC_Settings_Setting $setting
+	 * @param AC_Settings_Column $setting
 	 *
 	 * @return $this
 	 */
-	public function add_setting( AC_Settings_Setting $setting ) {
+	public function add_setting( AC_Settings_Column $setting ) {
 		$setting->set_values( $this->options );
 
 		$this->settings[ $setting->get_name() ] = $setting;
 
-		foreach ( $setting->get_dependent_settings() as $dependent_setting ) {
+		foreach ( (array) $setting->get_dependent_settings() as $dependent_setting ) {
 			$this->add_setting( $dependent_setting );
 		}
 
@@ -233,7 +237,7 @@ abstract class AC_Column {
 	/**
 	 * @param string $id
 	 *
-	 * @return AC_Settings_Setting_User|AC_Settings_Setting_Separator|AC_Settings_Setting_Label
+	 * @return AC_Settings_Column|AC_Settings_Column_User|AC_Settings_Column_Separator|AC_Settings_Column_Label
 	 */
 	public function get_setting( $id ) {
 		return $this->get_settings()->get( $id );
@@ -245,9 +249,9 @@ abstract class AC_Column {
 	public function get_settings() {
 		if ( null === $this->settings ) {
 			$settings = array(
-				new AC_Settings_Setting_Type( $this ),
-				new AC_Settings_Setting_Label( $this ),
-				new AC_Settings_Setting_Width( $this ),
+				new AC_Settings_Column_Type( $this ),
+				new AC_Settings_Column_Label( $this ),
+				new AC_Settings_Column_Width( $this ),
 			);
 
 			foreach ( $settings as $setting ) {
@@ -306,20 +310,22 @@ abstract class AC_Column {
 	 * A formatter should return a AC_Collection when other formatters
 	 * should apply the formatter to each member of the collection
 	 *
-	 * @param $value
+	 * @param AC_Collection|string $value
 	 *
 	 * @return string
 	 */
 	public function format_value( $value ) {
+		$object_id = $value;
+
 		foreach ( $this->get_settings() as $setting ) {
 			if ( $setting instanceof AC_Settings_FormatInterface ) {
 
 				if ( $value instanceof AC_Collection ) {
 					foreach ( $value as $k => $v ) {
-						$value->put( $k, $setting->format( $v ) );
+						$value->put( $k, $setting->format( $v, $object_id ) );
 					}
 				} else {
-					$value = $setting->format( $value );
+					$value = $setting->format( $value, $object_id );
 				}
 
 			}
@@ -335,7 +341,7 @@ abstract class AC_Column {
 	/**
 	 * @return string
 	 */
-	private function get_separator() {
+	public function get_separator() {
 		$separator = ', ';
 
 		if ( $setting = $this->get_setting( 'separator' ) ) {
@@ -349,7 +355,7 @@ abstract class AC_Column {
 			}
 		}
 
-		return apply_filters( 'ac/column/separator', $separator, $this );
+		return $separator;
 	}
 
 	/**
@@ -383,10 +389,10 @@ abstract class AC_Column {
 	 *
 	 * @param int $object_id ID
 	 *
-	 * @return array|string|bool Raw column value
+	 * @return mixed Raw column value. Default is NULL.
 	 */
 	public function get_raw_value( $object_id ) {
-		return $object_id;
+		return null;
 	}
 
 }

@@ -10,14 +10,14 @@ class AC_Column_Link_Image extends AC_Column {
 		$this->set_label( __( 'Image', 'codepress-admin-columns' ) );
 	}
 
-	public function get_value( $id ) {
+	public function get_raw_value( $id ) {
 		$bookmark = get_bookmark( $id );
 
-		return $this->get_setting( 'image' )->format( $bookmark->link_image );
+		return $bookmark->link_image;
 	}
 
 	public function register_settings() {
-		$this->add_setting( new AC_Settings_Setting_Image( $this ) );
+		$this->add_setting( new AC_Settings_Column_Image( $this ) );
 	}
 
 }

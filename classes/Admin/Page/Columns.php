@@ -52,7 +52,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 		wp_localize_script( 'ac-admin-page-columns', 'AC', array(
 			'_ajax_nonce' => wp_create_nonce( 'cpac-settings' ),
 			'list_screen' => $this->get_current_list_screen()->get_key(),
-			'layout'      => $this->get_current_list_screen()->get_layout(),
+			'layout'      => $this->get_current_list_screen()->get_layout_id(),
 			'i18n'        => array(
 				'clone' => __( '%s column is already present and can not be duplicated.', 'codepress-admin-columns' ),
 				'error' => __( 'Invalid response.', 'codepress-admin-columns' ),
@@ -70,10 +70,16 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 		return ac_helper()->user->get_meta_site( self::OPTION_CURRENT . '_layout', true );
 	}
 
+	private function get_first_list_screen() {
+        $list_screens = AC()->get_list_screens();
+
+        return reset( $list_screens );
+	}
+
 	private function set_current_list_screen() {
 
 		// User selected
-		$key = filter_input( INPUT_GET, 'cpac_key' );
+		$key = filter_input( INPUT_GET, 'list_screen' );
 
 		// Preference
 		if ( ! $key ) {
@@ -85,9 +91,15 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 			$key = key( AC()->get_list_screens() );
 		}
 
-		$this->set_list_screen_preference( $key );
+		$list_screen = AC()->get_list_screen( $key );
 
-		$this->current_list_screen = AC()->get_list_screen( $key );
+		if ( ! $list_screen ) {
+			$list_screen = $this->get_first_list_screen();
+        }
+
+		$this->set_list_screen_preference( $list_screen->get_key() );
+
+		$this->current_list_screen = $list_screen;
 	}
 
 	public function get_current_list_screen() {
@@ -107,8 +119,8 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 
 			case 'restore_by_type' :
 				if ( $this->verify_nonce( 'restore-type' ) ) {
-					$list_screen = AC()->get_list_screen( filter_input( INPUT_POST, 'cpac_key' ) );
-					$list_screen->set_layout( filter_input( INPUT_POST, 'layout' ) );
+					$list_screen = AC()->get_list_screen( filter_input( INPUT_POST, 'list_screen' ) );
+					$list_screen->set_layout_id( filter_input( INPUT_POST, 'layout' ) );
 					$list_screen->delete();
 
 					$this->notice( sprintf( __( 'Settings for %s restored successfully.', 'codepress-admin-columns' ), "<strong>" . esc_html( $this->get_list_screen_message_label( $list_screen ) ) . "</strong>" ), 'updated' );
@@ -132,10 +144,10 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 
 	/**
 	 * @param string $message Message body
-	 * @param string $type Updated or error
+	 * @param string $type    Updated or error
 	 */
 	public function notice( $message, $type = 'updated' ) {
-		$this->notices[] = '<div class="cpac_message inline ' . esc_attr( $type ) . '"><p>' . $message . '</p></div>';
+		$this->notices[] = '<div class="ac-message inline ' . esc_attr( $type ) . '"><p>' . $message . '</p></div>';
 	}
 
 	/**
@@ -169,7 +181,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 	 * @return string
 	 */
 	private function get_error_message_visit_list_screen( $list_screen ) {
-		return sprintf( __( 'Please visit the %s screen once to load all available columns', 'codepress-admin-columns' ), "<a href='" . esc_url( $list_screen->get_screen_link() ) . "'>" . esc_html( $list_screen->get_label() ) . "</a>" );
+		return sprintf( __( 'Please visit the %s screen once to load all available columns', 'codepress-admin-columns' ), ac_helper()->html->link( $list_screen->get_screen_link(), $list_screen->get_label() ) );
 	}
 
 	/**
@@ -189,7 +201,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 			wp_die();
 		}
 
-		$list_screen->set_layout( filter_input( INPUT_POST, 'layout' ) );
+		$list_screen->set_layout_id( filter_input( INPUT_POST, 'layout' ) );
 
 		$column = $list_screen->get_column_by_type( $type );
 
@@ -237,10 +249,10 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 		$list_screen = AC()->get_list_screen( filter_input( INPUT_POST, 'list_screen' ) );
 
 		if ( ! $list_screen ) {
-		    wp_die();
-        }
+			wp_die();
+		}
 
-        $list_screen->set_layout( filter_input( INPUT_POST, 'layout' ) );
+		$list_screen->set_layout_id( filter_input( INPUT_POST, 'layout' ) );
 
 		$column = $list_screen->create_column( $options[ $name ], $name );
 
@@ -270,10 +282,10 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 		$list_screen = AC()->get_list_screen( filter_input( INPUT_POST, 'list_screen' ) );
 
 		if ( ! $list_screen ) {
-		    wp_die();
-        }
+			wp_die();
+		}
 
-        $list_screen->set_layout( filter_input( INPUT_POST, 'layout' ) );
+		$list_screen->set_layout_id( filter_input( INPUT_POST, 'layout' ) );
 
 		$result = $list_screen->store( $formdata['columns'] );
 
@@ -319,7 +331,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 		foreach ( AC()->get_list_screens() as $list_screen ) {
 
 			/**
-			 * @param string $group Group slug
+			 * @param string        $group Group slug
 			 * @param AC_ListScreen $list_screen
 			 */
 			$group = apply_filters( 'ac/list_screen_group', $list_screen->get_group(), $list_screen );
@@ -389,20 +401,31 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 	}
 
 	/**
+	 * @param AC_ListScreen $list_screen
+	 *
+	 * @return string
+	 */
+	private function get_read_only_message( AC_ListScreen $list_screen ) {
+	    $message = sprintf( __( 'The columns for %s are set up via PHP and can therefore not be edited.', 'codepress-admin-columns' ), '<strong>' . esc_html( $list_screen->get_label() ) . '</strong>' );
+
+	    return apply_filters( 'ac/read_only_message', $message, $list_screen );
+	}
+
+	/**
 	 * Display
 	 */
 	public function display() {
 		$list_screen = $this->get_current_list_screen();
 		?>
 
-        <div class="columns-container<?php echo $list_screen->get_settings() ? ' stored' : ''; ?>" data-type="<?php echo esc_attr( $list_screen->get_key() ); ?>">
+        <div class="ac-admin<?php echo $list_screen->get_settings() ? ' stored' : ''; ?>" data-type="<?php echo esc_attr( $list_screen->get_key() ); ?>">
             <div class="main">
                 <div class="menu">
                     <form>
 						<?php $this->nonce_field( 'select-list-screen' ); ?>
                         <input type="hidden" name="page" value="<?php echo esc_attr( AC_Admin::MENU_SLUG ); ?>">
 
-                        <select name="cpac_key" title="Select type" id="ac_list_screen">
+                        <select name="list_screen" title="Select type" id="ac_list_screen">
 							<?php foreach ( $this->get_grouped_list_screens() as $group ) : ?>
                                 <optgroup label="<?php echo esc_attr( $group['title'] ); ?>">
 									<?php foreach ( $group['options'] as $key => $label ) : ?>
@@ -423,8 +446,8 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 
             </div>
 
-            <div class="columns-right">
-                <div class="columns-right-inside">
+            <div class="ac-right">
+                <div class="ac-right-inner">
 
 					<?php if ( ! $list_screen->is_read_only() ) : ?>
                         <div class="sidebox form-actions">
@@ -444,8 +467,8 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
                             </div>
 
                             <form class="form-reset" method="post">
-                                <input type="hidden" name="cpac_key" value="<?php echo esc_attr( $list_screen->get_key() ); ?>"/>
-                                <input type="hidden" name="layout" value="<?php echo esc_attr( $list_screen->get_layout() ); ?>"/>
+                                <input type="hidden" name="list_screen" value="<?php echo esc_attr( $list_screen->get_key() ); ?>"/>
+                                <input type="hidden" name="layout" value="<?php echo esc_attr( $list_screen->get_layout_id() ); ?>"/>
                                 <input type="hidden" name="cpac_action" value="restore_by_type"/>
 
 								<?php $this->nonce_field( 'restore-type' ); ?>
@@ -477,7 +500,6 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
                                 <div class="inside">
                                     <p><?php _e( 'Take Admin Columns to the next level:', 'codepress-admin-columns' ); ?></p>
                                     <ul>
-
 										<?php
 
 										$items = array(
@@ -496,15 +518,20 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
                                             </li>
 										<?php endforeach; ?>
 
-										<?php foreach ( AC()->addons()->get_addons_promo() as $addon ) : ?>
-                                            <li class="acp-integration">
-                                                <a href="<?php echo esc_url( $addon->get_link() ); ?>">
-                                                    <img src="<?php echo esc_attr( $addon->get_logo() ); ?>" alt="<?php echo esc_attr( $addon->get_title() ); ?>"> <?php _e( 'Columns', 'codepress-admin-columns' ); ?>
-                                                </a>
-                                            </li>
-										<?php endforeach; ?>
-
                                     </ul>
+
+									<?php if ( $promos = AC()->addons()->get_addons_promo() ) : ?>
+                                        <strong><?php _e( 'Extra Columns for:', 'codepress-admin-columns' ); ?></strong>
+                                        <ul>
+											<?php foreach ( $promos as $addon ) : ?>
+                                                <li class="acp-integration">
+                                                    <a href="<?php echo esc_url( $addon->get_link() ); ?>" target="_blank">
+														<?php $addon->display_promo(); ?>
+                                                    </a>
+                                                </li>
+											<?php endforeach; ?>
+                                        </ul>
+									<?php endif; ?>
 
                                     <p class="center nopadding">
 										<?php if ( ! $active_promotion ) : ?>
@@ -629,12 +656,12 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
                         </div>
                     </div><!--plugin-support-->
 
-                </div><!--.columns-right-inside-->
-            </div><!--.columns-right-->
+                </div><!--.ac-right-inner-->
+            </div><!--.ac-right-->
 
-            <div class="columns-left">
+            <div class="ac-left">
 				<?php if ( ! $list_screen->get_stored_default_headings() && ! $list_screen->is_read_only() ) : ?>
-                    <div class="cpac-notice">
+                    <div class="notice notice-warning">
                         <p>
 							<?php echo $this->get_error_message_visit_list_screen( $list_screen ); ?>
                         </p>
@@ -643,11 +670,9 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 
 				<?php $this->display_notices(); ?>
 
-                <div class="ajax-message"><p></p></div>
-
 				<?php if ( $list_screen->is_read_only() ) : ?>
-                    <div class="notice notice-warning below-h2">
-                        <p><?php printf( __( 'The columns for %s are set up via PHP and can therefore not be edited', 'codepress-admin-columns' ), '<strong>' . esc_html( $list_screen->get_label() ) . '</strong>' ); ?></p>
+                    <div class="ac-notice notice-warning below-h2">
+                        <p><?php echo $this->get_read_only_message( $list_screen ); ?></p>
                     </div>
 				<?php endif; ?>
 
@@ -656,17 +681,18 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
                     <div class="ac-columns">
                         <form method="post" action="<?php echo esc_attr( $this->get_link() ); ?>">
 
-                            <input type="hidden" name="cpac_key" value="<?php echo esc_attr( $list_screen->get_key() ); ?>"/>
+                            <input type="hidden" name="list_screen" value="<?php echo esc_attr( $list_screen->get_key() ); ?>"/>
                             <input type="hidden" name="cpac_action" value="update_by_type"/>
 
 							<?php $this->nonce_field( 'update-type' ); ?>
 
 							<?php foreach ( $list_screen->get_columns() as $column ) {
 								$this->display_column( $column );
-							} ?>
+							}
+							?>
                         </form>
 
-                    </div><!--.cpac-columns-->
+                    </div>
 
                     <div class="column-footer">
 						<?php if ( ! $list_screen->is_read_only() ) : ?>
@@ -694,20 +720,20 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
                                 <a class="add_column button">+ <?php _e( 'Add Column', 'codepress-admin-columns' ); ?></a>
                             </div>
 						<?php endif; ?>
-                    </div><!--.cpac-column-footer-->
+                    </div>
 
                 </div><!--.ac-boxes-->
 
 				<?php do_action( 'ac/settings/after_columns', $list_screen ); ?>
 
-            </div><!--.columns-left-->
+            </div><!--.ac-left-->
             <div class="clear"></div>
 
             <div id="add-new-column-template">
 				<?php $this->display_column_template( $list_screen ); ?>
             </div>
 
-        </div><!--.columns-container-->
+        </div><!--.ac-admin-->
 
         <div class="clear"></div>
 

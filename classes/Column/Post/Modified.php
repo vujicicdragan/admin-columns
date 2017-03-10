@@ -10,16 +10,12 @@ class AC_Column_Post_Modified extends AC_Column {
 		$this->set_label( __( 'Last modified', 'codepress-admin-columns' ) );
 	}
 
-	public function get_value( $post_id ) {
-		return $this->get_settings()->date->format( $this->get_raw_value( $post_id ) );
-	}
-
 	public function get_raw_value( $post_id ) {
 		return get_post_field( 'post_modified', $post_id );
 	}
 
 	public function register_settings() {
-		$date = new AC_Settings_Setting_Date( $this );
+		$date = new AC_Settings_Column_Date( $this );
 		$date->set_default( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) );
 
 		$this->add_setting( $date );

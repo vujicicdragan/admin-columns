@@ -10,14 +10,14 @@ class AC_Column_Link_Notes extends AC_Column {
 		$this->set_label( __( 'Notes', 'codepress-admin-columns' ) );
 	}
 
-	public function get_value( $id ) {
+	public function get_raw_value( $id ) {
 		$bookmark = get_bookmark( $id );
 
-		return $this->get_setting( 'word_limit' )->format( $bookmark->link_notes );
+		return $bookmark->link_notes;
 	}
 
 	public function register_settings() {
-		$this->add_setting( new AC_Settings_Setting_WordLimit( $this ) );
+		$this->add_setting( new AC_Settings_Column_WordLimit( $this ) );
 	}
 
 }

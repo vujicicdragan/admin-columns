@@ -16,7 +16,6 @@ class AC_Admin_Page_Settings extends AC_Admin_Page {
 
 		// TODO: maybe target this class active instead of using an action?
 		do_action( 'ac/admin/register_settings', $this );
-
 	}
 
 	/**
@@ -34,6 +33,7 @@ class AC_Admin_Page_Settings extends AC_Admin_Page {
 
 	// TODO: ADD	//ac/settings/group/ //ac/settings/groups
 	public function display() { ?>
+
 		<table class="form-table cpac-form-table settings">
 			<tbody>
 

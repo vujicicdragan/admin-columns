@@ -12,7 +12,7 @@ var AC;
  *
  * @type {number}
  */
-var temporary_column_name = 0;
+var incremental_column_name = 0;
 
 /**
  * DOM ready
@@ -32,6 +32,12 @@ jQuery( document ).ready( function( $ ) {
 
 } );
 
+function ac_show_ajax_message( message, attr_class ) {
+	var msg = jQuery( '<div class="ac-message hidden ' + attr_class + '"><p>' + message + '</p></div>' );
+	jQuery( '.ac-boxes' ).before( msg );
+	msg.slideDown();
+}
+
 /*
  * Submit Form
  *
@@ -44,15 +50,13 @@ function cpac_submit_form( $ ) {
 	$save_buttons.click( function() {
 
 		var $button = $( this );
-		var $container = $button.closest( '.columns-container' ).addClass( 'saving' );
+		var $container = $button.closest( '.ac-admin' ).addClass( 'saving' );
 		var columns_data = $container.find( '.ac-columns form' ).serialize();
-		var $msg = $container.find( '.ajax-message' );
 
 		$save_buttons.attr( 'disabled', 'disabled' );
 
 		// reset
-		$container.find( '.ajax-message' ).hide().removeClass( 'error updated' );
-		$( '.cpac_message' ).remove(); // placed by restore button
+		$container.find( '.ac-message' ).remove(); // placed by restore button
 
 		var xhr = $.post( ajaxurl, {
 				plugin_id : 'cpac',
@@ -67,16 +71,14 @@ function cpac_submit_form( $ ) {
 			function( response ) {
 				if ( response ) {
 					if ( response.success ) {
-						$msg.addClass( 'updated' ).find( 'p' ).html( response.data );
-						$msg.slideDown();//.delay( 2000 ).slideUp();
+						ac_show_ajax_message( response.data, 'updated' );
 
 						$container.addClass( 'stored' );
 					}
 
 					// Error message
 					else if ( response.data ) {
-						$msg.addClass( response.data.type ).find( 'p' ).html( response.data.message );
-						$msg.slideDown();
+						ac_show_ajax_message( response.data.message, 'notice notice-warning' );
 					}
 				}
 
@@ -160,7 +162,7 @@ function cpac_sidebar_feedback( $ ) {
 
 function cpac_init( $ ) {
 
-	var container = $( '.columns-container' );
+	var container = $( '.ac-admin' );
 	var boxes = container.find( '.ac-boxes' );
 
 	// Written for PHP Export
@@ -211,7 +213,7 @@ function cpac_menu( $ ) {
  * @since NEWVERSION
  */
 function cpac_reset_columns( $ ) {
-	var $container = $( '.columns-container' );
+	var $container = $( '.ac-admin' );
 
 	$( 'a[data-clear-columns]' ).on( 'click', function() {
 		$container.find( '.ac-column' ).each( function() {
@@ -255,7 +257,7 @@ function cpac_reset_columns( $ ) {
 			$column.addClass( 'events-binded' );
 
 			// hook for addons
-			$( document ).trigger( 'column_init', $.column );
+			$( document ).trigger( 'column_init', $column );
 		} ).css( 'cursor', 'pointer' );
 	};
 
@@ -350,7 +352,7 @@ function cpac_reset_columns( $ ) {
 		}, 'json' );
 
 		xhr.fail( function( error ) {
-			var $msg = el.closest( '.columns-container' ).find( '.ajax-message' );
+			var $msg = el.closest( '.ac-admin' ).find( '.ajax-message' );
 
 			$msg.addClass( 'error' ).find( 'p' ).html( AC.i18n.error );
 			$msg.slideDown();
@@ -374,7 +376,7 @@ function cpac_reset_columns( $ ) {
 	 */
 	$.fn.column_bind_events = function() {
 		var column = $( this );
-		var container = column.closest( '.columns-container ' );
+		var container = column.closest( '.ac-admin ' );
 
 		// Current column type
 		var default_value = column.find( 'select.ac-setting-input_type option:selected' ).val();
@@ -498,7 +500,6 @@ function cpac_reset_columns( $ ) {
 	 */
 	$.fn.column_clone = function() {
 
-		var container = $( this ).closest( '.columns-container' );
 		var column = $( this );
 		var columns = $( this ).closest( 'ac-columns' );
 
@@ -550,21 +551,21 @@ function cpac_reset_columns( $ ) {
 
 			// name
 			if ( $( v ).attr( 'name' ) ) {
-				$( v ).attr( 'name', $( v ).attr( 'name' ).replace( 'columns[' + original_column_name + ']', 'columns[' + temporary_column_name + ']' ) );
+				$( v ).attr( 'name', $( v ).attr( 'name' ).replace( 'columns[' + original_column_name + ']', 'columns[' + incremental_column_name + ']' ) );
 			}
 
 			// id
 			if ( $( v ).attr( 'id' ) ) {
-				$( v ).attr( 'id', $( v ).attr( 'id' ).replace( '-' + original_column_name + '-', '-' + temporary_column_name + '-' ) );
+				$( v ).attr( 'id', $( v ).attr( 'id' ).replace( '-' + original_column_name + '-', '-' + incremental_column_name + '-' ) );
 			}
 
 			// TODO: for
 		} );
 
-		$el.attr( 'data-column-name', temporary_column_name );
+		$el.attr( 'data-column-name', incremental_column_name );
 
 		// increment
-		temporary_column_name++;
+		incremental_column_name++;
 	};
 
 	/*
@@ -824,13 +825,74 @@ function cpac_reset_columns( $ ) {
 		} );
 	};
 
+	$.fn.cpac_column_setting_date = function() {
+
+		$( this ).each( function() {
+			var $setting = $( this );
+			var $input = $setting.find( '.ac-setting-input-more input[type=text]' );
+
+			if ( 'custom' != $setting.find( 'input[type=radio]:checked' ).val() ) {
+				$input.prop( 'readonly', true );
+			}
+
+			$setting.find( 'input[type=radio]' ).on( 'click change', function() {
+				if ( 'custom' != $( this ).val() ) {
+					$input.prop( 'readonly', true );
+					$input.val( $( this ).val() ).trigger( 'change' );
+				} else {
+					$input.prop( 'readonly', false );
+				}
+			} );
+
+			$input.on( 'change', function() {
+				var $example = $input.next( '[data-date-example]' );
+				$example.html( '<span class="spinner is-active"></span>' );
+				$.ajax( {
+					url : ajaxurl,
+					method : 'post',
+					data : {
+						action : 'date_format',
+						date : $input.val()
+					}
+				} ).done( function( date ) {
+					$example.text( date );
+				} );
+
+			} );
+
+		} );
+	};
+
 	$( document ).on( 'init_settings', function( e, column ) {
 		$( column ).find( '.ac-column-setting--width' ).cpac_column_setting_width();
+		$( column ).find( '.ac-column-setting--date' ).cpac_column_setting_date();
 
 		// TODO: pro?
 		$( column ).find( '.ac-column-setting--filter' ).cpac_column_sub_setting_toggle();
 		$( column ).find( '.ac-column-setting--sort' ).cpac_column_sub_setting_toggle();
 		$( column ).find( '.ac-column-setting--edit' ).cpac_column_sub_setting_toggle();
+	} );
+
+	/**
+	 * Populates the main Label with the selected label from the dropdown,
+	 */
+	$( document ).bind( 'column_init', function( e, column ) {
+
+		var $column = $( column );
+		var $select = $column.find( 'select[data-label="update"]' );
+
+		if ( 0 === $select.length ) {
+			return;
+		}
+
+		$select.bind( 'change', function() {
+			var $label = $column.find( 'input.ac-setting-input_label' );
+			var field_label = $select.find( 'option:selected' ).text();
+
+			// Set new label
+			$label.val( field_label );
+			$label.trigger( 'change' );
+		});
 	} );
 
 }( jQuery ));
