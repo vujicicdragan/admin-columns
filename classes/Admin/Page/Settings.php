@@ -12,7 +12,7 @@ class AC_Admin_Page_Settings extends AC_Admin_Page {
 			->set_slug( 'settings' )
 			->set_label( __( 'Settings', 'codepress-admin-columns' ) );
 
-		$this->register_settings( new AC_Admin_Settings_General() );
+		$this->register_settings( new AC_Admin_Settings_Array_General() );
 
 		// TODO: maybe target this class active instead of using an action?
 		do_action( 'ac/admin/register_settings', $this );

@@ -1,6 +1,6 @@
 <?php
 
-class AC_Admin_Settings_General extends AC_Admin_Settings_Array {
+class AC_Admin_Settings_Array_General extends AC_Admin_Settings_Array {
 
 	public function __construct() {
 		$this->set_id( 'general' );
