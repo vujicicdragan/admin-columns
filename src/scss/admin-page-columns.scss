@@ -149,6 +149,33 @@
 }
 
 /**
+ * Loading screen
+ * ----------------------------------------------------------------------------
+ */
+.loading-columns {
+	margin-top: 20px;
+
+	p {
+		.loading {
+			vertical-align: middle;
+			display: inline-block;
+			font-size: 20px;
+			color: lighten(#555, 15);
+		}
+
+		.spinner {
+			float: none;
+			margin: 0;
+			margin-right: 6px;
+		}
+	}
+}
+
+.visit-list-screen {
+	display: none;
+}
+
+/**
  * Columns
  * ----------------------------------------------------------------------------
  */

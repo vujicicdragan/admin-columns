@@ -181,18 +181,12 @@ table.ac-table-items {
 	}
 
 	&.warning {
-		.ac-upload-space-icon:before {
-			color: $wp-color-warning;
-			content: "\f534";
-			margin-top: 1px;
-		}
-
 		.ac-upload-space-progress-bar {
 			background-color: $wp-color-warning;
 		}
 	}
 	&.full {
-		.ac-upload-space-icon:before {
+		.ac-upload-space-labels .inner .ac-upload-space-icon:before {
 			color: $wp-color-notification;
 			content: "\f153";
 			margin-top: 1px;

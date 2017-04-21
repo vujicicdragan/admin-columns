@@ -110,6 +110,25 @@
     display: inline-block; }
 
 /**
+ * Loading screen
+ * ----------------------------------------------------------------------------
+ */
+.loading-columns {
+  margin-top: 20px; }
+  .loading-columns p .loading {
+    vertical-align: middle;
+    display: inline-block;
+    font-size: 20px;
+    color: #7b7b7b; }
+  .loading-columns p .spinner {
+    float: none;
+    margin: 0;
+    margin-right: 6px; }
+
+.visit-list-screen {
+  display: none; }
+
+/**
  * Columns
  * ----------------------------------------------------------------------------
  */

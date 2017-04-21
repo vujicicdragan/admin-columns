@@ -938,9 +938,8 @@ function cpac_reset_columns( $ ) {
 }( jQuery ));
 
 (function( $ ) {
-return;
-	$.ac_check_default_headings = function( element ) {
 
+	$.ac_check_default_headings = function( element ) {
 		var plugin = this;
 
 		var $el = $( element ),

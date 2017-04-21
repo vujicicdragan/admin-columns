@@ -800,9 +800,10 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 
 	private function display_loading_columns( AC_ListScreen $list_screen ) { ?>
         <iframe id="ac-get-default-columns" src="<?php echo esc_url( $this->get_stored_default_headings_url( $list_screen ) ); ?>" style="display:none;"></iframe>
-        <div class="ac-loading-columns">
+        <div class="loading-columns">
             <p>
-                Loading columns..
+                <span class="spinner is-active"></span>
+                <span class="loading">Loading columns..</span>
             </p>
         </div>
         <div class="visit-list-screen">
@@ -819,9 +820,6 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 	 */
 	public function display() {
 		$list_screen = $this->get_current_list_screen();
-
-		// TODO: dev
-		$list_screen->delete_default_headings();
 		?>
 
         <div class="ac-admin<?php echo $list_screen->get_settings() ? ' stored' : ''; ?>" data-type="<?php echo esc_attr( $list_screen->get_key() ); ?>">
