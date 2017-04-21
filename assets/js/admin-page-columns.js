@@ -938,7 +938,7 @@ function cpac_reset_columns( $ ) {
 }( jQuery ));
 
 (function( $ ) {
-return;
+
 	$.ac_check_default_headings = function( element ) {
 
 		var plugin = this;
@@ -960,6 +960,8 @@ return;
 			setTimeout( function() {
 				timeout = true;
 				clearInterval( interval );
+				$( '.loading-columns' ).hide();
+				$( '.visit-list-screen' ).show();
 			}, 10000 );
 		};
 

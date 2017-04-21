@@ -819,9 +819,6 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 	 */
 	public function display() {
 		$list_screen = $this->get_current_list_screen();
-
-		// TODO: dev
-		$list_screen->delete_default_headings();
 		?>
 
         <div class="ac-admin<?php echo $list_screen->get_settings() ? ' stored' : ''; ?>" data-type="<?php echo esc_attr( $list_screen->get_key() ); ?>">
