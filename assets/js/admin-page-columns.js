@@ -959,6 +959,8 @@ function cpac_reset_columns( $ ) {
 			setTimeout( function() {
 				timeout = true;
 				clearInterval( interval );
+				$( '.loading-columns' ).hide();
+				$( '.visit-list-screen' ).show();
 			}, 10000 );
 		};
 
