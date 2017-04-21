@@ -390,8 +390,13 @@ final class AC_TableScreen {
 			$this->current_list_screen->set_original_columns( null );
 		}
 
-		// Store default headings
-		if ( ! AC()->is_doing_ajax() ) {
+		// Store default headings on the columns screen
+		if ( filter_input( INPUT_GET, 'ac_headings' ) && wp_verify_nonce( filter_input( INPUT_GET, '_ac_nonce' ), 'store-default-headings' ) ) {
+			$this->current_list_screen->save_default_headings( $columns );
+        }
+
+		// Store default headings on the table screen
+		if ( ! AC()->is_doing_ajax() && AC()->user_can_manage_admin_columns() ) {
 			$this->current_list_screen->save_default_headings( $columns );
 		}
 
