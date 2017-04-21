@@ -30,7 +30,6 @@ jQuery( document ).ready( function( $ ) {
 	cpac_add_column( $ );
 	cpac_sidebar_feedback( $ );
 
-
 	$.ac_check_default_headings( $( '#ac-get-default-columns' ) );
 
 } );
@@ -939,7 +938,7 @@ function cpac_reset_columns( $ ) {
 }( jQuery ));
 
 (function( $ ) {
-
+return;
 	$.ac_check_default_headings = function( element ) {
 
 		var plugin = this;
@@ -948,7 +947,7 @@ function cpac_reset_columns( $ ) {
 			timeout = false;
 
 		plugin.init = function() {
-			if( $el.length == 0 ){
+			if ( 0 === $el.length ) {
 				return;
 			}
 
@@ -962,11 +961,12 @@ function cpac_reset_columns( $ ) {
 				timeout = true;
 				clearInterval( interval );
 			}, 10000 );
-		}
+		};
 
 		var check_status = function() {
 			$.ajax( {
 				url : ajaxurl,
+				method : 'post',
 				data : {
 					action : 'ac_check_default_headings',
 					list_screen : AC.list_screen,
@@ -978,7 +978,7 @@ function cpac_reset_columns( $ ) {
 					}
 				}
 			} );
-		}
+		};
 
 		plugin.init();
 

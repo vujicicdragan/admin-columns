@@ -700,15 +700,6 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 		?>
         <div class="ac-left">
 
-            // TODO
-			<?php if ( ! $list_screen->get_stored_default_headings() && ! $list_screen->is_read_only() ) : ?>
-                <div class="notice notice-warning">
-                    <p>
-						<?php echo $this->get_error_message_visit_list_screen( $list_screen ); ?>
-                    </p>
-                </div>
-			<?php endif ?>
-
 			<?php $this->display_notices(); ?>
 
 			<?php if ( $list_screen->is_read_only() ) : ?>
@@ -809,9 +800,17 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 
 	private function display_loading_columns( AC_ListScreen $list_screen ) { ?>
         <iframe id="ac-get-default-columns" src="<?php echo esc_url( $this->get_stored_default_headings_url( $list_screen ) ); ?>" style="display:none;"></iframe>
-        <p>
-            Loading columns..
-        </p>
+        <div class="ac-loading-columns">
+            <p>
+                Loading columns..
+            </p>
+        </div>
+        <div class="visit-list-screen">
+            <p>
+				<?php echo $this->get_error_message_visit_list_screen( $list_screen ); ?>
+            </p>
+        </div>
+
 		<?php
 	}
 
