@@ -697,6 +697,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 							<?php echo $this->get_error_message_visit_list_screen( $list_screen ); ?>
                         </p>
                     </div>
+					<iframe id="ac-get-default-columns" src="<?php echo home_url(); ?>" data-src="<?php echo $list_screen->get_screen_link(); ?>" width="100%" height="100px"></iframe>
 				<?php endif ?>
 
 				<?php $this->display_notices(); ?>
