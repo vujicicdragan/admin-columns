@@ -30,6 +30,9 @@ jQuery( document ).ready( function( $ ) {
 	cpac_add_column( $ );
 	cpac_sidebar_feedback( $ );
 
+
+	$.ac_check_default_headings( $( '#ac-get-default-columns' ) );
+
 } );
 
 function ac_show_ajax_message( message, attr_class ) {
@@ -934,3 +937,50 @@ function cpac_reset_columns( $ ) {
 	} );
 
 }( jQuery ));
+
+(function( $ ) {
+
+	$.ac_check_default_headings = function( element ) {
+
+		var plugin = this;
+
+		var $el = $( element ),
+			timeout = false;
+
+		plugin.init = function() {
+			if( $el.length == 0 ){
+				return;
+			}
+
+			var interval = setInterval( function() {
+				if ( !timeout ) {
+					check_status();
+				}
+			}, 500 );
+
+			setTimeout( function() {
+				timeout = true;
+				clearInterval( interval );
+			}, 10000 );
+		}
+
+		var check_status = function() {
+			$.ajax( {
+				url : ajaxurl,
+				data : {
+					action : 'ac_check_default_headings',
+					list_screen : AC.list_screen,
+					_ajax_nonce : AC._ajax_nonce,
+				},
+				success : function( response ) {
+					if ( response.success ) {
+						location.reload();
+					}
+				}
+			} );
+		}
+
+		plugin.init();
+
+	}
+})( jQuery );
