@@ -245,7 +245,7 @@ class AC_Column {
 	/**
 	 * @param string $id
 	 *
-	 * @return AC_Settings_Column|AC_Settings_Column_User|AC_Settings_Column_Separator|AC_Settings_Column_Label
+	 * @return AC_Settings_Column|AC_Settings_Column_User|AC_Settings_Column_Separator|AC_Settings_Column_Label|AC_Settings_Column_Width
 	 */
 	public function get_setting( $id ) {
 		return $this->get_settings()->get( $id );

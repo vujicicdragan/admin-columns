@@ -233,10 +233,18 @@ final class AC_TableScreen {
 				/* @var AC_Settings_Column_Width $setting */
 				$setting = $column->get_setting( 'width' );
 
-				if ( $width = $setting->get_display_width() ) {
-					$css_column_width .= ".ac-" . $this->current_list_screen->get_key() . " .wrap table th.column-" . $column->get_name() . " { width: " . $width . " !important; }";
-					$css_column_width .= "body.acp-overflow-table.ac-" . $this->current_list_screen->get_key() . " .wrap th.column-" . $column->get_name() . " { min-width: " . $width . " !important; }";
+				$width = $setting->get_display_width();
+
+				if ( $width < 1 ) {
+					continue;
 				}
+
+				// TODO: apply user preference to width
+
+				$css_width = $width . $setting->get_width_unit();
+
+				$css_column_width .= ".ac-" . $this->current_list_screen->get_key() . " .wrap table th.column-" . $column->get_name() . " { width: " . $css_width . " !important; }";
+				$css_column_width .= "body.acp-overflow-table.ac-" . $this->current_list_screen->get_key() . " .wrap th.column-" . $column->get_name() . " { min-width: " . $css_width . " !important; }";
 			}
 
 			if ( $css_column_width ) : ?>
