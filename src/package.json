@@ -26,5 +26,8 @@
     "cssTemplateFontPath": "../fonts/",
     "cssTemplateClassName": "cpacicon",
     "normalize": true
+  },
+  "dependencies": {
+    "intro.js": "^2.8.0-alpha.1"
   }
 }

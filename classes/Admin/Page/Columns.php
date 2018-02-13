@@ -42,6 +42,10 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 			return;
 		}
 
+		// Intro
+		wp_enqueue_style( 'acp-intro', AC()->get_plugin_url() . 'assets/css/introjs.min.css' );
+		wp_enqueue_script( 'acp-intro', AC()->get_plugin_url() . 'assets/js/intro.min.js' );
+
 		// Width slider
 		wp_enqueue_style( 'jquery-ui-lightness', AC()->get_plugin_url() . 'assets/ui-theme/jquery-ui-1.8.18.custom.css', array(), AC()->get_version() );
 		wp_enqueue_script( 'jquery-ui-slider' );
@@ -440,7 +444,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 		<div class="ac-admin<?php echo $list_screen->get_settings() ? ' stored' : ''; ?>" data-type="<?php echo esc_attr( $list_screen->get_key() ); ?>">
 			<div class="main">
 				<div class="menu">
-					<form>
+					<form data-intro="Select your Content Type" data-step="1">
 						<?php $this->nonce_field( 'select-list-screen' ); ?>
 						<input type="hidden" name="page" value="<?php echo esc_attr( AC_Admin::MENU_SLUG ); ?>">
 
@@ -466,10 +470,11 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 			</div>
 
 			<div class="ac-right">
+				<a class="btn btn-large btn-success" href="javascript:void(0);" onclick="javascript:introJs().start();">Show me how</a>
 				<div class="ac-right-inner">
 
 					<?php if ( ! $list_screen->is_read_only() ) : ?>
-						<div class="sidebox form-actions">
+						<div class="sidebox form-actions" data-intro="After you finished, click here to store your settings">
 							<?php $mainlabel = __( 'Store settings', 'codepress-admin-columns' ); ?>
 							<h3>
 								<span class="left"><?php echo esc_html( $mainlabel ); ?></span>
@@ -677,7 +682,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 				</div><!--.ac-right-inner-->
 			</div><!--.ac-right-->
 
-			<div class="ac-left">
+			<div class="ac-left" data-intro="Drag and Drop to reorder columns" data-step="2">
 				<?php if ( ! $list_screen->get_stored_default_headings() && ! $list_screen->is_read_only() ) : ?>
 					<div class="notice notice-warning">
 						<p>
@@ -740,7 +745,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 								<span class="spinner"></span>
 								<a class="button-primary submit update"><?php _e( 'Update' ); ?></a>
 								<a class="button-primary submit save"><?php _e( 'Save' ); ?></a>
-								<a class="add_column button">+ <?php _e( 'Add Column', 'codepress-admin-columns' ); ?></a>
+								<a class="add_column button" data-intro="Click here to add new columns to this overview" data-step="3">+ <?php _e( 'Add Column', 'codepress-admin-columns' ); ?></a>
 							</div>
 						<?php endif; ?>
 					</div>
