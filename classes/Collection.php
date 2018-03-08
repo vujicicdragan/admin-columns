@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Designed to hold values or objects of the same type
+ * Class AC_Collection
+ *
+ * Used to hold values from the same type
  */
 class AC_Collection
 	implements Iterator {
@@ -27,6 +29,10 @@ class AC_Collection
 		$this->items[ $key ] = $value;
 
 		return $this;
+	}
+
+	public function push( $value ) {
+		$this->items[] = $value;
 	}
 
 	public function get( $key, $default = null ) {
@@ -61,6 +67,36 @@ class AC_Collection
 		$key = $this->key();
 
 		return ( $key !== null && $key !== false );
+	}
+
+	public function count() {
+		return count( $this->items );
+	}
+
+	/**
+	 * Filter collection items
+	 *
+	 * @return AC_Collection
+	 */
+	public function filter() {
+		return new AC_Collection( ac_helper()->array->filter( $this->items ) );
+	}
+
+	/**
+	 * Limit array to max number of items
+	 *
+	 * @param int $length
+	 *
+	 * @return int Number of removed items
+	 */
+	public function limit( $length ) {
+		$count = $this->count();
+
+		if ( 0 < $length ) {
+			$this->items = array_slice( $this->items, 0, $length );
+		}
+
+		return $count - $this->count();
 	}
 
 	/**

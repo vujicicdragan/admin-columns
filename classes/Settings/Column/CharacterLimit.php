@@ -1,7 +1,7 @@
 <?php
 
 class AC_Settings_Column_CharacterLimit extends AC_Settings_Column
-	implements AC_Settings_FormatInterface {
+	implements AC_Settings_FormatValueInterface {
 
 	/**
 	 * @var int
@@ -46,13 +46,8 @@ class AC_Settings_Column_CharacterLimit extends AC_Settings_Column
 		return true;
 	}
 
-	/**
-	 * @param string $string
-	 *
-	 * @return string
-	 */
-	public function format( $string, $object_id = null ) {
-		return ac_helper()->string->trim_characters( $string, $this->get_character_limit() );
+	public function format( $value, $original_value ) {
+		return ac_helper()->string->trim_characters( $value, $this->get_character_limit() );
 	}
 
 }

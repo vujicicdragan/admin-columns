@@ -1,7 +1,7 @@
 <?php
 
 class AC_Settings_Column_Image extends AC_Settings_Column
-	implements AC_Settings_FormatInterface {
+	implements AC_Settings_FormatValueInterface {
 
 	/**
 	 * @var string
@@ -24,9 +24,9 @@ class AC_Settings_Column_Image extends AC_Settings_Column
 
 	protected function define_options() {
 		return array(
-			'image_size',
-			'image_size_w' => 80,
-			'image_size_h' => 80,
+			'image_size'   => 'cpac-custom',
+			'image_size_w' => 60,
+			'image_size_h' => 60,
 		);
 	}
 
@@ -173,17 +173,23 @@ class AC_Settings_Column_Image extends AC_Settings_Column
 		return true;
 	}
 
-	public function format( $media_id, $object_id = null ) {
+	protected function get_size_args() {
 		$size = $this->get_image_size();
 
-		if ( 'cpac-custom' == $size ) {
-			$size = array(
-				$this->get_image_size_w(),
-				$this->get_image_size_h(),
-			);
+		if ( 'cpac-custom' === $size ) {
+			$size = array( $this->get_image_size_w(), $this->get_image_size_h() );
 		}
 
-		return ac_helper()->image->get_image( $media_id, $size );
+		// fallback size
+		if ( empty( $size ) ) {
+			$size = array( 60, 60 );
+		}
+
+		return $size;
+	}
+
+	public function format( $value, $original_value ) {
+		return ac_helper()->image->get_image( $value, $this->get_size_args() );
 	}
 
 }

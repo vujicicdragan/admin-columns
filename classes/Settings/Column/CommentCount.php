@@ -1,8 +1,11 @@
 <?php
 
 class AC_Settings_Column_CommentCount extends AC_Settings_Column
-	implements AC_Settings_FormatInterface {
+	implements AC_Settings_FormatValueInterface {
 
+	/**
+	 * @var string
+	 */
 	private $comment_status;
 
 	public function get_name() {
@@ -11,7 +14,7 @@ class AC_Settings_Column_CommentCount extends AC_Settings_Column
 
 	protected function define_options() {
 		return array(
-			'comment_status' => 'total_comments'
+			'comment_status' => 'total_comments',
 		);
 	}
 
@@ -19,10 +22,13 @@ class AC_Settings_Column_CommentCount extends AC_Settings_Column
 	 * @return AC_View
 	 */
 	public function create_view() {
+		$setting = $this->create_element( 'select' )
+		                ->set_options( $this->get_comment_statuses() );
+
 		$view = new AC_View( array(
 			'label'   => __( 'Comment status', 'codepress-admin-columns' ),
 			'tooltip' => __( 'Select which comment status you like to display.', 'codepress-admin-columns' ),
-			'setting' => $this->create_element( 'select' )->set_options( $this->get_comment_statuses() ),
+			'setting' => $setting,
 		) );
 
 		return $view;
@@ -31,16 +37,18 @@ class AC_Settings_Column_CommentCount extends AC_Settings_Column
 	/**
 	 * @return array
 	 */
-	private function get_comment_statuses() {
+	protected function get_comment_statuses() {
 		$options = array(
-			'total_comments' => __( 'Total', 'codepress-admin-columns' ),
-			'approved'       => __( 'Approved', 'codepress-admin-columns' ),
-			'moderated'      => __( 'Pending', 'codepress-admin-columns' ),
-			'spam'           => __( 'Spam', 'codepress-admin-columns' ),
-			'trash'          => __( 'Trash', 'codepress-admin-columns' ),
+			'approved'  => __( 'Approved', 'codepress-admin-columns' ),
+			'moderated' => __( 'Pending', 'codepress-admin-columns' ),
+			'spam'      => __( 'Spam', 'codepress-admin-columns' ),
+			'trash'     => __( 'Trash', 'codepress-admin-columns' ),
 		);
 
-		asort( $options );
+		natcasesort( $options );
+
+		// First
+		$options = array( 'total_comments' => __( 'Total', 'codepress-admin-columns' ) ) + $options;
 
 		return $options;
 	}
@@ -64,21 +72,35 @@ class AC_Settings_Column_CommentCount extends AC_Settings_Column
 	}
 
 	/**
-	 * @param stdClass $count
 	 * @param int $post_id
 	 *
-	 * @return string
+	 * @return int
 	 */
-	public function format( $count, $object_id = null ) {
-		$value = 0;
-
+	public function get_comment_count( $post_id ) {
 		$status = $this->get_comment_status();
+		$count = wp_count_comments( $post_id );
 
-		if ( isset( $count->{$status} ) ) {
-			$value = $count->{$status};
+		if ( empty( $count->$status ) ) {
+			return false;
 		}
 
-		return $value;
+		return $count->$status;
+	}
+
+	/**
+	 * @param int $post_id
+	 * @param int $original_value
+	 *
+	 * @return false|string
+	 */
+	public function format( $post_id, $original_value ) {
+		$count = $this->get_comment_count( $post_id );
+
+		if ( ! $count ) {
+			return $this->column->get_empty_char();
+		}
+
+		return ac_helper()->html->link( add_query_arg( array( 'p' => $post_id, 'comment_status' => $this->get_comment_status() ), admin_url( 'edit-comments.php' ) ), $count );
 	}
 
 }

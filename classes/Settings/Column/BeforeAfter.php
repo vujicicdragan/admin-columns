@@ -1,7 +1,7 @@
 <?php
 
 class AC_Settings_Column_BeforeAfter extends AC_Settings_Column
-	implements AC_Settings_FormatInterface {
+	implements AC_Settings_FormatValueInterface {
 
 	/**
 	 * @var string
@@ -21,29 +21,53 @@ class AC_Settings_Column_BeforeAfter extends AC_Settings_Column
 		return array( 'before', 'after' );
 	}
 
-	public function format( $value, $object_id = null ) {
+	public function format( $value, $original_value ) {
 		if ( ac_helper()->string->is_empty( $value ) ) {
-			return false;
+			return $value;
 		}
 
-		return $this->get_before() . $value . $this->get_after();
+		if ( $this->get_before() || $this->get_after() ) {
+			$value = $this->get_before() . $value . $this->get_after();
+		}
+
+		return $value;
+	}
+
+	protected function get_before_element() {
+		$text = $this->create_element( 'text', 'before' );
+		$text->set_attribute( 'placeholder', $this->get_default( 'before' ) );
+
+		return $text;
+	}
+
+	protected function get_after_element() {
+		$text = $this->create_element( 'text', 'after' );
+		$text->set_attribute( 'placeholder', $this->get_default( 'after' ) );
+
+		return $text;
 	}
 
 	public function create_view() {
+		$setting = $this->get_before_element();
+
 		$before = new AC_View( array(
 			'label'       => __( 'Before', 'codepress-admin-columns' ),
 			'description' => __( 'This text will appear before the column value.', 'codepress-admin-columns' ),
-			'setting'     => $this->create_element( 'text', 'before' ),
+			'setting'     => $setting,
+			'for'         => $setting->get_id(),
 		) );
+
+		$setting = $this->get_after_element();
 
 		$after = new AC_View( array(
 			'label'       => __( 'After', 'codepress-admin-columns' ),
 			'description' => __( 'This text will appear after the column value.', 'codepress-admin-columns' ),
-			'setting'     => $this->create_element( 'text', 'after' ),
+			'setting'     => $setting,
+			'for'         => $setting->get_id(),
 		) );
 
 		$view = new AC_View( array(
-			'label'    => __( 'Display Options', 'codepress - admin - columns' ),
+			'label'    => __( 'Display Options', 'codepress-admin-columns' ),
 			'sections' => array( $before, $after ),
 		) );
 

@@ -1,7 +1,7 @@
 <?php
 
 class AC_Settings_Column_Post extends AC_Settings_Column
-	implements AC_Settings_FormatInterface {
+	implements AC_Settings_FormatValueInterface {
 
 	/**
 	 * @var string
@@ -33,32 +33,32 @@ class AC_Settings_Column_Post extends AC_Settings_Column
 	}
 
 	/**
-	 * @param int $post_id
+	 * @param int $id
+	 * @param mixed $original_value
 	 *
-	 * @return string
+	 * @return string|int
 	 */
-	public function format( $value, $post_id = null ) {
+	public function format( $id, $original_value ) {
 
 		switch ( $this->get_post_property_display() ) {
 
 			case 'author' :
-				$value = ac_helper()->user->get_display_name( ac_helper()->post->get_raw_field( 'post_author', $value ) );
-				break;
+				$value = ac_helper()->user->get_display_name( ac_helper()->post->get_raw_field( 'post_author', $id ) );
 
+				break;
 			case 'thumbnail' :
-				$value = get_post_thumbnail_id( $value );
-				break;
+				$value = get_post_thumbnail_id( $id );
 
-			case 'title' :
-				$value = ac_helper()->post->get_raw_field( 'post_title', $value );
 				break;
+			case 'title' :
+				$value = ac_helper()->post->get_title( $id );
+
+				break;
+			default :
+				$value = $id;
 		}
 
 		return $value;
-	}
-
-	protected function get_post_type() {
-		return $this->column->get_post_type();
 	}
 
 	public function create_view() {
@@ -66,10 +66,8 @@ class AC_Settings_Column_Post extends AC_Settings_Column
 		               ->set_attribute( 'data-refresh', 'column' )
 		               ->set_options( $this->get_display_options() );
 
-		$post_type = get_post_type_object( $this->get_post_type() );
-
 		$view = new AC_View( array(
-			'label'   => sprintf( __( '%s Field', 'codepress-admin-columns' ), $post_type->labels->singular_name ),
+			'label'   => __( 'Display', 'codepress-admin-columns' ),
 			'setting' => $select,
 		) );
 
@@ -81,7 +79,7 @@ class AC_Settings_Column_Post extends AC_Settings_Column
 			'title'     => __( 'Title' ),
 			'id'        => __( 'ID' ),
 			'author'    => __( 'Author' ),
-			'thumbnail' => __( 'Thumbnail' ),
+			'thumbnail' => _x( 'Featured Image', 'post' ),
 		);
 
 		asort( $options );

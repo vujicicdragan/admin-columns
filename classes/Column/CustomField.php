@@ -17,23 +17,6 @@ class AC_Column_CustomField extends AC_Column_Meta {
 		$this->set_group( 'custom_field' );
 	}
 
-	/**
-	 * Display value
-	 *
-	 * @param int $object_id ID
-	 *
-	 * @return mixed
-	 */
-	public function get_value( $object_id ) {
-
-		// Count does not need formatting
-		if ( 'count' === $this->get_field_type() ) {
-			return count( $this->get_meta_value( $object_id, $this->get_meta_key(), false ) );
-		}
-
-		return $this->format_value( $this->get_raw_value( $object_id ) );
-	}
-
 	public function get_meta_key() {
 		return $this->get_setting( 'custom_field' )->get_value();
 	}
@@ -55,15 +38,6 @@ class AC_Column_CustomField extends AC_Column_Meta {
 	 */
 	public function get_field() {
 		return $this->get_meta_key();
-	}
-
-	/**
-	 * Only valid for a Listscreen with a meta type
-	 *
-	 * @return mixed
-	 */
-	public function is_valid() {
-		return in_array( $this->get_list_screen()->get_meta_type(), array( 'post', 'user', 'comment', 'term' ) );
 	}
 
 }

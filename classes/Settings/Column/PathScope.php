@@ -1,7 +1,7 @@
 <?php
 
 class AC_Settings_Column_PathScope extends AC_Settings_Column
-	implements AC_Settings_FormatInterface {
+	implements AC_Settings_FormatValueInterface {
 
 	/**
 	 * @var string
@@ -49,10 +49,12 @@ class AC_Settings_Column_PathScope extends AC_Settings_Column
 		return true;
 	}
 
-	public function format( $file, $object_id = null ) {
+	public function format( $value, $original_value ) {
+		$file = $value;
 		$value = '';
 
 		if ( $file ) {
+
 			switch ( $this->get_path_scope() ) {
 				case 'relative-domain' :
 					$file = str_replace( 'https://', 'http://', $file );
@@ -64,9 +66,9 @@ class AC_Settings_Column_PathScope extends AC_Settings_Column
 
 					break;
 				case 'relative-uploads' :
-					$uploaddir = wp_upload_dir();
 					$file = str_replace( 'https://', 'http://', $file );
-					$url = str_replace( 'https://', 'http://', $uploaddir['baseurl'] );
+					$upload_dir = wp_upload_dir();
+					$url = str_replace( 'https://', 'http://', $upload_dir['baseurl'] );
 
 					if ( strpos( $file, $url ) === 0 ) {
 						$file = substr( $file, strlen( $url ) );

@@ -1,7 +1,7 @@
 <?php
 
 class AC_Settings_Column_Term extends AC_Settings_Column
-	implements AC_Settings_FormatInterface {
+	implements AC_Settings_FormatValueInterface {
 
 	/**
 	 * @var string
@@ -51,29 +51,29 @@ class AC_Settings_Column_Term extends AC_Settings_Column
 		return true;
 	}
 
-	/**
-	 * @param int $term_id Term ID
-	 *
-	 * @return mixed
-	 */
-	public function format( $term_id, $object_id = null ) {
+	public function format( $value, $original_value ) {
+
+		// For ACP_Column_Taxonomy_Parent
+		$term_id = $value;
+
 		switch ( $this->get_term_property() ) {
 			case 'slug' :
 				$label = ac_helper()->taxonomy->get_term_field( 'slug', $term_id, $this->column->get_taxonomy() );
+
 				break;
 			case 'id' :
 				$label = $term_id;
+
 				break;
 			default :
 				$label = ac_helper()->taxonomy->get_term_field( 'name', $term_id, $this->column->get_taxonomy() );
-				break;
 		}
 
-		if ( empty( $label ) ) {
-			return false;
+		if ( ! $label ) {
+			$label = false;
 		}
 
-		return $label;
+		return ac_helper()->html->link( get_edit_term_link( $term_id, $this->column->get_taxonomy() ), $label );
 	}
 
 }

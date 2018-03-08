@@ -3,34 +3,11 @@
 class AC_Helper_Post {
 
 	/**
-	 * @param string $field Field
-	 * @param int $id Post ID
-	 *
-	 * @return string|false
-	 */
-	public function get_raw_field( $field, $id ) {
-		global $wpdb;
-
-		if ( ! $id || ! is_numeric( $id ) ) {
-			return false;
-		}
-
-		$sql = "
-			SELECT " . $wpdb->_real_escape( $field ) . "
-			FROM $wpdb->posts
-			WHERE ID = %d
-			LIMIT 1
-		";
-
-		return $wpdb->get_var( $wpdb->prepare( $sql, $id ) );
-	}
-
-	/**
 	 * @param int $id
 	 *
 	 * @return bool
 	 */
-	public function post_exists( $id ) {
+	public function exists( $id ) {
 		return $this->get_raw_field( 'ID', $id ) ? true : false;
 	}
 
@@ -39,44 +16,8 @@ class AC_Helper_Post {
 	 *
 	 * @return false|string Post Title
 	 */
-	public function get_post_title( $id ) {
+	public function get_raw_post_title( $id ) {
 		return ac_helper()->post->get_raw_field( 'post_title', $id );
-	}
-
-	/**
-	 * Get values by post field
-	 *
-	 * @since 1.0
-	 */
-	public function get_post_values_by_field( $post_field, $post_type ) {
-		global $wpdb;
-
-		$post_field = sanitize_key( $post_field );
-
-		$sql = "
-			SELECT DISTINCT {$post_field}
-			FROM {$wpdb->posts}
-			WHERE post_type = %s
-			AND {$post_field} <> ''
-			ORDER BY 1
-		";
-
-		$values = $wpdb->get_col( $wpdb->prepare( $sql, $post_type ) );
-
-		return $values && ! is_wp_error( $values ) ? $values : array();
-	}
-
-	/**
-	 * Display terms
-	 * Largely taken from class-wp-post-list-table.php
-	 *
-	 * @since 1.0
-	 *
-	 * @param int $id Post ID
-	 * @param string $taxonomy Taxonomy name
-	 */
-	public function get_terms_for_display( $post_id, $taxonomy ) {
-		return ac_helper()->taxonomy->display( get_the_terms( $post_id, $taxonomy ), get_post_type( $post_id ) );
 	}
 
 	/**
@@ -102,6 +43,106 @@ class AC_Helper_Post {
 		}
 
 		return ac_helper()->string->trim_words( $excerpt, $words );
+	}
+
+	/**
+	 * @param string $post_type
+	 * @param bool   $plural
+	 *
+	 * @return bool
+	 */
+	public function get_post_type_label( $post_type, $plural = false ) {
+		$post_type = get_post_type_object( $post_type );
+
+		if ( ! $post_type ) {
+			return false;
+		}
+
+		if ( $plural ) {
+			return $post_type->labels->name;
+		}
+
+		return $post_type->labels->singular_name;
+	}
+
+	/**
+	 * @param string $field Field
+	 * @param int    $id    Post ID
+	 *
+	 * @return string|false
+	 */
+	public function get_raw_field( $field, $id ) {
+		global $wpdb;
+
+		if ( ! $id || ! is_numeric( $id ) ) {
+			return false;
+		}
+
+		$sql = "
+			SELECT " . $wpdb->_real_escape( $field ) . "
+			FROM $wpdb->posts
+			WHERE ID = %d
+			LIMIT 1
+		";
+
+		return $wpdb->get_var( $wpdb->prepare( $sql, $id ) );
+	}
+
+	/**
+	 * Get Post Title or Media Filename
+	 *
+	 * @param int|WP_Post $post
+	 *
+	 * @return bool|string
+	 */
+	public function get_title( $post ) {
+		$post = get_post( $post );
+
+		if ( ! $post ) {
+			return false;
+		}
+
+		$title = $post->post_title;
+
+		if ( 'attachment' == $post->post_type ) {
+			$title = ac_helper()->image->get_file_name( $post->ID );
+		}
+
+		return $title;
+	}
+
+	/**
+	 * @param WP_Post $post Post
+	 *
+	 * @return false|string Dash icon with tooltip
+	 */
+	public function get_status_icon( $post ) {
+		$icon = false;
+
+		switch ( $post->post_status ) {
+			case 'private' :
+				$icon = ac_helper()->html->tooltip( ac_helper()->icon->dashicon( array( 'icon' => 'hidden', 'class' => 'gray' ) ), __( 'Private' ) );
+				break;
+			case 'publish' :
+				$icon = ac_helper()->html->tooltip( ac_helper()->icon->dashicon( array( 'icon' => 'yes', 'class' => 'blue large' ) ), __( 'Published' ) );
+				break;
+			case 'draft' :
+				$icon = ac_helper()->html->tooltip( ac_helper()->icon->dashicon( array( 'icon' => 'edit', 'class' => 'green' ) ), __( 'Draft' ) );
+				break;
+			case 'pending' :
+				$icon = ac_helper()->html->tooltip( ac_helper()->icon->dashicon( array( 'icon' => 'backup', 'class' => 'orange' ) ), __( 'Pending for review' ) );
+				break;
+			case 'future' :
+				$icon = ac_helper()->html->tooltip( ac_helper()->icon->dashicon( array( 'icon' => 'clock' ) ), __( 'Scheduled' ) . ': <em>' . ac_helper()->date->date( $post->post_date, 'wp_date_time' ) . '</em>' );
+
+				// Missed schedule
+				if ( ( time() - mysql2date( 'G', $post->post_date_gmt ) ) > 0 ) {
+					$icon .= ac_helper()->html->tooltip( ac_helper()->icon->dashicon( array( 'icon' => 'flag', 'class' => 'gray' ) ), __( 'Missed schedule' ) );
+				}
+				break;
+		}
+
+		return $icon;
 	}
 
 }

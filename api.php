@@ -45,14 +45,14 @@ function ac_get_site_utm_url( $path, $utm_medium, $utm_content = null, $utm_camp
 		// Specific promotions or sales
 		'utm_campaign' => $utm_campaign,
 
-		// Marketing medium: banner, support documentation, email
+		// Marketing medium: banner, documentation or email
 		'utm_medium'   => $utm_medium,
 
 		// Used for differentiation of medium
 		'utm_content'  => $utm_content,
 	);
 
-	$args = array_map( 'sanitize_key', $args );
+	$args = array_map( 'sanitize_key', array_filter( $args ) );
 
 	return add_query_arg( $args, $url );
 }
@@ -63,33 +63,24 @@ function ac_get_site_utm_url( $path, $utm_medium, $utm_content = null, $utm_camp
  * @return string
  */
 function ac_get_twitter_handle() {
-	return 'wpcolumns';
+	return 'admincolumns';
 }
 
 /**
  * Simple helper methods for AC_Column objects
  *
- * @since NEWVERSION
+ * @since 3.0
  */
 function ac_helper() {
 	return AC()->helper();
 }
 
 /**
- * @since NEWVERSION
+ * @since 3.0
  * @return bool True when a minimum version of Admin Columns Pro plugin is activated.
  */
 function ac_is_version_gte( $version ) {
 	return version_compare( AC()->get_version(), $version, '>=' );
-}
-
-/**
- * Returns row actions for the WP_List_Tables
- *
- * @return AC_Column_ActionColumnHelper
- */
-function ac_action_column_helper() {
-	return AC_Column_ActionColumnHelper::instance();
 }
 
 /**
@@ -105,7 +96,7 @@ function ac_action_column_helper() {
  * @since 2.2
  *
  * @param string|array $list_screen_key List screen key or keys
- * @param array $column_data
+ * @param array        $column_data
  */
 function ac_register_columns( $list_screen_keys, $column_data ) {
 	AC()->api()->load_columndata( $list_screen_keys, $column_data );
@@ -121,11 +112,9 @@ function ac_register_columns( $list_screen_keys, $column_data ) {
  * @since 2.3.4
  */
 function cac_is_doing_ajax() {
-	_deprecated_function( __FUNCTION__, 'NEWVERSION' );
+	_deprecated_function( __FUNCTION__, '3.0' );
 
-	$is_doing_ajax = AC()->table_screen()->get_list_screen_when_doing_ajax() || ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_REQUEST['list_screen'] ) );
-
-	return apply_filters_deprecated( 'cac/is_doing_ajax', array( $is_doing_ajax ), 'NEWVERSION' );
+	return AC()->table_screen()->get_list_screen_when_doing_quick_edit() || ( AC()->is_doing_ajax() && isset( $_REQUEST['list_screen'] ) );
 }
 
 /**
@@ -134,9 +123,9 @@ function cac_is_doing_ajax() {
  * @since 2.5
  */
 function cac_wp_is_doing_ajax() {
-	_deprecated_function( __FUNCTION__, 'NEWVERSION' );
+	_deprecated_function( __FUNCTION__, '3.0' );
 
-	return AC()->table_screen()->get_list_screen_when_doing_ajax();
+	return AC()->table_screen()->get_list_screen_when_doing_quick_edit();
 }
 
 /**
@@ -149,7 +138,7 @@ function cac_wp_is_doing_ajax() {
  * @return bool True if the current screen is the settings screen, false otherwise
  */
 function cac_is_setting_screen( $slug = '' ) {
-	_deprecated_function( __FUNCTION__, 'NEWVERSION', 'AC()->admin()->is_current_page( $slug )' );
+	_deprecated_function( __FUNCTION__, '3.0', 'AC()->admin()->is_current_page( $slug )' );
 
 	return AC()->admin()->is_current_page( $slug );
 }
@@ -157,22 +146,22 @@ function cac_is_setting_screen( $slug = '' ) {
 /**
  * Returns true if the installed version of WooCommerce is version X or greater
  *
- * @since 2.3.4
- * @deprecated NEWVERSION
+ * @since      2.3.4
+ * @deprecated 3.0
  * @return boolean true if the installed version of WooCommerce is version X or greater
  */
 function cpac_is_wc_version_gte( $version = '1.0' ) {
-	_deprecated_function( __FUNCTION__, 'NEWVERSION' );
+	_deprecated_function( __FUNCTION__, '3.0' );
 
 	return false;
 }
 
 /**
- * @deprecated NEWVERSION
+ * @deprecated 3.0
  * @return bool True when Admin Columns Pro plugin is activated.
  */
 function cpac_is_pro_active() {
-	_deprecated_function( __FUNCTION__, 'NEWVERSION', 'ac_is_pro_active' );
+	_deprecated_function( __FUNCTION__, '3.0', 'ac_is_pro_active' );
 
 	return ac_is_pro_active();
 }

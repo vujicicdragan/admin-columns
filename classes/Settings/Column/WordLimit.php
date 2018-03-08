@@ -1,7 +1,7 @@
 <?php
 
 class AC_Settings_Column_WordLimit extends AC_Settings_Column
-	implements AC_Settings_FormatInterface {
+	implements AC_Settings_FormatValueInterface {
 
 	/**
 	 * @var int
@@ -23,7 +23,6 @@ class AC_Settings_Column_WordLimit extends AC_Settings_Column
 		                ->set_attributes( array(
 			                'min'         => 0,
 			                'step'        => 1,
-			                'placeholder' => $this->get_default(),
 		                ) );
 
 		$view = new AC_View( array(
@@ -53,10 +52,10 @@ class AC_Settings_Column_WordLimit extends AC_Settings_Column
 		return true;
 	}
 
-	public function format( $string, $object_id = null ) {
-		$values = false;
+	public function format( $value, $original_value ) {
+		$values = array();
 
-		foreach ( (array) $string as $_string ) {
+		foreach ( (array) $value as $_string ) {
 			$values[] = ac_helper()->string->trim_words( $_string, $this->get_excerpt_length() );
 		}
 

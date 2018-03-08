@@ -1,73 +1,178 @@
 <?php
 
-class AC_Notice_Plugin {
+final class AC_Notice_Plugin {
 
-	private function plugin_has_update( $file ) {
-		$current = get_site_transient( 'update_plugins' );
+	/**
+	 * @var string
+	 */
+	private $plugin_basename;
 
-		return isset( $current->response[ $file ] );
+	/**
+	 * @var string
+	 */
+	private $message;
+
+	/**
+	 * @var string
+	 */
+	private $class;
+
+	/**
+	 * @var string
+	 */
+	private $icon;
+
+	/**
+	 * @param string $plugin_basename
+	 */
+	public function __construct( $plugin_basename ) {
+		$this->plugin_basename = $plugin_basename;
+		$this->set_type( 'warning' );
 	}
 
-	public function display( $args = array() ) {
-		$defaults = array(
-			'message' => '',
+	/**
+	 * Check if the plugin has an update available
+	 *
+	 * @return bool
+	 */
+	private function update_available() {
+		$current = get_site_transient( 'update_plugins' );
 
-			// yellow: notice-warning
-			// yellow with white background: notice-warning.notice-alt
-			// red: notice-error
-			// blue: notice-info
-			// green: notice-success
-			'class'   => 'notice-warning notice-alt',
-			'icon'    => 'info',
+		return isset( $current->response[ $this->plugin_basename ] );
+	}
 
-			// filename
-			'plugin'  => '',
-		);
+	public function hook_notice() {
+		add_action( 'after_plugin_row_' . $this->plugin_basename, array( $this, 'display_notice' ), 11 );
+	}
 
-		$args = wp_parse_args( $args, $defaults );
+	public function display_notice() {
+		$class = '';
 
-		$data = (object) $args;
+		if ( is_plugin_active( $this->plugin_basename ) ) {
+			$class .= ' active';
 
-		$classes = array( 'notice', 'inline' );
-
-		if ( $data->class ) {
-			$classes[] = $data->class;
-		}
-
-		if ( $data->icon ) {
-			$classes[] = 'icon';
-			$classes[] = 'icon-' . $data->icon;
-		}
-
-		$row_classes = array();
-
-		if ( $data->plugin && is_plugin_active( $data->plugin ) ) {
-			$row_classes[] = 'active';
-
-			if ( $this->plugin_has_update( $data->plugin ) ) {
-				$row_classes[] = 'update';
+			if ( $this->update_available() ) {
+				$class .= ' update';
 			}
 		}
 
 		?>
-		<tr class="plugin-update-tr plugin-update-tr-admin-columns <?php echo esc_attr( implode( ' ', $row_classes ) ); ?>" data-slug="<?php echo esc_attr( basename( $data->plugin ) ); ?>" data-plugin="<?php echo esc_attr( $data->plugin ); ?>">
+
+		<style>
+			.plugins tr[data-plugin='<?php echo $this->plugin_basename; ?>'] th,
+			.plugins tr[data-plugin='<?php echo $this->plugin_basename; ?>'] td {
+				box-shadow: none;
+			}
+
+			<?php if ( $this->icon ) : ?>
+			.plugins tr[data-plugin='<?php echo $this->plugin_basename; ?>'] .update-message p:before {
+				content: "<?php echo $this->icon ?>";
+			}
+
+			<?php endif; ?>
+		</style>
+
+		<tr class="plugin-update-tr <?php echo esc_attr( $class ); ?>" data-slug="<?php echo esc_attr( basename( $this->plugin_basename ) ); ?>" data-plugin="<?php echo esc_attr( $this->plugin_basename ); ?>">
 			<td colspan="3" class="plugin-update colspanchange">
-				<div class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
-					<p><?php echo $data->message; ?></p>
+				<div class="update-message notice inline <?php echo esc_attr( $this->class ); ?>">
+					<p><?php echo $this->message; ?></p>
 				</div>
 			</td>
 		</tr>
 
-		<style>
-			.plugins tr[data-plugin='<?php echo $data->plugin; ?>'] th,
-			.plugins tr[data-plugin='<?php echo $data->plugin; ?>'] td {
-				padding-bottom: 0;
-				box-shadow: none;
-			}
-		</style>
 		<?php
+	}
 
-		wp_enqueue_style( 'ac-plugin-row', AC()->get_plugin_url() . 'assets/css/plugin-screen' . AC()->minified() . '.css' );
+	/**
+	 * Set the message of this notice. Only links allowed, other HTML is escaped
+	 *
+	 * @param string $message
+	 *
+	 * @return $this
+	 */
+	public function set_message( $message ) {
+		$this->message = wp_kses( $message, array(
+			'strong' => array(),
+			'br'     => array(),
+			'a'      => array(
+				'class' => true,
+				'data'  => true,
+				'href'  => true,
+				'id'    => true,
+				'title' => true,
+			),
+		) );
+
+		return $this;
+	}
+
+	private function get_predefined_type( $type ) {
+		$mapping = array(
+			'warning' => 'notice-warning|\f348',
+			'error'   => 'notice-error|\f534',
+			'success' => 'updated-message notice-success|\f147',
+			'update'  => 'notice-warning|\f463',
+		);
+
+		if ( array_key_exists( $type, $mapping ) ) {
+			$parts = explode( '|', $mapping[ $type ] );
+
+			return (object) array(
+				'class' => $parts[0] . ' notice-alt',
+				'icon'  => $parts[1],
+			);
+		}
+
+		return false;
+	}
+
+	public function set_type( $type ) {
+		$type = $this->get_predefined_type( $type );
+
+		if ( $type ) {
+			$this->set_class( $type->class );
+			$this->set_icon( $type->icon );
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Set the color-scheme of the notice
+	 *
+	 * @param string $class
+	 *
+	 * @return $this
+	 */
+	public function set_class( $class ) {
+		$type = $this->get_predefined_type( $class );
+
+		if ( $type ) {
+			$class = $type->class;
+		}
+
+		$this->class = $class;
+
+		return $this;
+	}
+
+	/**
+	 * Set the icon of the notice. Defaults to 'update'
+	 *
+	 * @param string $icon
+	 *
+	 * @return $this
+	 */
+	public function set_icon( $icon ) {
+		$type = $this->get_predefined_type( $icon );
+
+		if ( $type ) {
+			$icon = $type->icon;
+		}
+
+		$this->icon = $icon;
+
+		return $this;
 	}
 
 }

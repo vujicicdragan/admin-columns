@@ -29,7 +29,7 @@
 		speak: none;
 		display: inline-block;
 		padding: 0;
-		top: 4px;
+		top: 5px;
 		left: 0;
 		position: relative;
 		vertical-align: top;
@@ -415,11 +415,19 @@
 	.ac-column-setting {
 		td.col_label {
 			background-color: $bg-gray-light;
+
 			.label {
 				font-size: 12px;
 				color: #595959;
 			}
 		}
+	}
+
+	span.ac-setting-error {
+		display: block;
+		margin: 0;
+		background-color: $bg-red-light;
+		padding: 7px 10px;
 	}
 }
 
@@ -483,23 +491,32 @@
 
 .ac-setting-input-date {
 
-	.ac-setting-input-more {
-		input[type=text] {
-			display: inline-block;
-			width: 60px;
-			margin-right: 5px;
-		}
+	.ac-setting-input-date__custom {
+		display: inline-block;
+		width: 71px;
+		margin-right: 5px;
 	}
 
 	.ac-setting-input-date__value {
 		display: inline-block;
-		width: 105px;
+		width: 165px;
 	}
+
 	.ac-setting-input-date__example {
+		margin-left: 8px;
+
 		.spinner {
 			float: none;
 			vertical-align: top;
 		}
+	}
+
+	code {
+		display: inline-block;
+		min-width: 60px;
+		padding-top: 0;
+		padding-bottom: 0;
+		text-align: center;
 	}
 }
 
@@ -517,7 +534,6 @@
 			text-align: right;
 			vertical-align: middle;
 			display: table-cell;
-			//border-radius: 3px 0 0 3px;
 
 			@include placeholder {
 				font-size: 13px;
@@ -622,12 +638,17 @@
 					vertical-align: middle;
 					position: relative;
 					padding: 15px 0;
-					//padding-left: 0;
 
 					.inner {
 						position: relative;
 						overflow: hidden;
 						height: 18px;
+
+						.toggle {
+							img {
+								max-height: 20px;
+							}
+						}
 
 						> a {
 							color: #5a5a5a;
@@ -675,7 +696,6 @@
 								margin-left: 4px;
 
 								&.ac-column-heading-setting--width {
-									//float: left;
 									margin-right: 3px;
 									cursor: auto;
 									color: #737373;
@@ -706,7 +726,8 @@
 
 					// wp default icon
 					span.vers {
-						float: left;
+						//float: left;
+
 					}
 				}
 				// .column-label
@@ -784,10 +805,6 @@
 	// WP Default icons
 	span.vers {
 		padding-top: 2px;
-
-		.comment-grey-bubble {
-			float: right;
-		}
 	}
 
 }
@@ -832,7 +849,7 @@
 	.button-container {
 		float: right;
 		display: inline-block;
-		height: 29px;
+		min-height: 29px;
 
 		a {
 			display: inline-block;
@@ -897,6 +914,7 @@
 				background: #fff;
 				z-index: 2;
 				padding-right: 8px;
+				float: none;
 			}
 			span.contenttype {
 				display: block;
@@ -960,77 +978,6 @@
 
 				&.save {
 					display: block;
-				}
-			}
-		}
-
-		&#pro-version {
-			.cta {
-				background: transparent url(../images/get_the_addon.png) no-repeat 0 0;
-				background-size: cover;
-			}
-			.padding-box {
-				padding: 8px 15px 0;
-			}
-			h3 a {
-				color: #fff;
-				font-size: 19px;
-				text-decoration: none;
-				font-weight: normal;
-				margin-top: 6px;
-			}
-			.inside {
-				ul {
-					margin: 0 0 10px 0;
-
-					li {
-						margin: 0;
-						padding: 0;
-
-						a {
-							display: inline-block;
-							min-height: 24px;
-							font-size: 19px;
-							line-height: 24px;
-							margin-bottom: 1px;
-							padding: 0 5px;
-							background: #000;
-							color: #fff;
-							text-decoration: none;
-						}
-
-						&.acf a {
-							background-color: #5ee8bf;
-							color: #808080;
-						}
-					}
-				}
-
-				p {
-					color: #fff;
-					font-size: 12px;
-
-					a {
-						color: #fff;
-						display: inline-block;
-						background: #a4c518;
-						padding: 0 2px;
-						font-size: 15px;
-						text-decoration: none;
-					}
-				}
-			}
-		}
-
-		&#add-acf {
-			background-color: #5ee8bf;
-			h3 {
-				padding: 0;
-
-				a {
-					color: #fff;
-					text-decoration: none;
-					font-size: 15px;
 				}
 			}
 		}
@@ -1158,12 +1105,32 @@
 
 	h3 {
 		font-size: 34px;
+		line-height: 40px;
 		a {
 			text-decoration: none;
 			color: #fff;
 
 			span {
 				color: $ac-pink;
+			}
+		}
+	}
+
+	sup {
+		text-decoration: line-through;
+		font-size: 13px;
+		color: #ccc;
+	}
+
+	.ac-pro-prices {
+		color: #ffcac0;
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: underline;
+
+			sup {
+				text-decoration: none;
 			}
 		}
 	}
@@ -1177,6 +1144,7 @@
 		display: block;
 		padding: 6px 20px;
 		border-radius: 3px;
+		cursor: pointer;
 	}
 
 	.more {
@@ -1199,20 +1167,29 @@
 
 	ul {
 
+		&.features {
+			a:hover {
+				text-decoration: underline;
+			}
+		}
+
 		li {
 			padding-bottom: 3px;
 
 			a {
 				color: #fff;
 				text-decoration: none;
+				padding-left: 25px;
+				position: relative;
+				display: block;
 
 				&:before {
 					content: '\2713';
 					font-weight: bold;
 					font-size: 16px;
-					display: inline-block;
-					vertical-align: top;
-					margin-right: 10px;
+					position: absolute;
+					left: 0;
+					top: 0;
 				}
 			}
 
@@ -1245,6 +1222,7 @@
 			}
 		}
 	}
+
 	.padding-box.ac-pro-deal {
 		color: $ac-dark;
 		padding-bottom: 20px;
@@ -1262,6 +1240,7 @@
 			font-size: 16px;
 		}
 	}
+
 	.padding-box.ac-pro-newsletter {
 		background: #fff;
 		color: $ac-dark;
@@ -1275,11 +1254,12 @@
 			margin-bottom: 8px;
 		}
 		.acp-button {
-			margin-top: 15px;
+			margin-top: 12px;
 			margin-bottom: 0;
 			padding: 7px 20px;
 		}
 	}
+
 	.acp-button {
 		background: $ac-pink;
 		border: none;

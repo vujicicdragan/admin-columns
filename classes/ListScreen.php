@@ -7,7 +7,7 @@
  */
 abstract class AC_ListScreen {
 
-	CONST OPTIONS_KEY = 'cpac_options_';
+	const OPTIONS_KEY = 'cpac_options_';
 
 	/**
 	 * Unique Identifier for List Screen.
@@ -44,14 +44,6 @@ abstract class AC_ListScreen {
 	 * @var string
 	 */
 	private $page;
-
-	/**
-	 * Class name of the WP_List_Table instance
-	 *
-	 * @since NEWVERSION
-	 * @var string
-	 */
-	private $list_table_class;
 
 	/**
 	 * Group slug. Used for menu.
@@ -94,7 +86,7 @@ abstract class AC_ListScreen {
 	/**
 	 * @var array [ Column name => Label ]
 	 */
-	private $default_columns;
+	private $original_columns;
 
 	/**
 	 * @var string Layout ID
@@ -126,14 +118,13 @@ abstract class AC_ListScreen {
 	 *
 	 * @return void
 	 */
-	abstract function set_manage_value_callback();
+	abstract public function set_manage_value_callback();
 
 	/**
-	 * Default column headers
-	 *
-	 * @return array
+	 * Register column types
+	 * @return void
 	 */
-	abstract function get_column_headers();
+	abstract protected function register_column_types();
 
 	public function get_key() {
 		return $this->key;
@@ -203,21 +194,6 @@ abstract class AC_ListScreen {
 		$this->group = $group;
 	}
 
-	public function get_list_table_class() {
-		return $this->list_table_class;
-	}
-
-	protected function set_list_table_class( $list_table_class ) {
-		$this->list_table_class = $list_table_class;
-	}
-
-	/**
-	 * @return WP_List_Table|false
-	 */
-	public function get_list_table() {
-		return new $this->list_table_class;
-	}
-
 	/**
 	 * @return string
 	 */
@@ -248,7 +224,7 @@ abstract class AC_ListScreen {
 	/**
 	 * @param string $layout_id
 	 *
-	 * @return $this
+	 * @return AC_ListScreen
 	 */
 	public function set_layout_id( $layout_id ) {
 		$this->layout_id = $layout_id;
@@ -259,32 +235,9 @@ abstract class AC_ListScreen {
 	}
 
 	/**
-	 * Return a single object based on it's ID (post, user, comment etc.)
-	 *
-	 * @since NEWVERSION
-	 * @return mixed
-	 */
-	protected function get_object_by_id( $id ) {
-		return null;
-	}
-
-	/**
-	 * Get a single row from list table
-	 *
-	 * @param int $object_id Object ID
-	 *
-	 * @since NEWVERSION
-	 *
-	 * @return false|string HTML
-	 */
-	public function get_single_row( $object_id ) {
-		return false;
-	}
-
-	/**
 	 * ID attribute of targeted list table
 	 *
-	 * @since NEWVERSION
+	 * @since 3.0
 	 * @return string
 	 */
 	public function get_table_attr_id() {
@@ -299,7 +252,7 @@ abstract class AC_ListScreen {
 	 * @return boolean
 	 */
 	public function is_current_screen( $wp_screen ) {
-		return $wp_screen && $wp_screen->id === $this->get_screen_id();
+		return $wp_screen && $wp_screen->id === $this->get_screen_id() && $wp_screen->base === $this->get_screen_base();
 	}
 
 	/**
@@ -331,11 +284,18 @@ abstract class AC_ListScreen {
 	}
 
 	/**
+	 * @return string
+	 */
+	protected function get_admin_url() {
+		return admin_url( $this->get_screen_base() . '.php' );
+	}
+
+	/**
 	 * @since 2.0
 	 * @return string Link
 	 */
 	public function get_screen_link() {
-		return add_query_arg( array( 'page' => $this->page, 'layout' => $this->get_layout_id() ), admin_url( $this->get_screen_base() . '.php' ) );
+		return add_query_arg( array( 'page' => $this->get_page(), 'layout' => $this->get_layout_id() ), $this->get_admin_url() );
 	}
 
 	/**
@@ -346,7 +306,7 @@ abstract class AC_ListScreen {
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @return AC_Column[]
 	 */
@@ -374,10 +334,9 @@ abstract class AC_ListScreen {
 	 *
 	 * @since 2.5
 	 */
-	private function reset() {
+	public function reset() {
 		$this->columns = null;
 		$this->column_types = null;
-		$this->default_columns = null;
 		$this->settings = null;
 	}
 
@@ -389,7 +348,10 @@ abstract class AC_ListScreen {
 		$columns = $this->get_columns();
 
 		foreach ( $columns as $column ) {
-			if ( $column->get_name() === $name ) {
+
+			// Do not do a var type check. All column names
+			// are stored as strings, even integers.
+			if ( $column->get_name() == $name ) {
 				return $column;
 			}
 		}
@@ -405,7 +367,11 @@ abstract class AC_ListScreen {
 	public function get_column_by_type( $type ) {
 		$column_types = $this->get_column_types();
 
-		return isset( $column_types[ $type ] ) ? $column_types[ $type ] : false;
+		if ( ! isset( $column_types[ $type ] ) ) {
+			return false;
+		}
+
+		return $column_types[ $type ];
 	}
 
 	/**
@@ -416,7 +382,11 @@ abstract class AC_ListScreen {
 	public function get_class_by_type( $type ) {
 		$column = $this->get_column_by_type( $type );
 
-		return $column ? get_class( $column ) : false;
+		if ( ! $column ) {
+			return false;
+		}
+
+		return get_class( $column );
 	}
 
 	/**
@@ -436,14 +406,14 @@ abstract class AC_ListScreen {
 			return false;
 		}
 
-		// Skip original columns that do not exist
-		if ( $column->is_original() && ! $this->original_column_exists( $column ) ) {
-			return false;
-		}
-
 		$column->set_list_screen( $this );
 
 		if ( ! $column->is_valid() ) {
+			return false;
+		}
+
+		// Skip the custom registered columns which are marked 'original' but are not available for this list screen
+		if ( $column->is_original() && ! in_array( $column->get_type(), array_keys( $this->get_original_columns() ) ) ) {
 			return false;
 		}
 
@@ -458,46 +428,47 @@ abstract class AC_ListScreen {
 	 * @return string Label
 	 */
 	public function get_original_label( $type ) {
-		$original_columns = $this->get_original_columns();
+		$columns = $this->get_original_columns();
 
-		if ( ! isset( $original_columns[ $type ] ) ) {
+		if ( ! isset( $columns[ $type ] ) ) {
 			return false;
 		}
 
-		return $original_columns[ $type ];
+		return $columns[ $type ];
 	}
 
-	private function get_default_columns() {
-		if ( null === $this->default_columns ) {
-			$this->default_columns = (array) $this->get_column_headers();
+	/**
+	 * @return array
+	 */
+	public function get_original_columns() {
+		if ( null === $this->original_columns ) {
+			$this->set_original_columns( $this->get_stored_default_headings() );
 		}
 
-		return $this->default_columns;
+		return (array) $this->original_columns;
 	}
 
 	/**
-	 * @return array { Column name => Column label ]
+	 * @param array $columns
 	 */
-	private function get_original_columns() {
-		return array_merge( $this->get_default_columns(), $this->get_plugin_columns() );
+	public function set_original_columns( $columns ) {
+		$this->original_columns = (array) $columns;
 	}
 
 	/**
-	 * @param AC_Column $column
-	 *
-	 * @return bool
+	 * Reset original columns
 	 */
-	private function original_column_exists( $column ) {
-		return $this->get_original_label( $column->get_type() ) ? true : false;
+	public function reset_original_columns() {
+		$this->original_columns = null;
 	}
 
 	/**
 	 * Available column types
 	 */
-	public function set_column_types() {
+	private function set_column_types() {
 
 		// Register default columns
-		foreach ( $this->get_default_columns() as $type => $label ) {
+		foreach ( $this->get_original_columns() as $type => $label ) {
 
 			// Ignore the mandatory checkbox column
 			if ( 'cb' === $type ) {
@@ -513,20 +484,6 @@ abstract class AC_ListScreen {
 			$this->register_column_type( $column );
 		}
 
-		// Register plugin columns
-		foreach ( $this->get_plugin_columns() as $type => $label ) {
-			$class = apply_filters( 'ac/plugin_column_class_name', 'AC_Column_Plugin' );
-
-			if ( ! class_exists( $class ) ) {
-				continue;
-			}
-
-			/** @var AC_Column $column */
-			$column = new $class;
-
-			$this->register_column_type( $column->set_type( $type ) );
-		}
-
 		// Placeholder columns
 		foreach ( AC()->addons()->get_addons() as $addon ) {
 			if ( $addon->is_plugin_active() && ! $addon->is_active() ) {
@@ -534,10 +491,8 @@ abstract class AC_ListScreen {
 			}
 		}
 
-		$this->register_column_type( new AC_Column_CustomField() );
-		$this->register_column_type( new AC_Column_UsedByMenu() );
-
-		$this->register_column_types_from_dir( $this->get_local_column_path(), 'AC_' );
+		// Load Custom columns
+		$this->register_column_types();
 
 		/**
 		 * Register column types
@@ -545,7 +500,6 @@ abstract class AC_ListScreen {
 		 * @param AC_ListScreen $this
 		 */
 		do_action( 'ac/column_types', $this );
-		do_action( 'ac/column_types/' . $this->get_key(), $this );
 	}
 
 	/**
@@ -562,27 +516,26 @@ abstract class AC_ListScreen {
 	}
 
 	/**
-	 * @param string $string Converts string to uppercase class name
+	 * @param string $type Column type
 	 *
-	 * @return string
+	 * @return bool
 	 */
-	public function get_local_column_path() {
-		$path = AC()->get_plugin_dir() . 'classes/Column/' . AC_Autoloader::string_to_classname( $this->get_group() );
+	private function is_original_column( $type ) {
+		$column = $this->get_column_by_type( $type );
 
-		if ( ! is_dir( $path ) ) {
+		if ( ! $column ) {
 			return false;
 		}
 
-		return $path;
+		return $column->is_original();
 	}
 
 	/**
-	 * @param array  $settings Column options
-	 * @param string $name     Unique column name
+	 * @param array $settings Column options
 	 *
 	 * @return AC_Column|false
 	 */
-	public function create_column( array $settings, $name = false ) {
+	public function create_column( array $settings ) {
 		if ( ! isset( $settings['type'] ) ) {
 			return false;
 		}
@@ -599,22 +552,24 @@ abstract class AC_ListScreen {
 		$column->set_list_screen( $this )
 		       ->set_type( $settings['type'] );
 
-		if ( $this->original_column_exists( $column ) ) {
+		if ( isset( $settings['name'] ) ) {
+			$column->set_name( $settings['name'] );
+		}
+
+		// Mark as original
+		if ( $this->is_original_column( $settings['type'] ) ) {
+
 			$column->set_original( true );
+			$column->set_name( $settings['type'] );
 		}
 
-		if ( $column->is_original() ) {
-			$name = $column->get_type();
-		}
-
-		$column->set_name( $name );
 		$column->set_options( $settings );
 
 		return $column;
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @param string $column_name Column name
 	 */
@@ -627,15 +582,27 @@ abstract class AC_ListScreen {
 	 */
 	protected function register_column( AC_Column $column ) {
 		$this->columns[ $column->get_name() ] = $column;
+
+		/**
+		 * Fires when a column is registered to a list screen, i.e. when it is created. Can be used
+		 * to attach additional functionality to a column, such as exporting, sorting or filtering
+		 *
+		 * @since 3.0.5
+		 *
+		 * @param AC_Column     $column      Column type object
+		 * @param AC_ListScreen $list_screen List screen object to which the column was registered
+		 */
+		do_action( 'ac/list_screen/column_registered', $column, $this );
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 */
 	private function set_columns() {
+
 		foreach ( $this->get_settings() as $name => $data ) {
 			$data['name'] = $name;
-			if ( $column = $this->create_column( $data, $name ) ) {
+			if ( $column = $this->create_column( $data ) ) {
 				$this->register_column( $column );
 			}
 		}
@@ -643,8 +610,8 @@ abstract class AC_ListScreen {
 		// Nothing stored. Use WP default columns.
 		if ( null === $this->columns ) {
 			foreach ( $this->get_original_columns() as $type => $label ) {
-				if ( $column = $this->create_column( array( 'type' => $type, 'label' => $label ) ) ) {
-					$this->register_column( $column->set_original( true ) );
+				if ( $column = $this->create_column( array( 'type' => $type, 'original' => true ) ) ) {
+					$this->register_column( $column );
 				}
 			}
 		}
@@ -652,13 +619,6 @@ abstract class AC_ListScreen {
 		if ( null === $this->columns ) {
 			$this->columns = array();
 		}
-	}
-
-	/**
-	 * @return array  [ Column Name =>  Column Label ]
-	 */
-	public function get_plugin_columns() {
-		return array_diff( $this->get_stored_default_headings(), $this->get_default_columns() );
 	}
 
 	/**
@@ -675,12 +635,17 @@ abstract class AC_ListScreen {
 
 		$settings = array();
 
-		$current_settings = $this->get_settings();
-
-		foreach ( $column_data as $key => $options ) {
+		foreach ( $column_data as $column_name => $options ) {
 			if ( empty( $options['type'] ) ) {
 				continue;
 			}
+
+			// New column, new key
+			if ( 0 === strpos( $column_name, '_new_column_' ) ) {
+				$column_name = uniqid();
+			}
+
+			$options['name'] = $column_name;
 
 			$column = $this->create_column( $options );
 
@@ -690,8 +655,7 @@ abstract class AC_ListScreen {
 
 			// Skip duplicate original columns
 			if ( $column->is_original() ) {
-				$types = wp_list_pluck( $settings, 'type' );
-				if ( in_array( $column->get_type(), $types, true ) ) {
+				if ( in_array( $column->get_type(), wp_list_pluck( $settings, 'type' ), true ) ) {
 					continue;
 				}
 			}
@@ -708,12 +672,7 @@ abstract class AC_ListScreen {
 				$sanitized[ $setting->get_name() ] = $setting->get_encoded_label();
 			}
 
-			// New column, new key
-			if ( ! $column->is_original() && ! in_array( $key, array_keys( $current_settings ), true ) ) {
-				$key = uniqid();
-			}
-
-			$settings[ $key ] = array_merge( $options, $sanitized );
+			$settings[ $column_name ] = array_merge( $options, $sanitized );
 		}
 
 		$result = update_option( self::OPTIONS_KEY . $this->get_storage_key(), $settings );
@@ -726,7 +685,7 @@ abstract class AC_ListScreen {
 		 * Fires after a new column setup is stored in the database
 		 * Primarily used when columns are saved through the Admin Columns settings screen
 		 *
-		 * @since NEWVERSION
+		 * @since 3.0
 		 *
 		 * @param AC_ListScreen $list_screen
 		 */
@@ -805,6 +764,17 @@ abstract class AC_ListScreen {
 	 * @return bool
 	 */
 	public function delete() {
+
+		/**
+		 * Fires before a column setup is removed from the database
+		 * Primarily used when columns are deleted through the Admin Columns settings screen
+		 *
+		 * @since 3.0.8
+		 *
+		 * @param AC_ListScreen $list_screen
+		 */
+		do_action( 'ac/columns_delete', $this );
+
 		return delete_option( self::OPTIONS_KEY . $this->get_storage_key() );
 	}
 
@@ -824,21 +794,32 @@ abstract class AC_ListScreen {
 
 		$value = $column->get_value( $id );
 
-		// You can overwrite the display value for original columns by making sure get_value() does not return NULL.
-		if ( $column->is_original() && is_null( $value ) ) {
+		// You can overwrite the display value for original columns by making sure get_value() does not return an empty string.
+		if ( $column->is_original() && ac_helper()->string->is_empty( $value ) ) {
 			return $original_value;
 		}
 
 		/**
 		 * Column display value
 		 *
-		 * @since NEWVERSION
+		 * @since 3.0
 		 *
 		 * @param string    $value  Column display value
 		 * @param int       $id     Object ID
 		 * @param AC_Column $column Column object
 		 */
-		return apply_filters( 'ac/column/value', $value, $id, $column );
+		$value = apply_filters( 'ac/column/value', $value, $id, $column );
+
+		return $value;
+	}
+
+	/**
+	 * Get default column headers
+	 *
+	 * @return array
+	 */
+	public function get_default_column_headers() {
+		return array();
 	}
 
 }

@@ -2,7 +2,7 @@
 
 class AC_Admin_Page_Help extends AC_Admin_Page {
 
-	CONST TRANSIENT_COUNT_KEY = 'ac-deprecated-message-count';
+	const TRANSIENT_COUNT_KEY = 'ac-deprecated-message-count';
 
 	private $messages = array();
 
@@ -20,6 +20,7 @@ class AC_Admin_Page_Help extends AC_Admin_Page {
 		// Init and request
 		add_action( 'admin_init', array( $this, 'init' ), 9 );
 		add_action( 'admin_init', array( $this, 'run_hooks_on_help_tab' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
 	}
 
 	/**
@@ -66,7 +67,9 @@ class AC_Admin_Page_Help extends AC_Admin_Page {
 	 * Admin scripts
 	 */
 	public function admin_scripts() {
-		wp_enqueue_style( 'ac-admin-page-help-css', AC()->get_plugin_url() . 'assets/css/admin-page-help' . AC()->minified() . '.css', array(), AC()->get_version(), 'all' );
+		if ( $this->is_current_screen() ) {
+			wp_enqueue_style( 'ac-admin-page-help-css', AC()->get_plugin_url() . 'assets/css/admin-page-help.css', array(), AC()->get_version() );
+		}
 	}
 
 	private function update_message_count() {
@@ -93,65 +96,68 @@ class AC_Admin_Page_Help extends AC_Admin_Page {
 
 		$columns = array();
 		foreach ( AC()->get_list_screens() as $ls ) {
-			foreach ( $ls->get_column_types() as $column ) {
+			foreach ( (array) $ls->get_column_types() as $column ) {
 				$columns[ $column->get_type() ] = $column->get_type();
 			}
 		}
 
 		// Filters
 
-		$this->deprecated_filter( 'cac/headings/label', 'NEWVERSION', 'cac-columns-custom' );
-		$this->deprecated_filter( 'cac/column/meta/value', 'NEWVERSION', 'cac-column-meta-value' );
-		$this->deprecated_filter( 'cac/column/meta/types', 'NEWVERSION', 'cac-column-meta-types' );
-		$this->deprecated_filter( 'cac/settings/tabs', 'NEWVERSION', 'filter-reference/cac-settings-tabs' );
-		$this->deprecated_filter( 'cac/editable/is_column_editable', 'NEWVERSION', 'cac-editable-is_column_editable' );
-		$this->deprecated_filter( 'cac/editable/editables_data', 'NEWVERSION', 'cac-editable-editables_data' );
-		$this->deprecated_filter( 'cac/editable/options', 'NEWVERSION', 'cac-editable-editables_data' );
-		$this->deprecated_filter( 'cac/inline-edit/ajax-column-save/value', 'NEWVERSION', 'cac-inline-edit-ajax-column-save-value' );
-		$this->deprecated_filter( 'cac/addon/filtering/options', 'NEWVERSION', 'cac-addon-filtering-options' );
-		$this->deprecated_filter( 'cac/addon/filtering/dropdown_top_label', 'NEWVERSION', 'cac-addon-filtering-dropdown_top_label' );
-		$this->deprecated_filter( 'cac/addon/filtering/taxonomy/terms_args', 'NEWVERSION', 'cac-addon-filtering-taxonomy-terms_args' );
-		$this->deprecated_filter( 'cac/addon/filtering/dropdown_empty_option', 'NEWVERSION', 'cac-addon-filtering-taxonomy-terms_args' );
-		$this->deprecated_filter( 'cac/column/actions/action_links', 'NEWVERSION', 'cac-column_actions-action_links' );
-		$this->deprecated_filter( 'cac/acf/format_acf_value', 'NEWVERSION' );
+		$this->deprecated_filter( 'cac/headings/label', '3.0', 'cac-columns-custom' );
+		$this->deprecated_filter( 'cac/column/meta/value', '3.0', 'cac-column-meta-value' );
+		$this->deprecated_filter( 'cac/column/meta/types', '3.0', 'cac-column-meta-types' );
+		$this->deprecated_filter( 'cac/settings/tabs', '3.0', 'cac-settings-tabs' );
+		$this->deprecated_filter( 'cac/editable/is_column_editable', '3.0', 'cac-editable-is_column_editable' );
+		$this->deprecated_filter( 'cac/editable/editables_data', '3.0', 'cac-editable-editables_data' );
+		$this->deprecated_filter( 'cac/editable/options', '3.0', 'cac-editable-editables_data' );
+		$this->deprecated_filter( 'cac/inline-edit/ajax-column-save/value', '3.0', 'cac-inline-edit-ajax-column-save-value' );
+		$this->deprecated_filter( 'cac/addon/filtering/options', '3.0', 'cac-addon-filtering-options' );
+		$this->deprecated_filter( 'cac/addon/filtering/dropdown_top_label', '3.0', 'cac-addon-filtering-dropdown_top_label' );
+		$this->deprecated_filter( 'cac/addon/filtering/taxonomy/terms_args', '3.0', 'cac-addon-filtering-taxonomy-terms_args' );
+		$this->deprecated_filter( 'cac/addon/filtering/dropdown_empty_option', '3.0', 'cac-addon-filtering-taxonomy-terms_args' );
+		$this->deprecated_filter( 'cac/column/actions/action_links', '3.0', 'cac-column_actions-action_links' );
+		$this->deprecated_filter( 'cac/acf/format_acf_value', '3.0', 'cac-acf-format_acf_value' );
+		$this->deprecated_filter( 'cac/addon/filtering/taxonomy/terms_args', '3.0' );
+		$this->deprecated_filter( 'cac/column/meta/use_text_input', '3.0' );
+		$this->deprecated_filter( 'cac/hide_renewal_notice', '3.0' );
 
-		$this->deprecated_filter( 'cac/columns/custom', 'NEWVERSION', 'cac-columns-custom' );
+		$this->deprecated_filter( 'cac/columns/custom', '3.0', 'cac-columns-custom' );
 		foreach ( $types as $type ) {
-			$this->deprecated_filter( 'cac/columns/custom/type=' . $type, 'NEWVERSION', 'cac-columns-custom' );
+			$this->deprecated_filter( 'cac/columns/custom/type=' . $type, '3.0', 'cac-columns-custom' );
 		}
 
 		foreach ( $post_types as $post_type ) {
-			$this->deprecated_filter( 'cac/columns/custom/post_type=' . $post_type, 'NEWVERSION', 'cac-columns-custom' );
+			$this->deprecated_filter( 'cac/columns/custom/post_type=' . $post_type, '3.0', 'cac-columns-custom' );
 		}
 
-		$this->deprecated_filter( 'cac/column/value', 'NEWVERSION', 'cac-column-value' );
+		$this->deprecated_filter( 'cac/column/value', '3.0', 'cac-column-value' );
 		foreach ( $types as $type ) {
-			$this->deprecated_filter( 'cac/column/value/' . $type, 'NEWVERSION', 'cac-column-value' );
+			$this->deprecated_filter( 'cac/column/value/' . $type, '3.0', 'cac-column-value' );
 		}
 
-		$this->deprecated_filter( 'cac/editable/column_value', 'NEWVERSION', 'cac-editable-column_value' );
+		$this->deprecated_filter( 'cac/editable/column_value', '3.0', 'cac-editable-column_value' );
 		foreach ( $columns as $column_type ) {
-			$this->deprecated_filter( 'cac/editable/column_value/column=' . $column_type, 'NEWVERSION', 'cac-editable-column_value' );
+			$this->deprecated_filter( 'cac/editable/column_value/column=' . $column_type, '3.0', 'cac-editable-column_value' );
 		}
 
-		$this->deprecated_filter( 'cac/editable/column_save', 'NEWVERSION', 'cac-editable-column_save' );
+		$this->deprecated_filter( 'cac/editable/column_save', '3.0', 'cac-editable-column_save' );
 		foreach ( $columns as $column_type ) {
-			$this->deprecated_filter( 'cac/editable/column_save/column=' . $column_type, 'NEWVERSION', 'cac-editable-column_save' );
+			$this->deprecated_filter( 'cac/editable/column_save/column=' . $column_type, '3.0', 'cac-editable-column_save' );
 		}
 
 		// Actions
-        $this->deprecated_action( 'cac/admin_head', 'NEWVERION', 'cac-admin_head' );
-        $this->deprecated_action( 'cac/loaded', 'NEWVERION', 'cac-cacloaded' );
-        $this->deprecated_action( 'cac/inline-edit/after_ajax_column_save', 'NEWVERION', 'cacinline-editafter_ajax_column_save' );
-        $this->deprecated_action( 'cac/settings/after_title', 'NEWVERION' );
-        $this->deprecated_action( 'cac/settings/form_actions', 'NEWVERION' );
-        $this->deprecated_action( 'cac/settings/sidebox', 'NEWVERION' );
-        $this->deprecated_action( 'cac/settings/form_columns', 'NEWVERION' );
-        $this->deprecated_action( 'cac/settings/after_columns', 'NEWVERION' );
-        $this->deprecated_action( 'cac/column/settings_meta', 'NEWVERION' );
-        $this->deprecated_action( 'cac/settings/general', 'NEWVERION' );
-        $this->deprecated_action( 'cpac_messages', 'NEWVERION' );
-        $this->deprecated_action( 'cac/settings/after_menu', 'NEWVERION' );
+		$this->deprecated_action( 'cac/admin_head', '3.0', 'cac-admin_head' );
+		$this->deprecated_action( 'cac/loaded', '3.0', 'cac-loaded' );
+		$this->deprecated_action( 'cac/inline-edit/after_ajax_column_save', '3.0', 'cacinline-editafter_ajax_column_save' );
+		$this->deprecated_action( 'cac/settings/after_title', '3.0' );
+		$this->deprecated_action( 'cac/settings/form_actions', '3.0' );
+		$this->deprecated_action( 'cac/settings/sidebox', '3.0' );
+		$this->deprecated_action( 'cac/settings/form_columns', '3.0' );
+		$this->deprecated_action( 'cac/settings/after_columns', '3.0' );
+		$this->deprecated_action( 'cac/column/settings_meta', '3.0' );
+		$this->deprecated_action( 'cac/settings/general', '3.0' );
+		$this->deprecated_action( 'cpac_messages', '3.0' );
+		$this->deprecated_action( 'cac/settings/after_menu', '3.0' );
 
 		$this->update_message_count();
 	}
@@ -168,11 +174,16 @@ class AC_Admin_Page_Help extends AC_Admin_Page {
 	/**
 	 * @param string      $hook
 	 * @param string      $version
-	 * @param string|null $page
+	 * @param string|null $page_slug
 	 */
-	private function deprecated_filter( $hook, $version, $page = null ) {
+	private function deprecated_filter( $hook, $version, $page_slug = null ) {
 		if ( has_filter( $hook ) ) {
 			$message = sprintf( __( 'The filter %s used on this website is deprecated since %s.', 'codepress-admin-columns' ), '<code>' . $hook . '</code>', '<strong>' . $version . '</strong>' );
+
+			$page = '#filter-reference';
+			if ( $page_slug ) {
+				$page = 'filter-reference/' . $page_slug;
+			}
 
 			$this->add_deprecated_message( 'filter', $message, $hook, $page );
 		}
@@ -181,11 +192,16 @@ class AC_Admin_Page_Help extends AC_Admin_Page {
 	/**
 	 * @param string      $hook
 	 * @param string      $version
-	 * @param string|null $page
+	 * @param string|null $page_slug
 	 */
-	private function deprecated_action( $hook, $version, $page = null ) {
+	private function deprecated_action( $hook, $version, $page_slug = null ) {
 		if ( has_action( $hook ) ) {
 			$message = sprintf( __( 'The action %s used on this website is deprecated since %s.', 'codepress-admin-columns' ), '<code>' . $hook . '</code>', '<strong>' . $version . '</strong>' );
+
+			$page = '#action-reference';
+			if ( $page_slug ) {
+				$page = 'action-reference/' . $page_slug;
+			}
 
 			$this->add_deprecated_message( 'action', $message, $hook, $page );
 		}
@@ -235,7 +251,7 @@ class AC_Admin_Page_Help extends AC_Admin_Page {
 	 * @return false|string
 	 */
 	private function get_documention_link( $page ) {
-		return ac_helper()->html->link( ac_get_site_url( 'documentation/' . $page ), __( 'View documentation', 'codepress-admin-columns' ) . ' &raquo;', array( 'target' => '_blank' ) );
+		return ac_helper()->html->link( ac_get_site_url( 'documentation' ) . $page, __( 'View documentation', 'codepress-admin-columns' ) . ' &raquo;', array( 'target' => '_blank' ) );
 	}
 
 	/**
@@ -298,22 +314,20 @@ class AC_Admin_Page_Help extends AC_Admin_Page {
 	 */
 	public function display() {
 		?>
-        <h2><?php _e( 'Help', 'codepress-admin-columns' ); ?></h2>
-        <p>
+		<h2><?php _e( 'Help', 'codepress-admin-columns' ); ?></h2>
+		<p>
 			<?php _e( 'The Admin Columns plugin has undergone some major changes in version 4.', 'codepress-admin-columns' ); ?> <br/>
 
-            <?php // TODO update documentation link ?>
-
-			<?php printf( __( 'This site is using some actions or filters that have changed. Please read %s to resolve them.', 'codepress-admin-columns' ), ac_helper()->html->link( ac_get_site_utm_url( 'documentation', 'help' ), __( 'our documentation', 'codepress-admin-columns' ) ) ); ?>
-        </p>
+			<?php printf( __( 'This site is using some actions or filters that have changed. Please read %s to resolve them.', 'codepress-admin-columns' ), ac_helper()->html->link( ac_get_site_utm_url( 'documentation/faq/upgrading-from-v3-to-v4', 'help' ), __( 'our documentation', 'codepress-admin-columns' ) ) ); ?>
+		</p>
 
 		<?php foreach ( $this->get_groups() as $type => $label ) {
 			if ( $messages = $this->get_messages( $type ) ) : ?>
-                <h3><?php echo esc_html( $label ); ?></h3>
+				<h3><?php echo esc_html( $label ); ?></h3>
 				<?php foreach ( $messages as $message ) : ?>
-                    <div class="ac-deprecated-message">
-                        <p><?php echo $message; ?></p>
-                    </div>
+					<div class="ac-deprecated-message">
+						<p><?php echo $message; ?></p>
+					</div>
 				<?php endforeach; ?>
 			<?php endif;
 		}

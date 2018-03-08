@@ -1,12 +1,12 @@
 <?php
 
 class AC_Settings_Column_PostLink extends AC_Settings_Column
-	implements AC_Settings_FormatInterface {
+	implements AC_Settings_FormatValueInterface {
 
 	/**
 	 * @var string
 	 */
-	private $post_link_to;
+	protected $post_link_to;
 
 	protected function define_options() {
 		return array(
@@ -14,39 +14,35 @@ class AC_Settings_Column_PostLink extends AC_Settings_Column
 		);
 	}
 
-	/**
-	 * @param int $post_id
-	 *
-	 * @return string
-	 */
-	public function format( $value, $object_id = null ) {
-		if ( ! $value ) {
-			return false;
-		}
+	public function format( $value, $original_value ) {
+		$id = $original_value;
 
 		switch ( $this->get_post_link_to() ) {
-
 			case 'edit_post' :
-				$link = get_edit_post_link( $object_id );
-				break;
+				$link = get_edit_post_link( $id );
 
+				break;
 			case 'view_post' :
-				$link = get_permalink( $object_id );
-				break;
+				$link = get_permalink( $id );
 
+				break;
 			case 'edit_author' :
-				$link = get_edit_user_link( ac_helper()->post->get_raw_field( 'post_author', $object_id ) );
-				break;
+				$link = get_edit_user_link( ac_helper()->post->get_raw_field( 'post_author', $id ) );
 
+				break;
 			case 'view_author' :
-				$link = get_author_posts_url( ac_helper()->post->get_raw_field( 'post_author', $object_id ) );
-				break;
+				$link = get_author_posts_url( ac_helper()->post->get_raw_field( 'post_author', $id ) );
 
+				break;
 			default :
 				$link = false;
 		}
 
-		return ac_helper()->html->link( $link, $value );
+		if ( $link ) {
+			$value = ac_helper()->html->link( $link, $value );
+		}
+
+		return $value;
 	}
 
 	public function create_view() {
@@ -60,17 +56,30 @@ class AC_Settings_Column_PostLink extends AC_Settings_Column
 		return $view;
 	}
 
-	private function get_display_options() {
+	protected function get_display_options() {
+		// Default options
 		$options = array(
+			''            => __( 'None' ),
 			'edit_post'   => __( 'Edit Post' ),
 			'view_post'   => __( 'View Post' ),
 			'edit_author' => __( 'Edit Post Author', 'codepress-admin-columns' ),
 			'view_author' => __( 'View Public Post Author Page', 'codepress-admin-columns' ),
 		);
 
-		asort( $options );
+		if ( $this->column instanceof AC_Column_RelationInterface ) {
+			$relation_options = array(
+				'edit_post'   => _x( 'Edit %s', 'post' ),
+				'view_post'   => _x( 'View %s', 'post' ),
+				'edit_author' => _x( 'Edit %s Author', 'post', 'codepress-admin-columns' ),
+				'view_author' => _x( 'View Public %s Author Page', 'post', 'codepress-admin-columns' ),
+			);
 
-		$options = array_merge( array( '' => __( 'None' ) ), $options );
+			$label = $this->column->get_relation_object()->get_labels()->singular_name;
+
+			foreach ( $relation_options as $k => $option ) {
+				$options[ $k ] = sprintf( $option, $label );
+			}
+		}
 
 		return $options;
 	}

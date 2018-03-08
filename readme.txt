@@ -2,9 +2,9 @@
 Contributors: codepress, tschutter, davidmosterd, engelen, dungengronovius
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZDZRSYLQ4Z76J
 Tags: plugins, wordpress, admin, column, columns, custom columns, custom fields, image, dashboard, sortable, filters, posts, media, users, pages, posttypes, manage columns, wp-admin
-Requires at least: 3.5
-Tested up to: 4.7.1
-Stable tag: 2.6beta
+Requires at least: 4.5
+Tested up to: 4.9.3
+Stable tag: 3.1.4
 
 Customise columns on the administration screens for post(types), pages, media, comments, links and users with an easy to use drag-and-drop interface.
 
@@ -218,23 +218,151 @@ You can find a list of the available actions and filters (and examples on how to
 
 == Changelog ==
 
-= 2.6beta =
+= 3.1.4 =
 
-Release Date: t.b.d.
+Release Date: February 6th, 2018
 
+[Removed] Removed 'acp/column_types' action
+[Fixed] Small typo in help text
+[Update] Updated languages from wordpress.org
+
+= 3.1.3 =
+
+Release Date: January 30th, 2018
+
+* [Fixed] Added protected AC_ListScreen::get_object_by_id with deprecated message
+
+= 3.1.1 =
+
+Release Date: January 29th, 2018
+
+* [Fixed] Fixed fatal error for custom taxonomy columns
+
+= 3.1 =
+
+Release Date: January 29th, 2018
+
+* [Improved] Admin Columns Capability is now always set
+* [Improved] Database update message is only visible for administartors
+* [Improved] Links starting with # are now marked as internal
+* [Removed] Removed support for the Link/Bookmark list table
+* [Added] Added date time settings for columns that use dates
+
+= 3.0.7 =
+
+Release Date: December 12th, 2017
+
+* [Added] New setting for content fields: String limit (Limit on words or characters)
+* [Improved] Merged the roles column into the author column
+* [Improved] Added Before/After fields for the following columns: Content, Excerpt, User Description
+* [Improved] Removed deprecated Welcome page
+* [Improved] Removed deprecated Upgrade page
+
+= 3.0.6 =
+
+Release Date: November 22nd, 2017
+
+* [Fixed] Removed unused classes and methods
+
+= 3.0.5 =
+
+Release Date: November 9th, 2017
+
+* [Added] Events Calendar integration add-on is now available from the add-ons tab
+* [Added] Added before/after fields for ID column
+* [Changed] Changed Ajax value interface
+* [Fixed] Fixed php warning on count() for php 7.2
+* [Improved] Column interface for post relations
+* [Improved] Attachment count column combined with Attachment column
+* [Improved] Pro banner
+* [Improved] Published date shows when a post is not published
+* [Improved] Custom field keys for users are now grouped by site option
+* [Improved] Added the AC_Plugin class as a more DRY approach to asking meta data about a plugin
+* [Improved] Redone the way user preferences are stored. Less records and better compatible with Multisite.
+* [Improved] Added the option to write database updates and apply them on a new version
+* [Improved] Empty character is just a method now instead of getter/setter with a filter
+* [Improved] Added AC_Services class to register services to a column on the fly (DI approach)
+* [Improved] Custom fields for users are now grouped per network site
+
+= 3.0.4 =
+
+Release Date: August 17, 2017
+
+* [Improved] Attachment column: you can now limit the number of items being displayed
+* [Improved] Only apply before/after when the value is not empty
+* [Improved] EXIF Data now have added before and after fields
+* [Improved] Renamed Alt column to Alternative Text
+* [Improved] Renamed Before More Tag column to More Tag
+* [Improved] Renamed Comment Status column to Allow Comments
+* [Improved] Renamed Title without actions column to Title Only
+* [Improved] Available Sizes column for media now has the option to include missing file sizes
+* [Improved] Added Orientation and Keywords to EXIF data column
+* [Improved] Added a tooltip to the actions column
+* [Improved] Date Published column now shows a status icon when the post has not yet been published
+* [Improved] Post Formats column now has the option to show an icons
+* [Improved] Author column can now display the role(s) of the author
+* [Improved] Added many helper methods to ac_helper()
+* [Removed] Removed the "Attached to Post" column. The column has been replaced by the "Uploaded to" column in WordPress 4.0
+* [Fixed] Time difference option in the date column now uses the correct GMT offset
+
+= 3.0.3 =
+
+Release Date: July 26th, 2017
+
+* [Fixed] Show the type instead of an empty label in the edit columns screen
+* [Fixed] Image URLs are supported again for the Custom Field column
+* [Fixed] Column with a date setting did not always store it's value date format correctly
+* [Improved] Post Status column can now also be displayed as an icon
+* [Improved] Use multibyte function to trim strings for showing a maximum character count
+* [Improved] Excerpt column now displays a text icon when the excerpt is generated from it's content
+* [Added] Added a helper to display star ratings
+
+= 3.0.2 =
+
+Release Date: July 3rd, 2017
+
+* [Fixed] No columns were shown when you saved your columns without visiting the overview page first
+* [Improved] Character limit now strips tags before trimming
+* [Improved] Translations for the core are now fetched from Glotpress
+
+= 3.0.1 =
+
+Release Date: June 12th, 2017
+
+* [Improved] Clicking the toggle icons in the header of the column settings won't open the column settings anymore
+* [Added] The Last Modified Author and Last Modified Date columns are now available for the Media overview
+* [Improved] Fallback for the autoloader to work with lowercase files
+* [Improved] User Nicename available as an option for User display
+* [Fixed] Media Path now shows correct http protocol
+
+= 3.0 =
+
+Release Date: May 3rd, 2017
+
+* [Refactor] Complete refactor of core code. Please read [Upgrading from v3 to v4](https://www.admincolumns.com/documentation/faq/upgrading-from-v3-to-v4/)
+* [Improved] Column will now have a default empty value (dash character)
+* [Improved] A column can now use an ajax callback for displaying it's contents (with AC_Column_AjaxValue interface)
+* [Improved] Updated the User Interface
 * [Improved] Using dashicons instead of image icons
 * [Improved] Action column now always is the primary column
 * [Improved] Heading structure in Admin is now correct
 * [Improved] Page Template column supports post types (since WP 4.7)
-* [Added] Autoloader added
+* [Improved] Improved Custom Field column types
 * [Added] New user column added: Author name
 * [Added] New user column added: Show Toolbar
 * [Added] New column for shortlink added
 * [Added] Filter for suppressing admin notices
 * [Added] New helpers added for array, date, formfield, icon, image, post, string ,taxonomy and user. Helpers can be accessed by using 'ac_helper()->array()'' etc
 * [Added] Filter for enabling a 'clear all columns' button to the setting page. 'ac/settings/enable_clear_columns_button'
-* [Added] new method for singleton for Admin Columns main class. 'ac()'
-* [Fixed] ACF select2 error due to ACF update
+* [Added] New method for singleton for Admin Columns main class. 'ac()'
+* [Fixed] Comment Response column is no longer displayed in the table when viewing "Comments On".
+* [Fixed] Post Roles columns works again
+
+= 2.5.6.4 =
+
+Release Date: November 24th, 2016
+
+* [Update] Updated promo banner
 
 = 2.5.6.3 =
 

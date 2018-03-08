@@ -12,42 +12,63 @@ class AC_Helper_Icon {
 
 		$data = (object) wp_parse_args( $args, $defaults );
 
-		return '<span class="dashicons dashicons-' . $data->icon . ' ' . esc_attr( trim( $data->class ) ) . '"' . ( $data->title ? ' title="' . esc_attr( $data->title ) . '"' : '' ) . '' . ( $data->tooltip ? 'data-tip="' . esc_attr( $data->tooltip ) . '"' : '' ) . '></span>';
+		$class = 'dashicons dashicons-' . $data->icon;
+
+		if ( $data->class ) {
+			$class .= ' ' . trim( $data->class );
+		}
+
+		$attributes = array();
+
+		if ( $data->title ) {
+			$attributes[] = 'title="' . esc_attr( $data->title ) . '"';
+		}
+
+		if ( $data->tooltip ) {
+			$attributes[] = ac_helper()->html->get_tooltip_attr( $data->tooltip );
+		}
+
+		return '<span class="' . esc_attr( $class ) . '" ' . implode( ' ', $attributes ) . '></span>';
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
+	 *
+	 * @param string $tooltip
+	 * @param string $title
+	 * @param string $class
+	 *
 	 * @return string
 	 */
-	public function yes( $tooltip = false, $title = true ) {
+	public function yes( $tooltip = false, $title = true, $class = 'green' ) {
 		if ( true === $title ) {
 			$title = __( 'Yes' );
 		}
 
-		return self::dashicon( array( 'icon' => 'yes', 'class' => 'green', 'title' => $title, 'tooltip' => $tooltip ) );
+		return $this->dashicon( array( 'icon' => 'yes', 'class' => $class, 'title' => $title, 'tooltip' => $tooltip ) );
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 * @return string
 	 */
-	public function no( $tooltip = false, $title = true ) {
+	public function no( $tooltip = false, $title = true, $class = 'red' ) {
 		if ( true === $title ) {
 			$title = __( 'No' );
 		}
 
-		return self::dashicon( array( 'icon' => 'no', 'class' => 'red', 'title' => $title, 'tooltip' => $tooltip ) );
+		return $this->dashicon( array( 'icon' => 'no-alt', 'class' => $class, 'title' => $title, 'tooltip' => $tooltip ) );
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @param bool $display
 	 *
 	 * @return string HTML Dashicon
 	 */
 	public function yes_or_no( $is_true, $tooltip = '' ) {
-		return $is_true ? self::yes( $tooltip ) : self::no( $tooltip );
+		return $is_true ? $this->yes( $tooltip ) : $this->no( $tooltip );
 	}
 
 }

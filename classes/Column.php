@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @since NEWVERSION
+ * @since 3.0
  */
 class AC_Column {
 
@@ -28,12 +28,17 @@ class AC_Column {
 	/**
 	 * @var bool An original column will use the already defined column value and label.
 	 */
-	private $original;
+	private $original = false;
 
 	/**
 	 * @var AC_Settings_Column[]
 	 */
 	private $settings;
+
+	/**
+	 * @var AC_Settings_FormatValueInterface[]|AC_Settings_FormatCollectionInterface[]
+	 */
+	private $formatters;
 
 	/**
 	 * @var AC_ListScreen
@@ -63,7 +68,7 @@ class AC_Column {
 	 * @return $this
 	 */
 	public function set_name( $name ) {
-		$this->name = $name;
+		$this->name = (string) $name;
 
 		return $this;
 	}
@@ -84,7 +89,7 @@ class AC_Column {
 	 * @return $this
 	 */
 	public function set_type( $type ) {
-		$this->type = $type;
+		$this->type = (string) $type;
 
 		return $this;
 	}
@@ -114,8 +119,6 @@ class AC_Column {
 	 * @return string Label of column's type
 	 */
 	public function get_label() {
-
-		// Original heading
 		if ( null === $this->label ) {
 			$this->set_label( $this->get_list_screen()->get_original_label( $this->get_type() ) );
 		}
@@ -135,7 +138,7 @@ class AC_Column {
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 * @return string Group
 	 */
 	public function get_group() {
@@ -179,7 +182,7 @@ class AC_Column {
 	 * Return true when a default column has been replaced by a custom column.
 	 * An original column will then use the original label and value.
 	 *
-	 * @since NEWVERSION
+	 * @since 3.0
 	 */
 	public function is_original() {
 		return $this->original;
@@ -243,8 +246,20 @@ class AC_Column {
 		return $this->get_settings()->get( $id );
 	}
 
+	public function get_formatters() {
+		if ( null === $this->formatters ) {
+			foreach ( $this->get_settings() as $setting ) {
+				if ( $setting instanceof AC_Settings_FormatValueInterface || $setting instanceof AC_Settings_FormatCollectionInterface ) {
+					$this->formatters[] = $setting;
+				}
+			}
+		}
+
+		return $this->formatters;
+	}
+
 	/**
-	 * @return AC_Settings_Collection
+	 * @return AC_Collection
 	 */
 	public function get_settings() {
 		if ( null === $this->settings ) {
@@ -263,7 +278,7 @@ class AC_Column {
 			do_action( 'ac/column/settings', $this );
 		}
 
-		return new AC_Settings_Collection( $this->settings );
+		return new AC_Collection( $this->settings );
 	}
 
 	/**
@@ -305,60 +320,6 @@ class AC_Column {
 	}
 
 	/**
-	 * Apply formatting that is defined in the settings
-	 *
-	 * A formatter should return a AC_Collection when other formatters
-	 * should apply the formatter to each member of the collection
-	 *
-	 * @param AC_Collection|string $value
-	 *
-	 * @return string
-	 */
-	public function format_value( $value ) {
-		$object_id = $value;
-
-		foreach ( $this->get_settings() as $setting ) {
-			if ( $setting instanceof AC_Settings_FormatInterface ) {
-
-				if ( $value instanceof AC_Collection ) {
-					foreach ( $value as $k => $v ) {
-						$value->put( $k, $setting->format( $v, $object_id ) );
-					}
-				} else {
-					$value = $setting->format( $value, $object_id );
-				}
-
-			}
-		}
-
-		if ( $value instanceof AC_Collection ) {
-			$value = $value->implode( $this->get_separator() );
-		}
-
-		return $value;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function get_separator() {
-		$separator = ', ';
-
-		if ( $setting = $this->get_setting( 'separator' ) ) {
-			switch ( $setting->get_separator() ) {
-				case 'newline' :
-					$separator = '<br/>';
-					break;
-				case '' :
-					$separator = '&nbsp;';
-					break;
-			}
-		}
-
-		return $separator;
-	}
-
-	/**
 	 * Enqueue CSS + JavaScript on the admin listings screen!
 	 *
 	 * This action is called in the admin_head action on the listings screen where your column values are displayed.
@@ -371,14 +332,46 @@ class AC_Column {
 	}
 
 	/**
-	 * Display value
+	 * Apply available formatters (recursive) on the value
 	 *
-	 * @param int $object_id ID
+	 * @param mixed $value
+	 * @param mixed $original_value
+	 * @param int   $current Current index of self::$formatters
 	 *
 	 * @return mixed
 	 */
-	public function get_value( $object_id ) {
-		return $this->format_value( $this->get_raw_value( $object_id ) );
+	public function get_formatted_value( $value, $original_value = null, $current = 0 ) {
+		$formatters = $this->get_formatters();
+		$available = count( (array) $formatters );
+
+		if ( null === $original_value ) {
+			$original_value = $value;
+		}
+
+		if ( $available > $current ) {
+			$is_collection = $value instanceof AC_Collection;
+			$is_value_formatter = $formatters[ $current ] instanceof AC_Settings_FormatValueInterface;
+
+			if ( $is_collection && $is_value_formatter ) {
+				foreach ( $value as $k => $v ) {
+					$value->put( $k, $this->get_formatted_value( $v, null, $current ) );
+				}
+
+				while ( $available > $current ) {
+					if ( $formatters[ $current ] instanceof AC_Settings_FormatCollectionInterface ) {
+						return $this->get_formatted_value( $value, $original_value, $current );
+					}
+
+					++$current;
+				}
+			} elseif ( ( $is_collection && ! $is_value_formatter ) || $is_value_formatter ) {
+				$value = $formatters[ $current ]->format( $value, $original_value );
+
+				return $this->get_formatted_value( $value, $original_value, ++$current );
+			}
+		}
+
+		return $value;
 	}
 
 	/**
@@ -387,12 +380,47 @@ class AC_Column {
 	 *
 	 * @since 2.0.3
 	 *
-	 * @param int $object_id ID
+	 * @param int $id
 	 *
-	 * @return mixed Raw column value. Default is NULL.
+	 * @return string|array
 	 */
-	public function get_raw_value( $object_id ) {
+	public function get_raw_value( $id ) {
 		return null;
+	}
+
+	/**
+	 * Display value
+	 *
+	 * @param int $id
+	 *
+	 * @return string
+	 */
+	public function get_value( $id ) {
+		$value = $this->get_formatted_value( $this->get_raw_value( $id ), $id );
+
+		if ( $value instanceof AC_Collection ) {
+			$value = $value->filter()->implode( $this->get_separator() );
+		}
+
+		if ( ! $value && ! $this->is_original() ) {
+			$value = $this->get_empty_char();
+		}
+
+		return (string) $value;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_separator() {
+		return ', ';
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_empty_char() {
+		return '&ndash;';
 	}
 
 }

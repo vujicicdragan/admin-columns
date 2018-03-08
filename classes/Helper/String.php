@@ -6,7 +6,11 @@ class AC_Helper_String {
 	 * @since 1.3.1
 	 */
 	public function shorten_url( $url ) {
-		return $url ? '<a title="' . esc_attr( $url ) . '" href="' . esc_attr( $url ) . '">' . esc_html( url_shorten( $url ) ) . '</a>' : false;
+		if ( ! $url ) {
+			return false;
+		}
+
+		return ac_helper()->html->link( $url, url_shorten( $url ), array( 'title' => $url ) );
 	}
 
 	/**
@@ -19,14 +23,22 @@ class AC_Helper_String {
 	/**
 	 * Count the number of words in a string (multibyte-compatible)
 	 *
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @param $string
 	 *
 	 * @return int Number of words
 	 */
 	public function word_count( $string ) {
+		if ( empty( $string ) ) {
+			return false;
+		}
+
 		$string = $this->strip_trim( $string );
+
+		if ( empty( $string ) ) {
+			return false;
+		}
 
 		$patterns = array(
 			'strip' => '/<[a-zA-Z\/][^<>]*>/',
@@ -47,24 +59,50 @@ class AC_Helper_String {
 	}
 
 	/**
-	 * @see wp_trim_words();
+	 * @see   wp_trim_words();
 	 *
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @return string
 	 */
 	public function trim_words( $string = '', $num_words = 30, $more = null ) {
-		return $string ? wp_trim_words( $string, $num_words, $more ) : false;
+		if ( ! $string ) {
+			return false;
+		}
+
+		if ( ! $num_words ) {
+			return $string;
+		}
+
+		return wp_trim_words( $string, $num_words, $more );
 	}
 
 	/**
+	 * Trims a string and strips tags if there is any HTML
+	 *
 	 * @param string $string
-	 * @param int $limit
+	 * @param int    $limit
 	 *
 	 * @return string
 	 */
-	public function trim_characters( $string, $limit = 10 ) {
-		return is_numeric( $limit ) && 0 < $limit && strlen( $string ) > $limit ? substr( $string, 0, $limit ) . __( '&hellip;' ) : $string;
+	public function trim_characters( $string, $limit = 10, $trail = null ) {
+		$limit = absint( $limit );
+
+		if ( 1 > $limit ) {
+			return $string;
+		}
+
+		$string = wp_strip_all_tags( $string );
+
+		if ( mb_strlen( $string ) <= $limit ) {
+			return $string;
+		}
+
+		if ( null === $trail ) {
+			$trail = __( '&hellip;' );
+		}
+
+		return mb_substr( $string, 0, $limit ) . $trail;
 	}
 
 	/**
@@ -72,8 +110,8 @@ class AC_Helper_String {
 	 *
 	 * Example: #FF0 will be fff000 based on the $prefix parameter
 	 *
-	 * @param string $hex Valid hex color
-	 * @param bool $prefix Prefix with a # or not
+	 * @param string $hex    Valid hex color
+	 * @param bool   $prefix Prefix with a # or not
 	 *
 	 * @return string
 	 */
@@ -94,7 +132,7 @@ class AC_Helper_String {
 	/**
 	 * Get RGB values from a hex color string
 	 *
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @param string $hex Valid hex color
 	 *
@@ -109,7 +147,7 @@ class AC_Helper_String {
 	/**
 	 * Get contrasting hex color based on given hex color
 	 *
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @param string $hex Valid hex color
 	 *
@@ -130,11 +168,11 @@ class AC_Helper_String {
 	 * @return bool
 	 */
 	public function is_image( $url ) {
-		return $url && is_string( $url ) ? in_array( strrchr( $url, '.' ), array( '.jpg', '.jpeg', '.gif', '.png', '.bmp' ) ) : false;
+		return $url && is_string( $url ) && in_array( strrchr( $url, '.' ), array( '.jpg', '.jpeg', '.gif', '.png', '.bmp' ) );
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @param string $string
 	 *
@@ -145,12 +183,10 @@ class AC_Helper_String {
 		if ( is_scalar( $string ) ) {
 			if ( strpos( $string, ',' ) !== false ) {
 				$array = array_filter( explode( ',', ac_helper()->string->strip_trim( str_replace( ' ', '', $string ) ) ) );
-			}
-			else {
+			} else {
 				$array = array( $string );
 			}
-		}
-		else if ( is_array( $string ) ) {
+		} else if ( is_array( $string ) ) {
 			$array = $string;
 		}
 
@@ -158,31 +194,35 @@ class AC_Helper_String {
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @param string $string
 	 *
 	 * @return array
 	 */
 	public function string_to_array_integers( $string ) {
-		$values = $this->comma_separated_to_array( $string );
+		$integers = array();
 
-		foreach ( $values as $k => $value ) {
-			if ( ! is_numeric( $value ) ) {
-				unset( $values[ $k ] );
+		foreach ( $this->comma_separated_to_array( $string ) as $k => $value ) {
+			if ( is_numeric( trim( $value ) ) ) {
+				$integers[] = $value;
 			}
 		}
 
-		return $values;
+		return $integers;
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
 	 * @param string $hex Color Hex Code
 	 */
 	public function get_color_block( $hex ) {
-		return $hex ? '<div class="cpac-color"><span style="background-color:' . esc_attr( $hex ) . ';color:' . esc_attr( $this->hex_get_contrast( $hex ) ) . '">' . esc_html( $hex ) . '</span></div>' : false;
+		if ( ! $hex ) {
+			return false;
+		}
+
+		return '<div class="cpac-color"><span style="background-color:' . esc_attr( $hex ) . ';color:' . esc_attr( $this->hex_get_contrast( $hex ) ) . '">' . esc_html( $hex ) . '</span></div>';
 	}
 
 	/**
@@ -193,53 +233,11 @@ class AC_Helper_String {
 	}
 
 	/**
-	 * @param $content
-	 *
-	 * @return int Words per minute
-	 */
-	public function get_estimated_reading_time_in_seconds( $string, $words_per_minute = 200 ) {
-		$word_count = $this->word_count( $string );
-
-		return $word_count && $words_per_minute ? (int) floor( ( $word_count / $words_per_minute ) * 60 ) : 0;
-	}
-
-	/**
-	 * @since NEWVERSION
-	 *
-	 * @param int $seconds
-	 *
-	 * @return string
-	 */
-	public function convert_seconds_to_human_readable_time( $seconds ) {
-		$time = false;
-
-		if ( $seconds ) {
-
-			$minutes = floor( $seconds / 60 );
-			$seconds = floor( $seconds % 60 );
-
-			$time = $minutes;
-			if ( $minutes && $seconds < 10 ) {
-				$seconds = '0' . $seconds;
-			}
-			if ( '00' != $seconds ) {
-				$time .= ':' . $seconds;
-			}
-			if ( $minutes < 1 ) {
-				$time = $seconds . ' ' . _n( 'second', 'seconds', $seconds, 'codepress-admin-columns' );
-			}
-			else {
-				$time .= ' ' . _n( 'minute', 'minutes', $minutes, 'codepress-admin-columns' );
-			}
-		}
-
-		return $time;
-	}
-
-	/**
 	 * @return string Display empty value
 	 */
 	public function get_empty_char() {
+		_deprecated_function( __METHOD__, '3.0', 'AC_Column::get_empty_char' );
+
 		return '&ndash;';
 	}
 
@@ -268,6 +266,32 @@ class AC_Helper_String {
 	 */
 	public function is_not_empty( $value ) {
 		return $value || 0 === $value;
+	}
+
+	/**
+	 * Return an array into a comma separated sentence. For example [minute, hours, days] becomes: "minute, hours or days".
+	 *
+	 * @param array $words
+	 *
+	 * @return string
+	 */
+	public function enumeration_list( $words, $compound = 'or' ) {
+		if ( empty( $words ) || ! is_array( $words ) ) {
+			return false;
+		}
+
+		if ( 'and' === $compound ) {
+			return wp_sprintf( '%l', $words );
+		}
+
+		if ( 'or' === $compound ) {
+			$compound = __( ' or ', 'codepress-admin-columns' );
+		}
+
+		$last = end( $words );
+		$delimiter = ', ';
+
+		return str_replace( $delimiter . $last, $compound . $last, implode( $delimiter, $words ) );
 	}
 
 }

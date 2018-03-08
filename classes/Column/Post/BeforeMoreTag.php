@@ -7,11 +7,7 @@ class AC_Column_Post_BeforeMoreTag extends AC_Column {
 
 	public function __construct() {
 		$this->set_type( 'column-before_moretag' );
-		$this->set_label( __( 'Before More Tag', 'codepress-admin-columns' ) );
-	}
-
-	public function get_value( $post_id ) {
-		return $this->get_raw_value( $post_id );
+		$this->set_label( __( 'More Tag', 'codepress-admin-columns' ) );
 	}
 
 	public function get_raw_value( $post_id ) {
@@ -21,7 +17,7 @@ class AC_Column_Post_BeforeMoreTag extends AC_Column {
 		$extended = get_extended( $p->post_content );
 
 		if ( ! empty( $extended['extended'] ) ) {
-			$value = $this->get_setting( 'word_limit' )->format( $extended['main'] );
+			$value = $extended['main'];
 		}
 
 		return $value;

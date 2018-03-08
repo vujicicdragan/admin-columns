@@ -8,7 +8,7 @@ class AC_Helper_Date {
 	 * @return int|false
 	 */
 	public function strtotime( $date ) {
-		if ( empty( $date ) || in_array( $date, array( '0000-00-00 00:00:00', '0000-00-00', '00:00:00' ) ) ) {
+		if ( empty( $date ) || in_array( $date, array( '0000-00-00 00:00:00', '0000-00-00', '00:00:00' ) ) || ! is_scalar( $date ) ) {
 			return false;
 		}
 
@@ -43,9 +43,14 @@ class AC_Helper_Date {
 	 *
 	 * @return int|false
 	 */
-	public function strtotime_from_format( $date, $format ) {
+	public function get_timestamp_from_format( $date, $format ) {
 		if ( ! $date ) {
 			return false;
+		}
+
+		// Already a timestamp
+		if ( 'U' === $format ) {
+			return $date;
 		}
 
 		$timestamp = false;
@@ -67,7 +72,7 @@ class AC_Helper_Date {
 	/**
 	 * @since 1.3.1
 	 *
-	 * @param string $date PHP Date format
+	 * @param string $date           PHP Date format
 	 * @param string $display_format Date display format
 	 *
 	 * @return string Formatted date
@@ -79,9 +84,9 @@ class AC_Helper_Date {
 	}
 
 	/**
-	 * @since NEWVERSION
+	 * @since 3.0
 	 *
-	 * @param string $date PHP Date format
+	 * @param string $date           PHP Date format
 	 * @param string $display_format Date display format
 	 *
 	 * @return string Formatted date
@@ -89,6 +94,18 @@ class AC_Helper_Date {
 	public function date_by_timestamp( $timestamp, $display_format = '' ) {
 		if ( ! $timestamp ) {
 			return false;
+		}
+
+		switch ( $display_format ) {
+
+			case 'wp_date' :
+				$display_format = get_option( 'date_format' );
+
+				break;
+			case 'wp_date_time' :
+				$display_format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+
+				break;
 		}
 
 		// Get date format from the General Settings
@@ -113,11 +130,16 @@ class AC_Helper_Date {
 	 */
 	public function time( $date, $format = '' ) {
 		$timestamp = ac_helper()->date->strtotime( $date );
+
 		if ( ! $format ) {
 			$format = get_option( 'time_format' );
 		}
 
-		return $timestamp ? date_i18n( $format, $timestamp ) : false;
+		if ( ! $timestamp ) {
+			return false;
+		}
+
+		return date_i18n( $format, $timestamp );
 	}
 
 	/**
@@ -151,4 +173,5 @@ class AC_Helper_Date {
 
 		return preg_replace( $replace_from, $replace_to, $format );
 	}
+
 }

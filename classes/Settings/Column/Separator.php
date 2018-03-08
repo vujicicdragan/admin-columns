@@ -1,6 +1,7 @@
 <?php
 
-class AC_Settings_Column_Separator extends AC_Settings_Column {
+class AC_Settings_Column_Separator extends AC_Settings_Column
+	implements AC_Settings_FormatCollectionInterface {
 
 	/**
 	 * @var string
@@ -15,9 +16,11 @@ class AC_Settings_Column_Separator extends AC_Settings_Column {
 		$element = $this
 			->create_element( 'select' )
 			->set_options( array(
-				''        => __( 'Single Space', 'codepress-admin-columns' ),
-				'comma'   => __( 'Comma Separated', 'codepress-admin-columns' ),
-				'newline' => __( 'New line', 'codepress-admin-columns' ),
+				''            => __( 'Default', 'codepress-admin-columns' ),
+				'comma'       => __( 'Comma Separated', 'codepress-admin-columns' ),
+				'newline'     => __( 'New line', 'codepress-admin-columns' ),
+				'none'        => __( 'None', 'codepress-admin-columns' ),
+				'white_space' => __( 'Whitespace', 'codepress-admin-columns' ),
 			) );
 
 		$view = new AC_View( array(
@@ -39,23 +42,29 @@ class AC_Settings_Column_Separator extends AC_Settings_Column {
 		return $this;
 	}
 
-	public function get_formatted_separator() {
-
+	public function format( AC_Collection $collection, $original_value ) {
 		switch ( $this->separator ) {
 			case 'comma' :
 				$separator = ', ';
+
 				break;
 			case 'newline' :
-				$separator = '<br/>';
+				$separator = "<br/>";
+
 				break;
 			case 'none' :
 				$separator = '';
+
+				break;
+			case 'white_space' :
+				$separator = '&nbsp;';
+
 				break;
 			default :
-				$separator = '&nbsp;';
+				$separator = $this->column->get_separator();
 		}
 
-		return $separator;
+		return $collection->filter()->implode( $separator );
 	}
 
 }
