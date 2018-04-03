@@ -120,6 +120,10 @@ class AC_Admin {
 	 * @since 1.0
 	 */
 	public function settings_menu() {
+		if ( AC()->use_lite_version() ) {
+			return;
+		}
+
 		$this->hook_suffix = add_submenu_page( $this->get_parent_slug(), __( 'Admin Columns Settings', 'codepress-admin-columns' ), __( 'Admin Columns', 'codepress-admin-columns' ), 'manage_admin_columns', self::MENU_SLUG, array( $this, 'display' ) );
 
 		add_action( 'load-' . $this->hook_suffix, array( $this, 'load_help_tabs' ) );

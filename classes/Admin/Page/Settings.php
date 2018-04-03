@@ -45,7 +45,7 @@ class AC_Admin_Page_Settings extends AC_Admin_Page {
 	 * @return false|string When '0' there are no options stored.
 	 */
 	public function get_option( $key ) {
-		return isset( $this->options[ $key ] ) ? $this->options[ $key ] : false;
+		return $this->options && isset( $this->options[ $key ] ) ? $this->options[ $key ] : false;
 	}
 
 	private function is_empty_options() {
@@ -60,7 +60,7 @@ class AC_Admin_Page_Settings extends AC_Admin_Page {
 	 * @return bool
 	 */
 	public function show_edit_button() {
-		return $this->is_empty_options() || $this->get_option( 'show_edit_button' );
+		return ! AC()->use_lite_version() && $this->get_option( 'show_edit_button' );
 	}
 
 	/**

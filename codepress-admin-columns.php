@@ -288,6 +288,13 @@ class CPAC extends AC_Plugin {
 	}
 
 	/**
+	 * @since NEWVERSION
+	 */
+	public function use_lite_version() {
+		return apply_filters( 'ac/lite', false );
+	}
+
+	/**
 	 * @since 3.0
 	 * @return AC_API
 	 */
