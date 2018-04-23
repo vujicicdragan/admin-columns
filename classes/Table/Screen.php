@@ -5,8 +5,10 @@ namespace AC\Table;
 use AC\Admin;
 use AC\Capabilities;
 use AC\Column;
+use AC\Layout;
 use AC\ListScreen;
 use AC\ListScreenFactory;
+use AC\Preferences;
 use AC\Settings;
 
 final class Screen {
@@ -19,14 +21,18 @@ final class Screen {
 	public function __construct() {
 		add_action( 'current_screen', array( $this, 'load_list_screen' ) );
 		add_action( 'admin_init', array( $this, 'load_list_screen_doing_quick_edit' ) );
+		add_filter( 'list_table_primary_column', array( $this, 'set_primary_column' ), 20 );
+		add_action( 'wp_ajax_ac_get_column_value', array( $this, 'ajax_get_column_value' ) );
+
+		// Layout
+		add_action( 'admin_footer', array( $this, 'screen_switcher' ) );
+		add_action( 'admin_init', array( $this, 'handle_request' ) );
+
+		// Scripts
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
 		add_action( 'admin_footer', array( $this, 'admin_footer_scripts' ) );
 		add_action( 'admin_head', array( $this, 'admin_head_scripts' ) );
 		add_filter( 'admin_body_class', array( $this, 'admin_class' ) );
-		add_filter( 'list_table_primary_column', array( $this, 'set_primary_column' ), 20 );
-		add_action( 'wp_ajax_ac_get_column_value', array( $this, 'ajax_get_column_value' ) );
-		add_action( 'admin_footer', array( $this, 'screen_switcher' ) );
-		add_action( 'admin_init', array( $this, 'handle_request' ) );
 	}
 
 	/**
@@ -100,7 +106,7 @@ final class Screen {
 			return;
 		}
 
-		$layouts = ACP()->layouts( $list_screen );
+		$layouts = ac_layouts( $list_screen );
 
 		$layout = $layouts->get_layout_by_id( $layout );
 
@@ -108,8 +114,36 @@ final class Screen {
 			return;
 		}
 
-		// TODO: move to TableScreen?
-		$layouts->set_user_preference( $layout );
+		$this->preferences()->set( $list_screen->get_key(), $layout->get_id() );
+	}
+
+	/**
+	 * @since 4.0.12
+	 * @return \AC\Preferences
+	 */
+	public function preferences() {
+		return new Preferences\Site( 'layout_table' );
+	}
+
+	/**
+	 * @param ListScreen $list_screen
+	 *
+	 * @return false|Layout
+	 */
+	public function get_user_preference( $list_screen ) {
+		$layout_id = $this->preferences()->get( $list_screen->get_key() );
+
+		$layout = ac_layouts( $list_screen )->get_layout_by_id( $layout_id );
+
+		if ( ! $layout ) {
+			return false;
+		}
+
+		if ( ! $layout->is_current_user_eligible() ) {
+			return false;
+		}
+
+		return $layout;
 	}
 
 	/**
@@ -118,11 +152,13 @@ final class Screen {
 	 * @return string
 	 */
 	private function get_layout_id( ListScreen $list_screen ) {
-		$layouts = ACP()->layouts( $list_screen );
+		$layouts = ac_layouts( $list_screen );
 
 		// Current user layouts
 		if ( $layouts->get_layouts_for_current_user() ) {
-			$layout = $layouts->get_user_preference();
+
+			// TODO: simplify
+			$layout = $this->get_user_preference( $list_screen );
 
 			// when no longer available use the first user layout
 			if ( ! $layout ) {
@@ -594,7 +630,7 @@ final class Screen {
 			$link = add_query_arg( array( 'author' => $author ), $link );
 		}
 
-		$layouts = ACP()->layouts( $list_screen )->get_layouts_for_current_user();
+		$layouts = ac_layouts( $list_screen )->get_layouts_for_current_user();
 
 		if ( count( $layouts ) > 1 ) : ?>
 			<form class="layout-switcher">
