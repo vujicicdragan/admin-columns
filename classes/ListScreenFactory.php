@@ -31,12 +31,15 @@ class ListScreenFactory {
 	 * @return false|ListScreen
 	 */
 	public static function create_by_screen( $wp_screen, $id = null ) {
+		// convert screen ID to \WP_Screen
+		$wp_screen = \WP_Screen::get( $wp_screen );
+
 		if ( ! $wp_screen ) {
 			return false;
 		}
 
 		foreach ( AC()->get_list_screens() as $list_screen ) {
-			if ( $wp_screen->id === $list_screen->get_screen_id() &&  $wp_screen->base === $list_screen->get_screen_base() ) {
+			if ( $wp_screen->id === $list_screen->get_screen_id() && $wp_screen->base === $list_screen->get_screen_base() ) {
 				return self::create( $list_screen->get_key(), $id );
 			}
 		}

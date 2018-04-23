@@ -4,6 +4,7 @@ namespace AC;
 
 use AC\ThirdParty;
 use AC\Check;
+use AC\Table;
 
 /**
  * The Admin Columns Class
@@ -22,7 +23,7 @@ class AdminColumns extends Plugin {
 	private $admin;
 
 	/**
-	 * @var TableScreen
+	 * @var Screen
 	 */
 	private $table_screen;
 
@@ -76,7 +77,7 @@ class AdminColumns extends Plugin {
 		$this->admin = new Admin();
 		$this->admin->register();
 
-		$this->table_screen = new TableScreen();
+		$this->table_screen = new Table\Screen();
 		$this->api = new API();
 
 		add_action( 'init', array( $this, 'init_capabilities' ) );
@@ -200,7 +201,7 @@ class AdminColumns extends Plugin {
 	}
 
 	/**
-	 * @return TableScreen Returns the screen manager for the list table
+	 * @return Screen Returns the screen manager for the list table
 	 */
 	public function table_screen() {
 		return $this->table_screen;

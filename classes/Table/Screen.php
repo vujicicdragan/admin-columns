@@ -1,18 +1,20 @@
 <?php
 
-namespace AC;
+namespace AC\Table;
 
-final class TableScreen {
+use AC\Admin;
+use AC\Capabilities;
+use AC\Column;
+use AC\ListScreen;
+use AC\ListScreenFactory;
+use AC\Settings;
+
+final class Screen {
 
 	/**
-	 * @var array $column_headings
+	 * @var ListScreen;
 	 */
-	private $column_headings = array();
-
-	/**
-	 * @var ListScreen $list_screen
-	 */
-	private $current_list_screen;
+	private $list_screen;
 
 	public function __construct() {
 		add_action( 'current_screen', array( $this, 'load_list_screen' ) );
@@ -23,6 +25,118 @@ final class TableScreen {
 		add_filter( 'admin_body_class', array( $this, 'admin_class' ) );
 		add_filter( 'list_table_primary_column', array( $this, 'set_primary_column' ), 20 );
 		add_action( 'wp_ajax_ac_get_column_value', array( $this, 'ajax_get_column_value' ) );
+		add_action( 'admin_footer', array( $this, 'screen_switcher' ) );
+		add_action( 'admin_init', array( $this, 'handle_request' ) );
+	}
+
+	/**
+	 * Load current list screen
+	 *
+	 * @param \WP_Screen $wp_screen
+	 */
+	public function load_list_screen( $wp_screen ) {
+		if ( ! $wp_screen instanceof \WP_Screen ) {
+			return;
+		}
+
+		$list_screen = ListScreenFactory::create_by_screen( $wp_screen );
+
+		if ( ! $list_screen ) {
+			return;
+		}
+
+		$this->set_list_screen( $list_screen );
+	}
+
+	/**
+	 * Runs when doing Quick Edit, a native WordPress ajax call
+	 */
+	public function load_list_screen_doing_quick_edit() {
+		if ( ! AC()->is_doing_ajax() ) {
+			return;
+		}
+
+		switch ( filter_input( INPUT_POST, 'action' ) ) {
+
+			case 'inline-save' :
+				// Quick edit post
+				$this->set_list_screen( ListScreenFactory::create( filter_input( INPUT_POST, 'post_type' ) ) );
+
+				break;
+			case 'add-tag' :
+			case 'inline-save-tax' :
+				// Adding term & Quick edit term
+				$this->set_list_screen( ListScreenFactory::create( 'wp-taxonomy_' . filter_input( INPUT_POST, 'taxonomy' ) ) );
+
+				break;
+			case 'edit-comment' :
+			case 'replyto-comment' :
+				// Quick edit comment & Inline reply on comment
+				$this->set_list_screen( ListScreenFactory::create( 'wp-comments' ) );
+
+				break;
+		}
+	}
+
+	/**
+	 * Handle Requests: Store visited layout as a preference
+	 */
+	public function handle_request() {
+		$layout = filter_input( INPUT_GET, 'layout', FILTER_SANITIZE_STRING );
+
+		if ( ! $layout ) {
+			return;
+		}
+
+		$list_screen = filter_input( INPUT_GET, 'list_screen', FILTER_SANITIZE_STRING );
+
+		if ( empty( $list_screen ) ) {
+			return;
+		}
+
+		$list_screen = ListScreenFactory::create( filter_input( INPUT_GET, 'list_screen', FILTER_SANITIZE_STRING ) );
+
+		if ( ! $list_screen ) {
+			return;
+		}
+
+		$layouts = ACP()->layouts( $list_screen );
+
+		$layout = $layouts->get_layout_by_id( $layout );
+
+		if ( ! $layout ) {
+			return;
+		}
+
+		// TODO: move to TableScreen?
+		$layouts->set_user_preference( $layout );
+	}
+
+	/**
+	 * @param ListScreen $list_screen
+	 *
+	 * @return string
+	 */
+	private function get_layout_id( ListScreen $list_screen ) {
+		$layouts = ACP()->layouts( $list_screen );
+
+		// Current user layouts
+		if ( $layouts->get_layouts_for_current_user() ) {
+			$layout = $layouts->get_user_preference();
+
+			// when no longer available use the first user layout
+			if ( ! $layout ) {
+				$layout = $layouts->get_first_layout_for_current_user();
+			}
+
+			$id = $layout->get_id();
+		} else if ( $layouts->get_layout_by_id( null ) ) {
+			// User doesn't have eligible layouts.. but the current (null) layout does exists, then the WP default columns are loaded
+			// _wp_default_ does not exists therefor will load WP default
+			$id = '_wp_default_';
+		}
+
+		return $id;
 	}
 
 	/**
@@ -59,6 +173,9 @@ final class TableScreen {
 		exit;
 	}
 
+	/**
+	 * @param string $message
+	 */
 	private function ajax_error( $message ) {
 		wp_die( $message, null, 400 );
 	}
@@ -69,18 +186,21 @@ final class TableScreen {
 	 * @since 2.5.5
 	 */
 	public function set_primary_column( $default ) {
-		if ( $this->current_list_screen ) {
+		$list_screen = $this->get_list_screen();
 
-			if ( ! $this->current_list_screen->get_column_by_name( $default ) ) {
-				$default = key( $this->current_list_screen->get_columns() );
+		if ( $list_screen ) {
+
+			if ( ! $list_screen->get_column_by_name( $default ) ) {
+				$default = key( $list_screen->get_columns() );
 			}
 
 			// If actions column is present, set it as primary
-			foreach ( $this->current_list_screen->get_columns() as $column ) {
+			foreach ( $list_screen->get_columns() as $column ) {
+
 				if ( 'column-actions' == $column->get_type() ) {
 					$default = $column->get_name();
 
-					if ( $this->current_list_screen instanceof ListScreen\Media ) {
+					if ( $list_screen instanceof ListScreen\Media ) {
 
 						// Add download button to the actions column
 						add_filter( 'media_row_actions', array( $this, 'set_media_row_actions' ), 10, 2 );
@@ -89,20 +209,14 @@ final class TableScreen {
 			};
 
 			// Set inline edit data if the default column (title) is not present
-			if ( $this->current_list_screen instanceof ListScreen\Post && 'title' !== $default ) {
+			if ( $list_screen instanceof ListScreen\Post && 'title' !== $default ) {
 				add_filter( 'page_row_actions', array( $this, 'set_inline_edit_data' ), 20, 2 );
 				add_filter( 'post_row_actions', array( $this, 'set_inline_edit_data' ), 20, 2 );
 			}
 
 			// Remove inline edit action if the default column (author) is not present
-			if ( $this->current_list_screen instanceof ListScreen\Comment && 'comment' !== $default ) {
+			if ( $list_screen instanceof ListScreen\Comment && 'comment' !== $default ) {
 				add_filter( 'comment_row_actions', array( $this, 'remove_quick_edit_from_actions' ), 20, 2 );
-			}
-
-			// Adds the default hidden bulk edit markup for the new primary column
-			// TODO
-			if ( $this->current_list_screen instanceof \ACP\ListScreen\Taxonomy && 'name' !== $default ) {
-				add_filter( 'tag_row_actions', array( $this, 'add_taxonomy_hidden_quick_edit_markup' ), 20, 2 );
 			}
 		}
 
@@ -149,24 +263,6 @@ final class TableScreen {
 	}
 
 	/**
-	 * Add the default markup for the default primary column for the Taxonomy list screen which is necessary for bulk edit
-	 *
-	 * @param $actions
-	 * @param $term
-	 */
-	public function add_taxonomy_hidden_quick_edit_markup( $actions, $term ) {
-		$list_screen = $this->get_current_list_screen();
-
-		if ( $list_screen instanceof \ACP\ListScreen\Taxonomy ) {
-
-			// TODO test and move to PRO
-			$actions .= sprintf( '<div class="hidden">%s</div>', $list_screen->get_list_table()->column_name( $term ) );
-		}
-
-		return $actions;
-	}
-
-	/**
 	 * Adds a body class which is used to set individual column widths
 	 *
 	 * @since 1.4.0
@@ -176,13 +272,51 @@ final class TableScreen {
 	 * @return string
 	 */
 	public function admin_class( $classes ) {
-		if ( ! $this->current_list_screen ) {
+		$list_screen = $this->get_list_screen();
+
+		if ( ! $list_screen ) {
 			return $classes;
 		}
 
-		$classes .= " ac-" . $this->current_list_screen->get_key();
+		$classes .= " ac-" . $list_screen->get_key();
 
 		return apply_filters( 'ac/table/body_class', $classes, $this );
+	}
+
+	public function init_list_screen() {
+
+	}
+
+	/**
+	 * @param ListScreen $list_screen
+	 */
+	private function set_list_screen( ListScreen $list_screen ) {
+		// Load layout
+		$list_screen = ListScreenFactory::create( $list_screen->get_key(), $this->get_layout_id( $list_screen ) );
+
+		// Load headings
+		$this->load_headings( $list_screen );
+
+		// Load values
+		$list_screen->set_manage_value_callback();
+
+		/**
+		 * @since 3.0
+		 *
+		 * @param ListScreen
+		 */
+		do_action( 'ac/table/list_screen', $list_screen );
+
+		$this->list_screen = $list_screen;
+	}
+
+	/**
+	 * @param \WP_Screen $screen
+	 *
+	 * @return ListScreen|false
+	 */
+	public function get_list_screen() {
+		return $this->list_screen;
 	}
 
 	/**
@@ -191,11 +325,11 @@ final class TableScreen {
 	 * @param ListScreen $list_screen
 	 */
 	public function admin_scripts() {
-		if ( ! $this->current_list_screen ) {
+		$list_screen = $this->get_list_screen();
+
+		if ( ! $list_screen ) {
 			return;
 		}
-
-		$list_screen = $this->current_list_screen;
 
 		// Tooltip
 		wp_register_script( 'jquery-qtip2', AC()->get_plugin_url() . "external/qtip2/jquery.qtip.min.js", array( 'jquery' ), AC()->get_version() );
@@ -212,7 +346,7 @@ final class TableScreen {
 				'ajax_nonce'   => wp_create_nonce( 'ac-ajax' ),
 				'table_id'     => $list_screen->get_table_attr_id(),
 				'edit_link'    => $this->get_edit_link( $list_screen ),
-				'screen'       => $this->get_current_screen_id(),
+				'screen'       => get_current_screen() ? get_current_screen()->id : false,
 				'i18n'         => array(
 					'edit_columns' => esc_html( __( 'Edit columns', 'codepress-admin-columns' ) ),
 				),
@@ -231,19 +365,6 @@ final class TableScreen {
 	}
 
 	/**
-	 * @return false|string
-	 */
-	private function get_current_screen_id() {
-		$screen = get_current_screen();
-
-		if ( ! $screen ) {
-			return false;
-		}
-
-		return $screen->id;
-	}
-
-	/**
 	 * @param ListScreen $list_screen
 	 *
 	 * @return array
@@ -258,30 +379,25 @@ final class TableScreen {
 	}
 
 	/**
-	 * @return ListScreen
-	 */
-	public function get_current_list_screen() {
-		return $this->current_list_screen;
-	}
-
-	/**
 	 * Applies the width setting to the table headers
 	 */
 	private function display_width_styles() {
-		if ( ! $this->current_list_screen || ! $this->current_list_screen->get_settings() ) {
+		$list_screen = $this->get_list_screen();
+
+		if ( ! $list_screen || ! $list_screen->get_settings() ) {
 			return;
 		}
 
 		// CSS: columns width
 		$css_column_width = false;
 
-		foreach ( $this->current_list_screen->get_columns() as $column ) {
+		foreach ( $list_screen->get_columns() as $column ) {
 			/* @var Settings\Column\Width $setting */
 			$setting = $column->get_setting( 'width' );
 
 			if ( $width = $setting->get_display_width() ) {
-				$css_column_width .= ".ac-" . esc_attr( $this->current_list_screen->get_key() ) . " .wrap table th.column-" . esc_attr( $column->get_name() ) . " { width: " . $width . " !important; }";
-				$css_column_width .= "body.acp-overflow-table.ac-" . esc_attr( $this->current_list_screen->get_key() ) . " .wrap th.column-" . esc_attr( $column->get_name() ) . " { min-width: " . $width . " !important; }";
+				$css_column_width .= ".ac-" . esc_attr( $list_screen->get_key() ) . " .wrap table th.column-" . esc_attr( $column->get_name() ) . " { width: " . $width . " !important; }";
+				$css_column_width .= "body.acp-overflow-table.ac-" . esc_attr( $list_screen->get_key() ) . " .wrap th.column-" . esc_attr( $column->get_name() ) . " { min-width: " . $width . " !important; }";
 			}
 		}
 
@@ -326,7 +442,9 @@ final class TableScreen {
 	 * @since 3.1.4
 	 */
 	public function admin_head_scripts() {
-		if ( ! $this->current_list_screen ) {
+		$list_screen = $this->get_list_screen();
+
+		if ( ! $list_screen ) {
 			return;
 		}
 
@@ -338,9 +456,9 @@ final class TableScreen {
 		 * @since 3.1.4
 		 *
 		 * @param ListScreen
-		 * @param TableScreen
+		 * @param Screen
 		 */
-		do_action( 'ac/admin_head', $this->current_list_screen, $this );
+		do_action( 'ac/admin_head', $list_screen, $this );
 	}
 
 	/**
@@ -349,7 +467,9 @@ final class TableScreen {
 	 * @since 1.4.0
 	 */
 	public function admin_footer_scripts() {
-		if ( ! $this->current_list_screen ) {
+		$list_screen = $this->get_list_screen();
+
+		if ( ! $list_screen ) {
 			return;
 		}
 
@@ -359,71 +479,24 @@ final class TableScreen {
 		 * @since 2.3.5
 		 *
 		 * @param ListScreen
-		 * @param TableScreen
+		 * @param Screen
 		 */
-		do_action( 'ac/admin_footer', $this->current_list_screen, $this );
+		do_action( 'ac/admin_footer', $list_screen, $this );
 	}
 
 	/**
-	 * Load current list screen
-	 *
-	 * @param \WP_Screen $wp_screen
+	 * Load column values and headings
 	 */
-	public function load_list_screen( $wp_screen ) {
-		$this->set_current_list_screen( ListScreenFactory::create_by_screen( $wp_screen ) );
-	}
+	public function load_screen() {
+		$list_screen = $this->get_list_screen();
 
-	/**
-	 * Runs when doing Quick Edit, a native WordPress ajax call
-	 */
-	public function load_list_screen_doing_quick_edit() {
-		if ( AC()->is_doing_ajax() ) {
-
-			switch ( filter_input( INPUT_POST, 'action' ) ) {
-
-				// Quick edit post
-				case 'inline-save' :
-					$list_screen = filter_input( INPUT_POST, 'post_type' );
-					break;
-
-				// Adding term & Quick edit term
-				case 'add-tag' :
-				case 'inline-save-tax' :
-					$list_screen = 'wp-taxonomy_' . filter_input( INPUT_POST, 'taxonomy' );
-					break;
-
-				// Quick edit comment & Inline reply on comment
-				case 'edit-comment' :
-				case 'replyto-comment' :
-					$list_screen = 'wp-comments';
-					break;
-
-				default :
-					$list_screen = false;
-			}
-
-			$this->set_current_list_screen( ListScreenFactory::create( $list_screen ) );
-		}
-	}
-
-	/**
-	 * @param ListScreen $list_screen
-	 */
-	public function set_current_list_screen( $list_screen ) {
 		if ( ! $list_screen ) {
 			return;
 		}
 
-		$this->current_list_screen = $list_screen;
-
-		// Init Values
 		$list_screen->set_manage_value_callback();
 
-		/**
-		 * Init Headings
-		 * @see get_column_headers() for filter location
-		 */
-		add_filter( "manage_" . $list_screen->get_screen_id() . "_columns", array( $this, 'add_headings' ), 200 );
+		$this->load_headings( $list_screen );
 
 		/**
 		 * @since 3.0
@@ -434,45 +507,58 @@ final class TableScreen {
 	}
 
 	/**
+	 * Load column headings & column values
+	 *
+	 * @param ListScreen $list_screen
+	 */
+	private function load_headings( ListScreen $list_screen ) {
+		add_filter( "manage_" . $list_screen->get_screen_id() . "_columns", array( $this, 'add_headings' ), 200 );
+	}
+
+	/**
 	 * @since 2.0
 	 */
 	public function add_headings( $columns ) {
+		static $headings;
+
 		if ( empty( $columns ) ) {
 			return $columns;
 		}
 
-		if ( ! $this->current_list_screen ) {
+		$list_screen = $this->get_list_screen();
+
+		if ( ! $list_screen ) {
 			return $columns;
 		}
 
 		// Store default headings
 		if ( ! AC()->is_doing_ajax() ) {
-			$this->current_list_screen->save_default_headings( $columns );
+			$list_screen->save_default_headings( $columns );
 		}
 
 		// Run once
-		if ( $this->column_headings ) {
-			return $this->column_headings;
+		if ( $headings ) {
+			return $headings;
 		}
 
 		// Nothing stored. Show default columns on screen.
-		if ( ! $this->current_list_screen->get_settings() ) {
+		if ( ! $list_screen->get_settings() ) {
 			return $columns;
 		}
 
 		// Add mandatory checkbox
 		if ( isset( $columns['cb'] ) ) {
-			$this->column_headings['cb'] = $columns['cb'];
+			$headings['cb'] = $columns['cb'];
 		}
 
 		// On first visit 'columns' can be empty, because they were put in memory before 'default headings'
 		// were stored. We force get_columns() to be re-populated.
-		if ( ! $this->current_list_screen->get_columns() ) {
-			$this->current_list_screen->reset();
-			$this->current_list_screen->reset_original_columns();
+		if ( ! $list_screen->get_columns() ) {
+			$list_screen->reset();
+			$list_screen->reset_original_columns();
 		}
 
-		foreach ( $this->current_list_screen->get_columns() as $column ) {
+		foreach ( $list_screen->get_columns() as $column ) {
 
 			/**
 			 * @since 3.0
@@ -482,10 +568,56 @@ final class TableScreen {
 			 */
 			$label = apply_filters( 'ac/headings/label', $column->get_setting( 'label' )->get_value(), $column );
 
-			$this->column_headings[ $column->get_name() ] = $label;
+			$headings[ $column->get_name() ] = $label;
 		}
 
-		return apply_filters( 'ac/headings', $this->column_headings, $this->current_list_screen );
+		return apply_filters( 'ac/headings', $headings, $list_screen );
+	}
+
+	/**
+	 * Switcher on listing screen
+	 */
+	public function screen_switcher() {
+		$list_screen = $this->get_list_screen();
+
+		if ( ! $list_screen ) {
+			return;
+		}
+
+		$link = $list_screen->get_screen_link();
+
+		if ( $post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING ) ) {
+			$link = add_query_arg( array( 'post_status' => $post_status ), $link );
+		}
+
+		if ( $author = filter_input( INPUT_GET, 'author', FILTER_SANITIZE_STRING ) ) {
+			$link = add_query_arg( array( 'author' => $author ), $link );
+		}
+
+		$layouts = ACP()->layouts( $list_screen )->get_layouts_for_current_user();
+
+		if ( count( $layouts ) > 1 ) : ?>
+			<form class="layout-switcher">
+				<label for="column-view-selector" class="label screen-reader-text">
+					<?php _e( 'Switch View', 'codepress-admin-columns' ); ?>
+				</label>
+				<span class="spinner"></span>
+				<select id="column-view-selector" name="layout" <?php echo ac_helper()->html->get_tooltip_attr( __( 'Switch View', 'codepress-admin-columns' ) ); ?>>
+					<?php foreach ( $layouts as $layout ) : ?>
+						<option value="<?php echo add_query_arg( array( 'layout' => $layout->get_id(), 'list_screen' => $list_screen->get_key() ), $link ); ?>"<?php selected( $layout->get_id(), $list_screen->get_layout_id() ); ?>><?php echo esc_html( $layout->get_name() ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<script type="text/javascript">
+					jQuery( document ).ready( function( $ ) {
+						$( '.layout-switcher' ).change( function() {
+							var _select = $( this ).addClass( 'loading' ).find( 'select' ).attr( 'disabled', 1 );
+							window.location = _select.val();
+						} );
+					} );
+				</script>
+			</form>
+		<?php
+		endif;
 	}
 
 }

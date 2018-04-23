@@ -8,6 +8,7 @@ jQuery( document ).ready( function( $ ) {
 	ac_toggle_box( $ );
 	ac_toggle_box_ajax_init( $ );
 	ac_actions_tooltips( $ );
+	ac_screen_switcher( $ );
 
 	$( '.wp-list-table' ).on( 'updated', 'tr', function() {
 		ac_set_column_classes( $ );
@@ -16,6 +17,21 @@ jQuery( document ).ready( function( $ ) {
 	} );
 
 } );
+
+function ac_screen_switcher( $ ) {
+	if ( $( '.wrap > a.page-title-action' ).length ) {
+		$( '.layout-switcher' ).insertAfter( '.wrap a.page-title-action:first' );
+	}
+	else if ( $( '.wrap h1' ).length ) {
+		$( '.layout-switcher' ).appendTo( '.wrap h1:first' );
+	}
+	else if ( $( '.wrap h2' ).length ) {
+		$( '.layout-switcher' ).appendTo( '.wrap h2:first' );
+	}
+	else if ( $( '.wrap div' ).length ) {
+		$( '.layout-switcher' ).appendTo( '.wrap div:first' );
+	}
+}
 
 function ac_actions_tooltips( $ ) {
 	$( '.row-actions a' ).qtip( {
