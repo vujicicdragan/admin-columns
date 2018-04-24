@@ -2,7 +2,6 @@
 
 namespace AC;
 
-// TODO: move to ListScreen
 abstract class ListScreenStore {
 
 	const OPTION_LAYOUT = 'cpac_layouts';

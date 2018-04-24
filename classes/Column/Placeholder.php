@@ -10,18 +10,15 @@ use AC\Column;
  *
  * @since 2.2
  */
-class Placeholder extends Column {
+abstract class Placeholder extends Column {
 
 	/**
-	 * @var Addon
+	 * @return Addon
 	 */
-	private $addon;
+	abstract protected function get_addon();
 
-	/**
-	 * @param Addon $addon
-	 */
-	public function set_addon( Addon $addon ) {
-		$this->addon = $addon;
+	public function __construct() {
+		$addon = $this->get_addon();
 
 		$this->set_type( 'placeholder-' . $addon->get_slug() );
 		$this->set_group( $addon->get_slug() );
@@ -43,11 +40,15 @@ class Placeholder extends Column {
 		<p>
 			<?php printf( __( "Admin Columns Pro offers full %s integration, allowing you to easily display and edit %s fields from within your overview.", 'codepress-admin-columns' ), $this->get_label(), $this->get_label() ); ?>
 		</p>
-		<a target="_blank" href="<?php echo $this->addon->get_link(); ?>" class="button button-primary"><?php _e( 'Find out more', 'codepress-admin-columns' ); ?></a>
+		<a target="_blank" href="<?php echo $this->get_addon()->get_link(); ?>" class="button button-primary"><?php _e( 'Find out more', 'codepress-admin-columns' ); ?></a>
 
 		<?php
 
 		return ob_get_clean();
+	}
+
+	public function is_valid() {
+		return $this->get_addon()->is_plugin_active() && ! $this->get_addon()->is_active();
 	}
 
 }

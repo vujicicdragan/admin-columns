@@ -10,8 +10,6 @@ class PluginInformation {
 	private $plugin_dirname;
 
 	/**
-	 * AC_Helper_Plugin constructor.
-	 *
 	 * @param string $plugin_dirname
 	 */
 	public function __construct( $plugin_dirname ) {

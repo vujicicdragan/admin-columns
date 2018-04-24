@@ -256,16 +256,6 @@ class Addon {
 	}
 
 	/**
-	 * @return AC\Column\Placeholder
-	 */
-	public function get_placeholder_column() {
-		$column = new AC\Column\Placeholder();
-		$column->set_addon( $this );
-
-		return $column;
-	}
-
-	/**
 	 * @param string $title
 	 *
 	 * @return string

@@ -75,7 +75,7 @@ function ac_get_twitter_handle() {
 }
 
 /**
- * Simple helper methods for AC_Column objects
+ * Simple helper methods for AC\Column objects
  *
  * @since 3.0
  */

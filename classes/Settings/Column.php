@@ -45,7 +45,6 @@ abstract class Column {
 	}
 
 	/**
-	 * @see AC_Settings_Column::$options
 	 * @return array
 	 */
 	protected abstract function define_options();
@@ -282,7 +281,7 @@ abstract class Column {
 
 				break;
 			case 'select' :
-				$element = new Element\Select( $name );
+				$element = new AC\Settings\Form\Element\Select( $name );
 
 				break;
 			default:

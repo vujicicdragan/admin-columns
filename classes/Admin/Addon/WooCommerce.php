@@ -19,13 +19,6 @@ class WooCommerce extends Addon {
 			->add_plugin( 'woocommerce' );
 	}
 
-	public function get_placeholder_column() {
-		$column = new Column\WooCommercePlaceholder();
-		$column->set_addon( $this );
-
-		return $column;
-	}
-
 	public function is_plugin_active() {
 		return class_exists( 'WooCommerce', false );
 	}

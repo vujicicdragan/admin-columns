@@ -44,12 +44,12 @@ abstract class ListScreen {
 	/**
 	 * @var array
 	 */
-	private $users;
+	private $users = array();
 
 	/**
 	 * @var array
 	 */
-	private $roles;
+	private $roles = array();
 
 	/**
 	 * Meta type of list screen; post, user, comment. Mostly used for fetching meta data.
@@ -498,14 +498,6 @@ abstract class ListScreen {
 				->set_original( true );
 
 			$this->register_column_type( $column );
-		}
-
-		// Placeholder columns
-		// TODO: remove & create column objects
-		foreach ( AC()->addons()->get_addons() as $addon ) {
-			if ( $addon->is_plugin_active() && ! $addon->is_active() ) {
-				$this->register_column_type( $addon->get_placeholder_column() );
-			}
 		}
 
 		// Load Custom columns
