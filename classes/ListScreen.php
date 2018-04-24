@@ -714,11 +714,11 @@ abstract class ListScreen {
 	 */
 	public function populate_settings() {
 
-		// Load from DB
+		// Load Columns
 		$this->set_settings( get_option( self::OPTIONS_KEY . $this->get_storage_key() ) );
 
-		// Load Layout
-		$data = LayoutStore::get_layout_data( $this );
+		// Load Settings
+		$data = ListScreenStore::get_layout_data( $this );
 
 		if ( ! empty( $data->name ) ) {
 			$this->set_custom_label( $data->name );

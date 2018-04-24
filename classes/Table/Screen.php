@@ -5,7 +5,7 @@ namespace AC\Table;
 use AC\Admin;
 use AC\Capabilities;
 use AC\Column;
-use AC\LayoutStore;
+use AC\ListScreenStore;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\Preferences;
@@ -594,7 +594,7 @@ final class Screen {
 	private function get_list_screens( ListScreen $list_screen ) {
 		$list_screens = array();
 
-		$layout_ids = LayoutStore::get_layouts_ids( $list_screen );
+		$layout_ids = ListScreenStore::get_layouts_ids( $list_screen );
 
 		foreach ( $layout_ids as $layout_id ) {
 			$list_screen = ListScreenFactory::create( $list_screen->get_key(), $layout_id );

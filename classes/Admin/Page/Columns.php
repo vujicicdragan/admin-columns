@@ -8,7 +8,7 @@ use AC\Admin\Promo;
 use AC\Autoloader;
 use AC\Capabilities;
 use AC\Column;
-use AC\LayoutStore;
+use AC\ListScreenStore;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\ListScreenGroups;
@@ -102,7 +102,7 @@ class Columns extends Page {
 		// First one
 		if ( ! $list_screen ) {
 			$list_screen = ListScreenFactory::create( key( AC()->get_list_screens() ) );
-			$layout_ids = LayoutStore::get_layouts_ids( $list_screen );
+			$layout_ids = ListScreenStore::get_layouts_ids( $list_screen );
 
 			$list_screen = ListScreenFactory::create( $list_screen->get_key(), current( $layout_ids ) );
 		}
