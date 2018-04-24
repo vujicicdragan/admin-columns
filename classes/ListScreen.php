@@ -20,6 +20,11 @@ abstract class ListScreen {
 	private $key;
 
 	/**
+	 * @var string ID
+	 */
+	private $id;
+
+	/**
 	 * @since 2.0
 	 * @var string
 	 */
@@ -30,6 +35,21 @@ abstract class ListScreen {
 	 * @var string
 	 */
 	private $singular_label;
+
+	/**
+	 * @var string
+	 */
+	private $custom_label;
+
+	/**
+	 * @var array
+	 */
+	private $users;
+
+	/**
+	 * @var array
+	 */
+	private $roles;
 
 	/**
 	 * Meta type of list screen; post, user, comment. Mostly used for fetching meta data.
@@ -89,11 +109,6 @@ abstract class ListScreen {
 	 * @var array [ Column name => Label ]
 	 */
 	private $original_columns;
-
-	/**
-	 * @var string Layout ID
-	 */
-	private $layout_id;
 
 	/**
 	 * @var string Storage key used for saving column data to the database
@@ -219,19 +234,19 @@ abstract class ListScreen {
 	/**
 	 * @return string
 	 */
-	public function get_layout_id() {
-		return $this->layout_id;
+	public function get_id() {
+		return $this->id;
 	}
 
 	/**
-	 * @param string $layout_id
+	 * @param string $id
 	 *
-	 * @return ListScreen
+	 * @return self
 	 */
-	public function set_layout_id( $layout_id ) {
-		$this->layout_id = $layout_id;
+	public function set_id( $id ) {
+		$this->id = $id;
 
-		$this->set_storage_key( $this->get_key() . $layout_id );
+		$this->set_storage_key( $this->get_key() . $id );
 
 		return $this;
 	}
@@ -297,14 +312,14 @@ abstract class ListScreen {
 	 * @return string Link
 	 */
 	public function get_screen_link() {
-		return add_query_arg( array( 'page' => $this->get_page(), 'layout' => $this->get_layout_id() ), $this->get_admin_url() );
+		return add_query_arg( array( 'page' => $this->get_page(), 'layout' => $this->get_id() ), $this->get_admin_url() );
 	}
 
 	/**
 	 * @since 2.0
 	 */
 	public function get_edit_link() {
-		return add_query_arg( array( 'list_screen' => $this->key, 'layout_id' => $this->get_layout_id() ), AC()->admin_columns_screen()->get_link() );
+		return add_query_arg( array( 'list_screen' => $this->key, 'layout_id' => $this->get_id() ), AC()->admin_columns_screen()->get_link() );
 	}
 
 	/**
@@ -486,6 +501,7 @@ abstract class ListScreen {
 		}
 
 		// Placeholder columns
+		// TODO: remove & create column objects
 		foreach ( AC()->addons()->get_addons() as $addon ) {
 			if ( $addon->is_plugin_active() && ! $addon->is_active() ) {
 				$this->register_column_type( $addon->get_placeholder_column() );
@@ -588,7 +604,7 @@ abstract class ListScreen {
 		 *
 		 * @since 3.0.5
 		 *
-		 * @param Column        $column      Column type object
+		 * @param Column     $column      Column type object
 		 * @param ListScreen $list_screen List screen object to which the column was registered
 		 */
 		do_action( 'ac/list_screen/column_registered', $column, $this );
@@ -701,8 +717,75 @@ abstract class ListScreen {
 		// Load from DB
 		$this->set_settings( get_option( self::OPTIONS_KEY . $this->get_storage_key() ) );
 
+		// Load Layout
+		$data = LayoutStore::get_layout_data( $this );
+
+		if ( ! empty( $data->name ) ) {
+			$this->set_custom_label( $data->name );
+		}
+		if ( ! empty( $data->users ) ) {
+			$this->set_users( $data->users );
+		}
+		if ( ! empty( $data->roles ) ) {
+			$this->set_roles( $data->roles );
+		}
+
 		// Load from API
 		AC()->api()->set_column_settings( $this );
+	}
+
+	/**
+	 * @param array $roles
+	 *
+	 * @return self
+	 */
+	public function set_custom_label( $label ) {
+		$this->custom_label = $label;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_custom_label() {
+		return $this->custom_label;
+	}
+
+	/**
+	 * @param array $roles
+	 *
+	 * @return self
+	 */
+	public function set_roles( $roles ) {
+		$this->roles = $roles;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_roles() {
+		return $this->roles;
+	}
+
+	/**
+	 * @param array $users
+	 *
+	 * @return self
+	 */
+	public function set_users( $users ) {
+		$this->users = $users;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_users() {
+		return $this->users;
 	}
 
 	/**

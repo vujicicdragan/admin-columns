@@ -19,7 +19,8 @@ class ListScreenFactory {
 
 		$list_screen = clone $list_screens[ $type ];
 
-		$list_screen->set_layout_id( $id );
+		$list_screen->set_id( $id );
+		$list_screen->populate_settings();
 
 		return $list_screen;
 	}

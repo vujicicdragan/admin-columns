@@ -109,12 +109,3 @@ function ac_is_version_gte( $version ) {
 function ac_register_columns( $list_screen_keys, $column_data ) {
 	AC()->api()->load_columndata( $list_screen_keys, $column_data );
 }
-
-/**
- * @param \AC\ListScreen $list_screen
- *
- * @return \AC\Layouts
- */
-function ac_layouts( \AC\ListScreen $list_screen ) {
-	return new AC\Layouts( $list_screen );
-}

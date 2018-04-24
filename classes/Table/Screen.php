@@ -5,7 +5,7 @@ namespace AC\Table;
 use AC\Admin;
 use AC\Capabilities;
 use AC\Column;
-use AC\Layout;
+use AC\LayoutStore;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\Preferences;
@@ -23,8 +23,6 @@ final class Screen {
 		add_action( 'admin_init', array( $this, 'load_list_screen_doing_quick_edit' ) );
 		add_filter( 'list_table_primary_column', array( $this, 'set_primary_column' ), 20 );
 		add_action( 'wp_ajax_ac_get_column_value', array( $this, 'ajax_get_column_value' ) );
-
-		// Layout
 		add_action( 'admin_footer', array( $this, 'screen_switcher' ) );
 		add_action( 'admin_init', array( $this, 'handle_request' ) );
 
@@ -48,6 +46,10 @@ final class Screen {
 		$list_screen = ListScreenFactory::create_by_screen( $wp_screen );
 
 		if ( ! $list_screen ) {
+			return;
+		}
+
+		if ( ! $this->is_current_user_eligible( $list_screen ) ) {
 			return;
 		}
 
@@ -88,6 +90,7 @@ final class Screen {
 	 * Handle Requests: Store visited layout as a preference
 	 */
 	public function handle_request() {
+		// TODO: test
 		$layout = filter_input( INPUT_GET, 'layout', FILTER_SANITIZE_STRING );
 
 		if ( ! $layout ) {
@@ -96,25 +99,17 @@ final class Screen {
 
 		$list_screen = filter_input( INPUT_GET, 'list_screen', FILTER_SANITIZE_STRING );
 
-		if ( empty( $list_screen ) ) {
+		if ( ! $list_screen ) {
 			return;
 		}
 
-		$list_screen = ListScreenFactory::create( filter_input( INPUT_GET, 'list_screen', FILTER_SANITIZE_STRING ) );
+		$list_screen = ListScreenFactory::create( $list_screen, $layout );
 
 		if ( ! $list_screen ) {
 			return;
 		}
 
-		$layouts = ac_layouts( $list_screen );
-
-		$layout = $layouts->get_layout_by_id( $layout );
-
-		if ( ! $layout ) {
-			return;
-		}
-
-		$this->preferences()->set( $list_screen->get_key(), $layout->get_id() );
+		$this->preferences()->set( $list_screen->get_key(), $list_screen->get_id() );
 	}
 
 	/**
@@ -128,37 +123,21 @@ final class Screen {
 	/**
 	 * @param ListScreen $list_screen
 	 *
-	 * @return false|Layout
-	 */
-	public function get_user_preference( $list_screen ) {
-		$layout_id = $this->preferences()->get( $list_screen->get_key() );
-
-		$layout = ac_layouts( $list_screen )->get_layout_by_id( $layout_id );
-
-		if ( ! $layout ) {
-			return false;
-		}
-
-		if ( ! $layout->is_current_user_eligible() ) {
-			return false;
-		}
-
-		return $layout;
-	}
-
-	/**
-	 * @param ListScreen $list_screen
-	 *
 	 * @return string
 	 */
 	private function get_layout_id( ListScreen $list_screen ) {
-		$layouts = ac_layouts( $list_screen );
+
+		return $this->preferences()->get( $list_screen->get_key() );
+
+
+		// TODO
+		/*$layouts = ac_layouts( $list_screen );
 
 		// Current user layouts
 		if ( $layouts->get_layouts_for_current_user() ) {
 
 			// TODO: simplify
-			$layout = $this->get_user_preference( $list_screen );
+			$layout = $this->preferences()->get( $list_screen->get_key() );
 
 			// when no longer available use the first user layout
 			if ( ! $layout ) {
@@ -173,6 +152,7 @@ final class Screen {
 		}
 
 		return $id;
+		*/
 	}
 
 	/**
@@ -319,10 +299,6 @@ final class Screen {
 		return apply_filters( 'ac/table/body_class', $classes, $this );
 	}
 
-	public function init_list_screen() {
-
-	}
-
 	/**
 	 * @param ListScreen $list_screen
 	 */
@@ -377,7 +353,7 @@ final class Screen {
 
 		wp_localize_script( 'ac-table', 'AC', array(
 				'list_screen'  => $list_screen->get_key(),
-				'layout'       => $list_screen->get_layout_id(),
+				'layout'       => $list_screen->get_id(),
 				'column_types' => $this->get_column_types_mapping( $list_screen ),
 				'ajax_nonce'   => wp_create_nonce( 'ac-ajax' ),
 				'table_id'     => $list_screen->get_table_attr_id(),
@@ -611,16 +587,70 @@ final class Screen {
 	}
 
 	/**
+	 * @param ListScreen $list_screen
+	 *
+	 * @return ListScreen[]
+	 */
+	private function get_list_screens( ListScreen $list_screen ) {
+		$list_screens = array();
+
+		$layout_ids = LayoutStore::get_layouts_ids( $list_screen );
+
+		foreach ( $layout_ids as $layout_id ) {
+			$list_screen = ListScreenFactory::create( $list_screen->get_key(), $layout_id );
+
+			if ( $this->is_current_user_eligible( $list_screen ) ) {
+				$list_screens[] = $list_screen;
+			}
+		}
+
+		return $list_screens;
+	}
+
+	/**
+	 * @param ListScreen $list_screen
+	 *
+	 * @return bool True when eligible
+	 */
+	public function is_current_user_eligible( ListScreen $list_screen ) {
+		$roles = $list_screen->get_roles();
+
+		if ( $roles ) {
+			foreach ( $roles as $role ) {
+				if ( current_user_can( $role ) ) {
+					return true;
+				}
+			}
+		}
+
+		$users = $list_screen->get_users();
+
+		if ( $users ) {
+			foreach ( $users as $user_id ) {
+				if ( $user_id === get_current_user_id() ) {
+					return true;
+				}
+			}
+		}
+
+		if ( empty( $roles ) && empty( $users ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Switcher on listing screen
 	 */
 	public function screen_switcher() {
-		$list_screen = $this->get_list_screen();
+		$current_screen = $this->get_list_screen();
 
-		if ( ! $list_screen ) {
+		if ( ! $current_screen ) {
 			return;
 		}
 
-		$link = $list_screen->get_screen_link();
+		$link = $current_screen->get_screen_link();
 
 		if ( $post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING ) ) {
 			$link = add_query_arg( array( 'post_status' => $post_status ), $link );
@@ -630,17 +660,17 @@ final class Screen {
 			$link = add_query_arg( array( 'author' => $author ), $link );
 		}
 
-		$layouts = ac_layouts( $list_screen )->get_layouts_for_current_user();
+		$list_screens = $this->get_list_screens( $current_screen );
 
-		if ( count( $layouts ) > 1 ) : ?>
+		if ( count( $list_screens ) > 1 ) : ?>
 			<form class="layout-switcher">
 				<label for="column-view-selector" class="label screen-reader-text">
 					<?php _e( 'Switch View', 'codepress-admin-columns' ); ?>
 				</label>
 				<span class="spinner"></span>
 				<select id="column-view-selector" name="layout" <?php echo ac_helper()->html->get_tooltip_attr( __( 'Switch View', 'codepress-admin-columns' ) ); ?>>
-					<?php foreach ( $layouts as $layout ) : ?>
-						<option value="<?php echo add_query_arg( array( 'layout' => $layout->get_id(), 'list_screen' => $list_screen->get_key() ), $link ); ?>"<?php selected( $layout->get_id(), $list_screen->get_layout_id() ); ?>><?php echo esc_html( $layout->get_name() ); ?></option>
+					<?php foreach ( $list_screens as $_list_screens ) : ?>
+						<option value="<?php echo add_query_arg( array( 'layout' => $_list_screens->get_id(), 'list_screen' => $_list_screens->get_key() ), $link ); ?>"<?php selected( $_list_screens->get_id(), $current_screen->get_id() ); ?>><?php echo esc_html( $_list_screens->get_custom_label() ); ?></option>
 					<?php endforeach; ?>
 				</select>
 				<script type="text/javascript">

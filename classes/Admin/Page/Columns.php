@@ -8,6 +8,7 @@ use AC\Admin\Promo;
 use AC\Autoloader;
 use AC\Capabilities;
 use AC\Column;
+use AC\LayoutStore;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\ListScreenGroups;
@@ -74,7 +75,7 @@ class Columns extends Page {
 		wp_localize_script( 'ac-admin-page-columns', 'AC', array(
 			'_ajax_nonce'      => wp_create_nonce( 'ac-settings' ),
 			'list_screen'      => $list_screen->get_key(),
-			'layout'           => $list_screen->get_layout_id(),
+			'layout'           => $list_screen->get_id(),
 			'original_columns' => $list_screen->get_original_columns(),
 			'i18n'             => array(
 				'clone' => __( '%s column is already present and can not be duplicated.', 'codepress-admin-columns' ),
@@ -91,16 +92,19 @@ class Columns extends Page {
 		}
 
 		// User selected
-		$list_screen = ListScreenFactory::create( filter_input( INPUT_GET, 'list_screen' ) );
+		$list_screen = ListScreenFactory::create( filter_input( INPUT_GET, 'list_screen' ), filter_input( INPUT_GET, 'layout_id' ) );
 
 		// Preference
 		if ( ! $list_screen ) {
-			$list_screen = ListScreenFactory::create( $this->preferences()->get( 'list_screen' ) );
+			$list_screen = ListScreenFactory::create( $this->preferences()->get( 'list_screen_type' ), $this->preferences()->get( 'list_screen_id' ) );
 		}
 
 		// First one
 		if ( ! $list_screen ) {
 			$list_screen = ListScreenFactory::create( key( AC()->get_list_screens() ) );
+			$layout_ids = LayoutStore::get_layouts_ids( $list_screen );
+
+			$list_screen = ListScreenFactory::create( $list_screen->get_key(), current( $layout_ids ) );
 		}
 
 		// Load table headers
@@ -108,11 +112,13 @@ class Columns extends Page {
 			$list_screen->set_original_columns( $list_screen->get_default_column_headers() );
 		}
 
-		$this->preferences()->set( 'list_screen', $list_screen->get_key() );
+		$this->preferences()->set( 'list_screen_type', $list_screen->get_key() );
+		$this->preferences()->set( 'list_screen_id', $list_screen->get_id() );
 
 		$this->current_list_screen = $list_screen;
 
-		do_action( 'ac/settings/list_screen', $list_screen );
+		// TODO: remove
+		//do_action( 'ac/settings/list_screen', $list_screen );
 	}
 
 	/**
@@ -154,8 +160,14 @@ class Columns extends Page {
 	 *
 	 * @return string $label
 	 */
-	private function get_list_screen_message_label( $list_screen ) {
-		return apply_filters( 'ac/settings/list_screen_message_label', $list_screen->get_label(), $list_screen );
+	private function get_list_screen_message_label( ListScreen $list_screen ) {
+		$label = $list_screen->get_custom_label();
+
+		if ( ! $label ) {
+			$label = $list_screen->get_label();
+		}
+
+		return $label;
 	}
 
 	/**
@@ -486,7 +498,7 @@ class Columns extends Page {
 
 							<form class="form-reset" method="post">
 								<input type="hidden" name="list_screen" value="<?php echo esc_attr( $list_screen->get_key() ); ?>"/>
-								<input type="hidden" name="layout" value="<?php echo esc_attr( $list_screen->get_layout_id() ); ?>"/>
+								<input type="hidden" name="layout" value="<?php echo esc_attr( $list_screen->get_id() ); ?>"/>
 								<input type="hidden" name="cpac_action" value="restore_by_type"/>
 
 								<?php $this->nonce_field( 'restore-type' ); ?>
@@ -764,7 +776,7 @@ class Columns extends Page {
 
 	/**
 	 * @param ListScreen $list_screen
-	 * @param string         $group
+	 * @param string     $group
 	 *
 	 * @return Column|false
 	 */
