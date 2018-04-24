@@ -33,7 +33,7 @@ class Review
 	 * @param Screen $screen
 	 */
 	public function display( Screen $screen ) {
-		if ( ! $screen->is_ready() ) {
+		if ( ! $screen->has_screen() ) {
 			return;
 		}
 
@@ -49,7 +49,7 @@ class Review
 			return;
 		}
 
-		wp_enqueue_script( 'ac-notice-review', AC()->get_plugin_url() . 'assets/js/message-review.js', array( 'jquery' ), AC()->get_version() );
+		wp_enqueue_script( 'ac-notice-review', AC()->get_url() . 'assets/js/message-review.js', array( 'jquery' ), AC()->get_version() );
 
 		$notice = new Message\Notice\Dismissible( $this->get_ajax_handler() );
 		$notice->set_message( $this->get_message() )
