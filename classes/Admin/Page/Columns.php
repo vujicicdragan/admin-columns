@@ -8,11 +8,11 @@ use AC\Admin\Promo;
 use AC\Autoloader;
 use AC\Capabilities;
 use AC\Column;
-use AC\ListScreenStore;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\ListScreenGroups;
 use AC\ListScreenRepository;
+use AC\ListScreenWP;
 use AC\Preferences;
 use AC\Settings;
 
@@ -114,6 +114,7 @@ class Columns extends Page {
 			}
 
 			$repo = new ListScreenRepository;
+
 			return $repo->first( $type );
 		}
 
@@ -159,7 +160,7 @@ class Columns extends Page {
 		}
 
 		// Load original Headings
-		if ( ! $list_screen->get_original_columns() ) {
+		if ( ! $list_screen->get_original_columns() && $list_screen instanceof ListScreenWP ) {
 			$list_screen->set_original_columns( $list_screen->get_default_column_headers() );
 		}
 
@@ -347,13 +348,12 @@ class Columns extends Page {
 	}
 
 	/**
+	 * @param ListScreen $list_screen
+	 * @param array      $data
 	 *
+	 * @return array
 	 */
-	private function store_data( ListScreen $list_screen, $data ) {
-		if ( ! $data ) {
-			return new \WP_Error( 'no-settings', __( 'No columns settings available.', 'codepress-admin-columns' ) );
-		}
-
+	private function convert_to_column_settings( ListScreen $list_screen, $data ) {
 		$settings = array();
 
 		foreach ( $data as $column_name => $options ) {
@@ -396,26 +396,7 @@ class Columns extends Page {
 			$settings[ $column_name ] = array_merge( $options, $sanitized );
 		}
 
-		$list_screen->set_settings( $settings );
-
-		$result = $list_screen->save();
-
-		if ( ! $result ) {
-			return new \WP_Error( 'same-settings' );
-		}
-
-		/**
-		 * Fires after a new column setup is stored in the database
-		 * Primarily used when columns are saved through the Admin Columns settings screen
-		 *
-		 * @since 3.0
-		 *
-		 * @param ListScreen $list_screen
-		 */
-		//do_action( 'ac/columns_stored', $this );
-
-		return true;
-
+		return $settings;
 	}
 
 	/**
@@ -426,7 +407,7 @@ class Columns extends Page {
 
 		parse_str( $_POST['data'], $formdata );
 
-		if ( ! isset( $formdata['columns'] ) ) {
+		if ( empty( $formdata['columns'] ) ) {
 			wp_send_json_error( array(
 					'type'    => 'error',
 					'message' => __( 'You need at least one column', 'codepress-admin-columns' ),
@@ -434,23 +415,21 @@ class Columns extends Page {
 			);
 		}
 
-		$result = $this->store_data( $list_screen, $formdata['columns'] );
+		$list_screen->set_settings( $this->convert_to_column_settings( $list_screen, $formdata['columns'] ) );
 
-		$view_link = ac_helper()->html->link( $list_screen->get_screen_link(), sprintf( __( 'View %s screen', 'codepress-admin-columns' ), $list_screen->get_label() ) );
+		// TODO: what happens when first saving data
+		if ( ! $list_screen->get_custom_label() ) {
+			$list_screen->set_custom_label( __( 'Original', 'codepress-admin-columns' ) );
+		}
 
-		if ( is_wp_error( $result ) ) {
+		$result = $list_screen->save();
 
-			if ( 'same-settings' === $result->get_error_code() ) {
-				wp_send_json_error( array(
-						'type'    => 'notice notice-warning',
-						'message' => sprintf( __( 'You are trying to store the same settings for %s.', 'codepress-admin-columns' ), "<strong>" . $this->get_list_screen_message_label( $list_screen ) . "</strong>" ) . ' ' . $view_link,
-					)
-				);
-			}
+		if ( ! $result ) {
+			$view_link = ac_helper()->html->link( $list_screen->get_screen_link(), sprintf( __( 'View %s screen', 'codepress-admin-columns' ), $list_screen->get_label() ) );
 
 			wp_send_json_error( array(
-					'type'    => 'error',
-					'message' => $result->get_error_message(),
+					'type'    => 'notice notice-warning',
+					'message' => sprintf( __( 'You are trying to store the same settings for %s.', 'codepress-admin-columns' ), "<strong>" . $this->get_list_screen_message_label( $list_screen ) . "</strong>" ) . ' ' . $view_link,
 				)
 			);
 		}

@@ -45,18 +45,22 @@ class ListScreenRepository {
 
 			$key = ListScreen::SETTINGS_KEY . $type;
 
-			$results = $wpdb->get_results( $wpdb->prepare( "SELECT {$wpdb->options}.option_name, {$wpdb->options}.option_value FROM {$wpdb->options} WHERE option_name LIKE %s ORDER BY option_id DESC", $wpdb->esc_like( $key ) . '%' ) );
+			$results = $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value != '' ORDER BY option_id DESC", $wpdb->esc_like( $key ) . '%' ) );
 
 			if ( $results ) {
 				foreach ( $results as $result ) {
 
-					// Removes incorrect layouts.
-					// For example when a list screen is called "Car" and one called "Carrot"
-					if ( strlen( $result->option_name ) !== ( strlen( $key ) + 13 ) && $result->option_name != $key ) {
+					$data = maybe_unserialize( $result->option_value );
+
+					if ( ! $data ) {
 						continue;
 					}
 
-					$data = unserialize( $result->option_value );
+					// Removes incorrect layouts.
+					// For example when a list screen is called "Car" and one called "Carrot"
+					if ( strlen( $result->option_name ) !== strlen( $key . $data->id ) ) {
+						continue;
+					}
 
 					$ids[] = $data->id;
 				}

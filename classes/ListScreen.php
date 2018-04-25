@@ -107,7 +107,7 @@ abstract class ListScreen {
 	/**
 	 * @var array [ Column name => Label ]
 	 */
-	private $original_columns;
+	private $original_columns = array();
 
 	/**
 	 * @var array Column settings data
@@ -141,7 +141,11 @@ abstract class ListScreen {
 	 * Load all data
 	 */
 	public function load() {
+
+		// TODO: Load API data
+
 		$this->set_settings( get_option( self::COLUMNS_KEY . $this->get_storage_key(), array() ) );
+		$this->set_original_columns( get_option( self::COLUMNS_KEY . $this->get_type() . "__default", array() ) );
 
 		if ( $layout_data = get_option( self::SETTINGS_KEY . $this->get_storage_key() ) ) {
 
@@ -392,6 +396,24 @@ abstract class ListScreen {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function get_original_columns() {
+		return $this->original_columns;
+	}
+
+	/**
+	 * @param array $columns
+	 *
+	 * @return self
+	 */
+	public function set_original_columns( $columns ) {
+		$this->original_columns = (array) $columns;
+
+		return $this;
+	}
+
+	/**
 	 * @return string
 	 */
 	public function get_storage_key() {
@@ -462,27 +484,10 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param string $type
-	 *
-	 * @return false|string
-	 */
-	private function get_class_by_type( $type ) {
-		$column = $this->get_column_by_type( $type );
-
-		if ( ! $column ) {
-			return false;
-		}
-
-		return get_class( $column );
-	}
-
-	/**
 	 * @param string $type Column type
 	 */
 	public function deregister_column_type( $type ) {
-		if ( isset( $this->column_types[ $type ] ) ) {
-			unset( $this->column_types[ $type ] );
-		}
+		unset( $this->column_types[ $type ] );
 	}
 
 	/**
@@ -508,26 +513,6 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @return array
-	 */
-	public function get_original_columns() {
-		if ( null === $this->original_columns ) {
-
-			// TODO: add to update
-			$this->set_original_columns( ListScreenStore::get_default_headings( $this ) );
-		}
-
-		return $this->original_columns;
-	}
-
-	/**
-	 * @param array $columns
-	 */
-	public function set_original_columns( $columns ) {
-		$this->original_columns = (array) $columns;
-	}
-
-	/**
 	 * Available column types
 	 */
 	private function set_column_types() {
@@ -535,19 +520,11 @@ abstract class ListScreen {
 
 		// Register default columns
 		foreach ( $this->get_original_columns() as $type => $label ) {
-
-			// Ignore the mandatory checkbox column
 			if ( 'cb' === $type ) {
 				continue;
 			}
 
-			$column = new Column();
-
-			$column
-				->set_type( $type )
-				->set_original( true );
-
-			$this->register_column_type( $column );
+			$this->column_types[ $type ] = 'Column';
 		}
 
 		// Load Custom columns
@@ -588,39 +565,41 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param array $settings Column options
+	 * @param array $settings Column data
 	 *
 	 * @return Column|false
 	 */
-	public function create_column( array $settings ) {
-		if ( ! isset( $settings['type'] ) ) {
+	public function create_column( array $data ) {
+		if ( ! isset( $data['type'] ) ) {
 			return false;
 		}
 
-		$class = $this->get_class_by_type( $settings['type'] );
+		$column = $this->get_column_by_type( $data['type'] );
 
-		if ( ! $class ) {
+		if ( ! $column ) {
 			return false;
 		}
+
+		$class = get_class( $column );
 
 		/* @var Column $column */
 		$column = new $class();
 
 		$column->set_list_screen( $this )
-		       ->set_type( $settings['type'] );
+		       ->set_type( $data['type'] );
 
-		if ( isset( $settings['name'] ) ) {
-			$column->set_name( $settings['name'] );
+		if ( isset( $data['name'] ) ) {
+			$column->set_name( $data['name'] );
 		}
 
 		// Mark as original
-		if ( $this->is_original_column( $settings['type'] ) ) {
+		if ( $this->is_original_column( $data['type'] ) ) {
 
 			$column->set_original( true );
-			$column->set_name( $settings['type'] );
+			$column->set_name( $data['type'] );
 		}
 
-		$column->set_options( $settings );
+		$column->set_options( $data );
 
 		return $column;
 	}
@@ -665,7 +644,6 @@ abstract class ListScreen {
 		}
 
 		// Nothing stored. Use WP default columns.
-		// TODO: only on columns settings page?
 		if ( null === $this->columns ) {
 			foreach ( $this->get_original_columns() as $type => $label ) {
 				if ( $column = $this->create_column( array( 'type' => $type, 'original' => true ) ) ) {
@@ -719,7 +697,6 @@ abstract class ListScreen {
 	 *
 	 * @return array
 	 */
-	// TODO: only on columns page?
 	public function get_default_column_headers() {
 		return array();
 	}
@@ -758,19 +735,6 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * Delete stored data
-	 */
-	public function delete() {
-		delete_option( self::COLUMNS_KEY . $this->get_storage_key() );
-		delete_option( self::SETTINGS_KEY . $this->get_storage_key() );
-
-		do_action_deprecated( 'ac/columns_delete', array( $this ), 'NEWVERSION' );
-		do_action_deprecated( 'ac/layout/delete', array( $this ), 'NEWVERSION' );
-
-		do_action( 'ac/list_screen/delete', $this );
-	}
-
-	/**
 	 * @return bool
 	 */
 	private function update() {
@@ -783,6 +747,8 @@ abstract class ListScreen {
 		);
 
 		update_option( self::SETTINGS_KEY . $this->get_storage_key(), (object) $data );
+		update_option( self::COLUMNS_KEY . $this->get_type() . "__default", $this->get_original_columns() );
+
 		$result = update_option( self::COLUMNS_KEY . $this->get_storage_key(), (array) $this->get_settings() );
 
 		do_action_deprecated( 'ac/columns_stored', array( $this ), 'NEWVERSION' );
@@ -790,6 +756,19 @@ abstract class ListScreen {
 		do_action( 'ac/list_screen/update', $this, $result );
 
 		return $result;
+	}
+
+	/**
+	 * Delete stored data
+	 */
+	public function delete() {
+		delete_option( self::COLUMNS_KEY . $this->get_storage_key() );
+		delete_option( self::SETTINGS_KEY . $this->get_storage_key() );
+
+		do_action_deprecated( 'ac/columns_delete', array( $this ), 'NEWVERSION' );
+		do_action_deprecated( 'ac/layout/delete', array( $this ), 'NEWVERSION' );
+
+		do_action( 'ac/list_screen/delete', $this );
 	}
 
 	/**
@@ -831,7 +810,7 @@ abstract class ListScreen {
 	 * @return array
 	 */
 	public function get_stored_default_headings() {
-		_deprecated_function( __METHOD__, 'NEWVERSION', 'ListScreenStore::get_default_headings()' );
+		_deprecated_function( __METHOD__, 'NEWVERSION', 'AC\ListScreen::get_original_columns()' );
 
 		return array();
 	}

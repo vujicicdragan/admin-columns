@@ -13,8 +13,6 @@ use AC\Settings;
 
 final class Screen {
 
-	const HEADINGS_KEY = 'cpac_options_';
-
 	/**
 	 * @var ListScreen;
 	 */
@@ -26,13 +24,21 @@ final class Screen {
 		add_filter( 'list_table_primary_column', array( $this, 'set_primary_column' ), 20 );
 		add_action( 'wp_ajax_ac_get_column_value', array( $this, 'ajax_get_column_value' ) );
 		add_action( 'admin_footer', array( $this, 'screen_switcher' ) );
-		add_action( 'admin_init', array( $this, 'handle_request' ) );
 
 		// Scripts
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
 		add_action( 'admin_footer', array( $this, 'admin_footer_scripts' ) );
 		add_action( 'admin_head', array( $this, 'admin_head_scripts' ) );
 		add_filter( 'admin_body_class', array( $this, 'admin_class' ) );
+	}
+
+	/**
+	 * @param ListScreen $list_screen
+	 *
+	 * @return bool
+	 */
+	private function list_screen_exists( $list_screen ) {
+		return null !== $list_screen->get_custom_label() && $this->is_current_user_eligible( $list_screen );
 	}
 
 	/**
@@ -51,9 +57,26 @@ final class Screen {
 			return;
 		}
 
-		if ( ! $this->is_current_user_eligible( $list_screen ) ) {
+		$type = $list_screen->get_type();
+
+		// Requested
+		$list_screen = ListScreenFactory::create( $list_screen->get_type(), filter_input( INPUT_GET, 'layout' ) );
+
+		// Preference
+		if ( ! $this->list_screen_exists( $list_screen ) ) {
+			$list_screen = ListScreenFactory::create( $type, $this->preferences()->get( $list_screen->get_type() ) );
+		}
+
+		// Fallback
+		if ( ! $this->list_screen_exists( $list_screen ) ) {
+			$list_screen = current( $this->get_list_screens( $list_screen ) );
+		}
+
+		if ( ! $list_screen ) {
 			return;
 		}
+
+		$this->preferences()->set( $list_screen->get_type(), $list_screen->get_id() );
 
 		$this->set_list_screen( $list_screen );
 	}
@@ -66,52 +89,31 @@ final class Screen {
 			return;
 		}
 
+		$list_screen = false;
+
 		switch ( filter_input( INPUT_POST, 'action' ) ) {
 
 			case 'inline-save' :
-				// Quick edit post
-				$this->set_list_screen( ListScreenFactory::create( filter_input( INPUT_POST, 'post_type' ) ) );
+				$list_screen = ListScreenFactory::create( filter_input( INPUT_POST, 'post_type' ) );
 
 				break;
 			case 'add-tag' :
 			case 'inline-save-tax' :
-				// Adding term & Quick edit term
-				$this->set_list_screen( ListScreenFactory::create( 'wp-taxonomy_' . filter_input( INPUT_POST, 'taxonomy' ) ) );
+				$list_screen = ListScreenFactory::create( 'wp-taxonomy_' . filter_input( INPUT_POST, 'taxonomy' ) );
 
 				break;
 			case 'edit-comment' :
 			case 'replyto-comment' :
-				// Quick edit comment & Inline reply on comment
-				$this->set_list_screen( ListScreenFactory::create( 'wp-comments' ) );
+				$list_screen = ListScreenFactory::create( 'wp-comments' );
 
 				break;
 		}
-	}
 
-	/**
-	 * Handle Requests: Store visited layout as a preference
-	 */
-	public function handle_request() {
-		// TODO: test
-		$layout = filter_input( INPUT_GET, 'layout', FILTER_SANITIZE_STRING );
+		if ( $list_screen ) {
+			$list_screen->set_id( $this->preferences()->get( $list_screen->get_type() ) );
 
-		if ( ! $layout ) {
-			return;
+			$this->set_list_screen( $list_screen );
 		}
-
-		$list_screen = filter_input( INPUT_GET, 'list_screen', FILTER_SANITIZE_STRING );
-
-		if ( ! $list_screen ) {
-			return;
-		}
-
-		$list_screen = ListScreenFactory::create( $list_screen, $layout );
-
-		if ( ! $list_screen ) {
-			return;
-		}
-
-		$this->preferences()->set( $list_screen->get_type(), $list_screen->get_id() );
 	}
 
 	/**
@@ -120,40 +122,6 @@ final class Screen {
 	 */
 	public function preferences() {
 		return new Preferences\Site( 'layout_table' );
-	}
-
-	/**
-	 * @param ListScreen $list_screen
-	 *
-	 * @return string
-	 */
-	private function get_layout_id( ListScreen $list_screen ) {
-
-		return $this->preferences()->get( $list_screen->get_type() );
-
-		// TODO
-		/*$layouts = ac_layouts( $list_screen );
-
-		// Current user layouts
-		if ( $layouts->get_layouts_for_current_user() ) {
-
-			// TODO: simplify
-			$layout = $this->preferences()->get( $list_screen->get_type() );
-
-			// when no longer available use the first user layout
-			if ( ! $layout ) {
-				$layout = $layouts->get_first_layout_for_current_user();
-			}
-
-			$id = $layout->get_id();
-		} else if ( $layouts->get_layout_by_id( null ) ) {
-			// User doesn't have eligible layouts.. but the current (null) layout does exists, then the WP default columns are loaded
-			// _wp_default_ does not exists therefor will load WP default
-			$id = '_wp_default_';
-		}
-
-		return $id;
-		*/
 	}
 
 	/**
@@ -304,7 +272,6 @@ final class Screen {
 	 * @param ListScreen $list_screen
 	 */
 	private function set_list_screen( ListScreen $list_screen ) {
-		$list_screen = ListScreenFactory::create( $list_screen->get_type(), $this->get_layout_id( $list_screen ) );
 
 		// Headings
 		add_filter( "manage_" . $list_screen->get_screen_id() . "_columns", array( $this, 'add_headings' ), 200 );
@@ -497,23 +464,6 @@ final class Screen {
 	}
 
 	/**
-	 * @param ListScreen $list_screen
-	 * @param array      $headings
-	 */
-	private function update_default_headings( ListScreen $list_screen, $headings ) {
-		update_option( self::HEADINGS_KEY . $list_screen->get_type() . "__default", $headings );
-	}
-
-	/**
-	 * @param ListScreen $list_screen
-	 *
-	 * @return array
-	 */
-	public static function get_default_headings( ListScreen $list_screen ) {
-		return get_option( self::HEADINGS_KEY . $list_screen->get_type() . "__default" );
-	}
-
-	/**
 	 * @since 2.0
 	 */
 	public function add_headings( $columns ) {
@@ -531,7 +481,8 @@ final class Screen {
 
 		// Store default headings
 		if ( ! AC()->is_doing_ajax() ) {
-			$this->update_default_headings( $list_screen, $columns );
+			$list_screen->set_original_columns( $columns )
+			            ->save();
 		}
 
 		// Run once
@@ -548,14 +499,6 @@ final class Screen {
 		if ( isset( $columns['cb'] ) ) {
 			$headings['cb'] = $columns['cb'];
 		}
-
-		// On first visit 'columns' can be empty, because they were put in memory before 'default headings'
-		// were stored. We force get_columns() to be re-populated.
-		// TODO: test
-		//if ( ! $list_screen->get_columns() ) {
-		//$list_screen->reset();
-		//$list_screen->reset_original_columns();
-		//}
 
 		foreach ( $list_screen->get_columns() as $column ) {
 

@@ -22,8 +22,6 @@ class ListScreenFactory {
 		$list_screen->set_id( $id );
 		$list_screen->load();
 
-		// TODO: load API data?
-
 		return $list_screen;
 	}
 
