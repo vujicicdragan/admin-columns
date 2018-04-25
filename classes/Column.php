@@ -117,6 +117,19 @@ class Column {
 	}
 
 	/**
+	 * @return string
+	 */
+	private function get_original_label() {
+		$columns = $this->list_screen->get_original_columns();
+
+		if ( ! isset( $columns[ $this->get_type() ] ) ) {
+			return false;
+		}
+
+		return $columns[ $this->get_type() ];
+	}
+
+	/**
 	 * Get the type of the column.
 	 *
 	 * @since 2.4.9
@@ -124,7 +137,7 @@ class Column {
 	 */
 	public function get_label() {
 		if ( null === $this->label ) {
-			$this->set_label( $this->get_list_screen()->get_original_label( $this->get_type() ) );
+			$this->set_label( $this->get_original_label() );
 		}
 
 		return $this->label;

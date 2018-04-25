@@ -13,7 +13,7 @@ class User extends AC\ListScreenWP {
 		$this->set_meta_type( 'user' );
 		$this->set_screen_base( 'users' );
 		$this->set_screen_id( 'users' );
-		$this->set_key( 'wp-users' );
+		$this->set_type( 'wp-users' );
 		$this->set_group( 'user' );
 	}
 

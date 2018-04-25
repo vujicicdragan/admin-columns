@@ -11,7 +11,7 @@ class Media extends AC\ListScreenPost {
 
 		$this->set_screen_id( 'upload' );
 		$this->set_screen_base( 'upload' );
-		$this->set_key( 'wp-media' );
+		$this->set_type( 'wp-media' );
 		$this->set_group( 'media' );
 		$this->set_label( __( 'Media' ) );
 	}

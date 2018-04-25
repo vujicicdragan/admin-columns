@@ -109,7 +109,7 @@ final class Screen {
 			return;
 		}
 
-		$this->preferences()->set( $list_screen->get_key(), $list_screen->get_id() );
+		$this->preferences()->set( $list_screen->get_type(), $list_screen->get_id() );
 	}
 
 	/**
@@ -127,7 +127,7 @@ final class Screen {
 	 */
 	private function get_layout_id( ListScreen $list_screen ) {
 
-		return $this->preferences()->get( $list_screen->get_key() );
+		return $this->preferences()->get( $list_screen->get_type() );
 
 
 		// TODO
@@ -137,7 +137,7 @@ final class Screen {
 		if ( $layouts->get_layouts_for_current_user() ) {
 
 			// TODO: simplify
-			$layout = $this->preferences()->get( $list_screen->get_key() );
+			$layout = $this->preferences()->get( $list_screen->get_type() );
 
 			// when no longer available use the first user layout
 			if ( ! $layout ) {
@@ -294,7 +294,7 @@ final class Screen {
 			return $classes;
 		}
 
-		$classes .= " ac-" . $list_screen->get_key();
+		$classes .= " ac-" . $list_screen->get_type();
 
 		return apply_filters( 'ac/table/body_class', $classes, $this );
 	}
@@ -303,13 +303,12 @@ final class Screen {
 	 * @param ListScreen $list_screen
 	 */
 	private function set_list_screen( ListScreen $list_screen ) {
-		// Load layout
-		$list_screen = ListScreenFactory::create( $list_screen->get_key(), $this->get_layout_id( $list_screen ) );
+		$list_screen = ListScreenFactory::create( $list_screen->get_type(), $this->get_layout_id( $list_screen ) );
 
-		// Load headings
-		$this->load_headings( $list_screen );
+		// Headings
+		add_filter( "manage_" . $list_screen->get_screen_id() . "_columns", array( $this, 'add_headings' ), 200 );
 
-		// Load values
+		// Values
 		$list_screen->set_manage_value_callback();
 
 		/**
@@ -352,7 +351,7 @@ final class Screen {
 		wp_enqueue_style( 'ac-table', AC()->get_url() . "assets/css/table.css", array(), AC()->get_version() );
 
 		wp_localize_script( 'ac-table', 'AC', array(
-				'list_screen'  => $list_screen->get_key(),
+				'list_screen'  => $list_screen->get_type(),
 				'layout'       => $list_screen->get_id(),
 				'column_types' => $this->get_column_types_mapping( $list_screen ),
 				'ajax_nonce'   => wp_create_nonce( 'ac-ajax' ),
@@ -408,8 +407,8 @@ final class Screen {
 			$setting = $column->get_setting( 'width' );
 
 			if ( $width = $setting->get_display_width() ) {
-				$css_column_width .= ".ac-" . esc_attr( $list_screen->get_key() ) . " .wrap table th.column-" . esc_attr( $column->get_name() ) . " { width: " . $width . " !important; }";
-				$css_column_width .= "body.acp-overflow-table.ac-" . esc_attr( $list_screen->get_key() ) . " .wrap th.column-" . esc_attr( $column->get_name() ) . " { min-width: " . $width . " !important; }";
+				$css_column_width .= ".ac-" . esc_attr( $list_screen->get_type() ) . " .wrap table th.column-" . esc_attr( $column->get_name() ) . " { width: " . $width . " !important; }";
+				$css_column_width .= "body.acp-overflow-table.ac-" . esc_attr( $list_screen->get_type() ) . " .wrap th.column-" . esc_attr( $column->get_name() ) . " { min-width: " . $width . " !important; }";
 			}
 		}
 
@@ -497,37 +496,6 @@ final class Screen {
 	}
 
 	/**
-	 * Load column values and headings
-	 */
-	public function load_screen() {
-		$list_screen = $this->get_list_screen();
-
-		if ( ! $list_screen ) {
-			return;
-		}
-
-		$list_screen->set_manage_value_callback();
-
-		$this->load_headings( $list_screen );
-
-		/**
-		 * @since 3.0
-		 *
-		 * @param ListScreen
-		 */
-		do_action( 'ac/table/list_screen', $list_screen );
-	}
-
-	/**
-	 * Load column headings & column values
-	 *
-	 * @param ListScreen $list_screen
-	 */
-	private function load_headings( ListScreen $list_screen ) {
-		add_filter( "manage_" . $list_screen->get_screen_id() . "_columns", array( $this, 'add_headings' ), 200 );
-	}
-
-	/**
 	 * @since 2.0
 	 */
 	public function add_headings( $columns ) {
@@ -545,7 +513,7 @@ final class Screen {
 
 		// Store default headings
 		if ( ! AC()->is_doing_ajax() ) {
-			$list_screen->save_default_headings( $columns );
+			ListScreenStore::update_default_headings( $list_screen, $columns );
 		}
 
 		// Run once
@@ -566,10 +534,10 @@ final class Screen {
 		// On first visit 'columns' can be empty, because they were put in memory before 'default headings'
 		// were stored. We force get_columns() to be re-populated.
 		// TODO: test
-		if ( ! $list_screen->get_columns() ) {
-			$list_screen->reset();
-			$list_screen->reset_original_columns();
-		}
+		//if ( ! $list_screen->get_columns() ) {
+			//$list_screen->reset();
+			//$list_screen->reset_original_columns();
+		//}
 
 		foreach ( $list_screen->get_columns() as $column ) {
 
@@ -595,10 +563,10 @@ final class Screen {
 	private function get_list_screens( ListScreen $list_screen ) {
 		$list_screens = array();
 
-		$layout_ids = ListScreenStore::get_layouts_ids( $list_screen );
+		$layout_ids = ListScreenStore::get_ids( $list_screen->get_type() );
 
 		foreach ( $layout_ids as $layout_id ) {
-			$list_screen = ListScreenFactory::create( $list_screen->get_key(), $layout_id );
+			$list_screen = ListScreenFactory::create( $list_screen->get_type(), $layout_id );
 
 			if ( $this->is_current_user_eligible( $list_screen ) ) {
 				$list_screens[] = $list_screen;

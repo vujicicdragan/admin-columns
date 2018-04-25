@@ -20,7 +20,9 @@ class ListScreenFactory {
 		$list_screen = clone $list_screens[ $type ];
 
 		$list_screen->set_id( $id );
-		$list_screen->populate_settings();
+		$list_screen->load();
+
+		// TODO: load API data?
 
 		return $list_screen;
 	}
@@ -41,7 +43,7 @@ class ListScreenFactory {
 
 		foreach ( AC()->get_list_screens() as $list_screen ) {
 			if ( $list_screen->is_current_screen( $wp_screen ) ) {
-				return self::create( $list_screen->get_key(), $id );
+				return self::create( $list_screen->get_type(), $id );
 			}
 		}
 

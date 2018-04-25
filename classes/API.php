@@ -33,14 +33,14 @@ class API {
 	 * @return array|false
 	 */
 	public function get_column_settings( ListScreen $list_screen ) {
-		$columndata = $this->get_columndata( $list_screen->get_key() );
+		$columndata = $this->get_columndata( $list_screen->get_type() );
 
 		if ( ! $columndata ) {
 			return false;
 		}
 
 		foreach ( $columndata as $data ) {
-			if ( $list_screen->get_storage_key() === $list_screen->get_key() . $data['layout']['id'] ) {
+			if ( $list_screen->get_storage_key() === $list_screen->get_type() . $data['layout']['id'] ) {
 				return $data['columns'];
 			}
 		}
@@ -54,7 +54,7 @@ class API {
 	 * @return array
 	 */
 	public function get_layouts_settings( $list_screen ) {
-		$columndata = $this->get_columndata( $list_screen->get_key() );
+		$columndata = $this->get_columndata( $list_screen->get_type() );
 
 		if ( ! $columndata ) {
 			return array();

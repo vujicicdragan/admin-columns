@@ -15,7 +15,7 @@ class Comment extends AC\ListScreenWP {
 		$this->set_singular_label( __( 'Comment' ) );
 		$this->set_meta_type( 'comment' );
 		$this->set_screen_base( 'edit-comments' );
-		$this->set_key( 'wp-comments' );
+		$this->set_type( 'wp-comments' );
 		$this->set_screen_id( 'edit-comments' );
 		$this->set_group( 'comment' );
 	}

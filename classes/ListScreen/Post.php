@@ -11,7 +11,7 @@ class Post extends ListScreenPost {
 
 		$this->set_screen_base( 'edit' );
 		$this->set_group( 'post' );
-		$this->set_key( $post_type );
+		$this->set_type( $post_type );
 		$this->set_screen_id( $this->get_screen_base() . '-' . $post_type );
 	}
 
