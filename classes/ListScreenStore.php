@@ -6,10 +6,13 @@ abstract class ListScreenStore {
 
 	const OPTION_LAYOUT = 'cpac_layouts';
 
+	const OPTION = 'cpac_options_';
+
 	/**
 	 * @param ListScreen $list_screen
 	 */
 	public static function update( ListScreen $list_screen ) {
+
 		$data = array(
 			'id'    => $list_screen->get_id(),
 			'name'  => $list_screen->get_custom_label(),
@@ -17,7 +20,31 @@ abstract class ListScreenStore {
 			'users' => $list_screen->get_users(),
 		);
 
-		update_option( self::OPTION_LAYOUT . $list_screen->get_storage_key(), (object) $data );
+		$succes = true;
+
+		$result = update_option( self::OPTION_LAYOUT . $list_screen->get_storage_key(), (object) $data );
+
+		if ( false === $result ) {
+			$succes = false;
+		}
+
+		$result = update_option( self::OPTION . $list_screen->get_storage_key(), (array) $list_screen->get_settings() );
+
+		if ( false === $result ) {
+			$succes = false;
+		}
+
+		/**
+		 * Fires after a new column setup is stored in the database
+		 * Primarily used when columns are saved through the Admin Columns settings screen
+		 *
+		 * @since 3.0
+		 *
+		 * @param ListScreen $list_screen
+		 */
+		do_action( 'ac/columns_stored', $list_screen );
+
+		return $succes;
 	}
 
 	/**
@@ -25,9 +52,49 @@ abstract class ListScreenStore {
 	 */
 	public static function delete( ListScreen $list_screen ) {
 		delete_option( self::OPTION_LAYOUT . $list_screen->get_storage_key() );
+		delete_option( self::OPTION . $list_screen->get_storage_key() );
 
 		do_action( 'ac/layout/delete', $list_screen );
+
+		/**
+		 * Fires before a column setup is removed from the database
+		 * Primarily used when columns are deleted through the Admin Columns settings screen
+		 *
+		 * @since 3.0.8
+		 *
+		 * @param ListScreen $list_screen
+		 */
+		do_action( 'ac/columns_delete', $list_screen );
 	}
+
+	/**
+	 * Delete all layouts from DB
+	 */
+	public static function delete_all() {
+		global $wpdb;
+
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( self::OPTION_LAYOUT ) . '%' ) );
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * @param ListScreen $list_screen
+	 *
+	 * @return \stdClass|false
+	 */
+	public static function get_layout_data( ListScreen $list_screen ) {
+		return get_option( self::OPTION_LAYOUT . $list_screen->get_storage_key() );
+	}
+
+	/**
+	 * @param ListScreen $list_screen
+	 */
+	public static function get_column_data( ListScreen $list_screen ) {
+		return get_option( self::OPTION . $list_screen->get_storage_key() );
+	}
+
+	// TODO: move to ListScreenManager
 
 	/**
 	 * @param ListScreen $list_screen
@@ -59,32 +126,6 @@ abstract class ListScreenStore {
 		}
 
 		return $ids;
-	}
-
-	/**
-	 * @param ListScreen $list_screen
-	 *
-	 * @return \stdClass|false
-	 */
-	public static function get_layout_data( ListScreen $list_screen ) {
-		global $wpdb;
-
-		$data = $wpdb->get_var( $wpdb->prepare( "SELECT {$wpdb->options}.option_value FROM {$wpdb->options} WHERE option_name = %s ORDER BY option_id DESC", self::OPTION_LAYOUT . $list_screen->get_storage_key() ) );
-
-		if ( ! $data ) {
-			return false;
-		}
-
-		return unserialize( $data );
-	}
-
-	/**
-	 * Delete all layouts from DB
-	 */
-	public static function delete_all() {
-		global $wpdb;
-
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( self::OPTION_LAYOUT ) . '%' ) );
 	}
 
 }

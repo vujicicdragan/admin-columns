@@ -211,7 +211,11 @@ class Columns extends Page {
 			wp_die();
 		}
 
+		// TODO
+		$list_screen->load();
+
 		// Load default headings
+		// TODO
 		if ( ! $list_screen->get_stored_default_headings() ) {
 			$list_screen->set_original_columns( (array) filter_input( INPUT_POST, 'original_columns', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) );
 		}
@@ -295,6 +299,82 @@ class Columns extends Page {
 	}
 
 	/**
+	 *
+	 */
+	private function store_data( ListScreen $list_screen, $data ) {
+		if ( ! $data ) {
+			return new \WP_Error( 'no-settings', __( 'No columns settings available.', 'codepress-admin-columns' ) );
+		}
+
+		$settings = array();
+
+		foreach ( $data as $column_name => $options ) {
+			if ( empty( $options['type'] ) ) {
+				continue;
+			}
+
+			// New column, new key
+			if ( 0 === strpos( $column_name, '_new_column_' ) ) {
+				$column_name = uniqid();
+			}
+
+			$options['name'] = $column_name;
+
+			$column = $list_screen->create_column( $options );
+
+			if ( ! $column ) {
+				continue;
+			}
+
+			// Skip duplicate original columns
+			if ( $column->is_original() ) {
+				if ( in_array( $column->get_type(), wp_list_pluck( $settings, 'type' ), true ) ) {
+					continue;
+				}
+			}
+
+			$sanitized = array();
+
+			// Sanitize data
+			foreach ( $column->get_settings() as $setting ) {
+				$sanitized += $setting->get_values();
+			}
+
+			// Encode site url
+			if ( $setting = $column->get_setting( 'label' ) ) {
+				$sanitized[ $setting->get_name() ] = $setting->get_encoded_label();
+			}
+
+			$settings[ $column_name ] = array_merge( $options, $sanitized );
+		}
+
+		// TODO: add layout data
+
+		$list_screen->set_settings( $settings );
+
+		$result = ListScreenStore::update( $list_screen );
+
+		//$result = update_option( self::OPTIONS_KEY . $this->get_storage_key(), $settings );
+
+		if ( ! $result ) {
+			return new \WP_Error( 'same-settings' );
+		}
+
+		/**
+		 * Fires after a new column setup is stored in the database
+		 * Primarily used when columns are saved through the Admin Columns settings screen
+		 *
+		 * @since 3.0
+		 *
+		 * @param ListScreen $list_screen
+		 */
+		//do_action( 'ac/columns_stored', $this );
+
+		return true;
+
+	}
+
+	/**
 	 * @since 2.5
 	 */
 	public function ajax_columns_save() {
@@ -310,7 +390,9 @@ class Columns extends Page {
 			);
 		}
 
-		$result = $list_screen->store( $formdata['columns'] );
+		// TODO
+		//$result = $list_screen->store( $formdata['columns'] );
+		$result = $this->store_data( $list_screen, $formdata['columns'] );
 
 		$view_link = ac_helper()->html->link( $list_screen->get_screen_link(), sprintf( __( 'View %s screen', 'codepress-admin-columns' ), $list_screen->get_label() ) );
 

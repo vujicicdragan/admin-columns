@@ -12,17 +12,18 @@ abstract class ListScreen {
 	const OPTIONS_KEY = 'cpac_options_';
 
 	/**
+	 * @var string ID
+	 */
+	private $id;
+
+	/**
 	 * Unique Identifier for List Screen.
 	 *
 	 * @since 2.0
 	 * @var string
 	 */
+	// TODO: rename to type
 	private $key;
-
-	/**
-	 * @var string ID
-	 */
-	private $id;
 
 	/**
 	 * @since 2.0
@@ -109,11 +110,6 @@ abstract class ListScreen {
 	 * @var array [ Column name => Label ]
 	 */
 	private $original_columns;
-
-	/**
-	 * @var string Storage key used for saving column data to the database
-	 */
-	private $storage_key;
 
 	/**
 	 * @var array Column settings data
@@ -214,26 +210,6 @@ abstract class ListScreen {
 	/**
 	 * @return string
 	 */
-	public function get_storage_key() {
-		if ( null === $this->storage_key ) {
-			$this->set_storage_key( $this->get_key() );
-		}
-
-		return $this->storage_key;
-	}
-
-	/**
-	 * @param string $key
-	 */
-	private function set_storage_key( $key ) {
-		$this->storage_key = $key;
-
-		$this->reset();
-	}
-
-	/**
-	 * @return string
-	 */
 	public function get_id() {
 		return $this->id;
 	}
@@ -246,9 +222,14 @@ abstract class ListScreen {
 	public function set_id( $id ) {
 		$this->id = $id;
 
-		$this->set_storage_key( $this->get_key() . $id );
-
 		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_storage_key() {
+		return $this->get_key() . $this->get_id();
 	}
 
 	/**
@@ -298,6 +279,60 @@ abstract class ListScreen {
 	 */
 	public function set_network_only( $network_only ) {
 		$this->network_only = (bool) $network_only;
+	}
+
+	/**
+	 * @param array $roles
+	 *
+	 * @return self
+	 */
+	public function set_custom_label( $label ) {
+		$this->custom_label = $label;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_custom_label() {
+		return $this->custom_label;
+	}
+
+	/**
+	 * @param array $roles
+	 *
+	 * @return self
+	 */
+	public function set_roles( $roles ) {
+		$this->roles = $roles;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_roles() {
+		return $this->roles;
+	}
+
+	/**
+	 * @param array $users
+	 *
+	 * @return self
+	 */
+	public function set_users( $users ) {
+		$this->users = $users;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_users() {
+		return $this->users;
 	}
 
 	/**
@@ -351,11 +386,11 @@ abstract class ListScreen {
 	 *
 	 * @since 2.5
 	 */
-	public function reset() {
+	/*public function reset() {
 		$this->columns = null;
 		$this->column_types = null;
 		$this->settings = null;
-	}
+	}*/
 
 	/**
 	 * @since 2.0
@@ -396,7 +431,7 @@ abstract class ListScreen {
 	 *
 	 * @return false|string
 	 */
-	public function get_class_by_type( $type ) {
+	private function get_class_by_type( $type ) {
 		$column = $this->get_column_by_type( $type );
 
 		if ( ! $column ) {
@@ -629,6 +664,162 @@ abstract class ListScreen {
 	}
 
 	/**
+	 * Populate settings from the database
+	 */
+	public function populate_settings() {
+
+		// Load Columns
+		$column_data = ListScreenStore::get_column_data( $this );
+
+		$this->set_settings( $column_data );
+
+		// Load Settings
+		$data = ListScreenStore::get_layout_data( $this );
+
+		if ( ! empty( $data->name ) ) {
+			$this->set_custom_label( $data->name );
+		}
+		if ( ! empty( $data->users ) ) {
+			$this->set_users( $data->users );
+		}
+		if ( ! empty( $data->roles ) ) {
+			$this->set_roles( $data->roles );
+		}
+
+		// Load from API
+		// TODO
+		AC()->api()->set_column_settings( $this );
+	}
+
+	/**
+	 * @param array $settings Column settings
+	 */
+	public function set_settings( $settings ) {
+		if ( ! is_array( $settings ) ) {
+			$settings = array();
+		}
+
+		$this->settings = $settings;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_settings() {
+		if ( null === $this->settings ) {
+			$this->populate_settings();
+		}
+
+		return $this->settings;
+	}
+
+	/**
+	 * @return string
+	 */
+	private function get_default_key() {
+		return self::OPTIONS_KEY . $this->get_key() . "__default";
+	}
+
+	/**
+	 * @param array $column_headings Default column headings
+	 *
+	 * @return bool
+	 */
+	public function save_default_headings( $column_headings ) {
+		return update_option( $this->get_default_key(), $column_headings );
+	}
+
+	/**
+	 * @return array [ Column Name => Label ]
+	 */
+	public function get_stored_default_headings() {
+		return get_option( $this->get_default_key(), array() );
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function delete_default_headings() {
+		return delete_option( $this->get_default_key() );
+	}
+
+	/**
+	 * Delete stored data
+	 */
+	public function delete() {
+		ListScreenStore::delete( $this );
+	}
+
+	/**
+	 * @param string $column_name
+	 * @param int    $id
+	 * @param null   $original_value
+	 *
+	 * @return string
+	 */
+	public function get_display_value_by_column_name( $column_name, $id, $original_value = null ) {
+		$column = $this->get_column_by_name( $column_name );
+
+		if ( ! $column ) {
+			return $original_value;
+		}
+
+		$value = $column->get_value( $id );
+
+		// You can overwrite the display value for original columns by making sure get_value() does not return an empty string.
+		if ( $column->is_original() && ac_helper()->string->is_empty( $value ) ) {
+			return $original_value;
+		}
+
+		/**
+		 * Column display value
+		 *
+		 * @since 3.0
+		 *
+		 * @param string $value  Column display value
+		 * @param int    $id     Object ID
+		 * @param Column $column Column object
+		 */
+		$value = apply_filters( 'ac/column/value', $value, $id, $column );
+
+		return $value;
+	}
+
+	/**
+	 * Get default column headers
+	 *
+	 * @return array
+	 */
+	public function get_default_column_headers() {
+		return array();
+	}
+
+
+	// TODO: WIP
+
+	/**
+	 * Load all data
+	 */
+	// TODO: Maybe change to __construct?
+	public function load() {
+		$column_data = ListScreenStore::get_column_data( $this );
+
+		$this->set_settings( $column_data );
+
+		$layout_data = ListScreenStore::get_layout_data( $this );
+
+		if ( $layout_data ) {
+			$this->set_custom_label( $layout_data->custom_label );
+			$this->set_users( $layout_data->users );
+			$this->set_roles( $layout_data->roles );
+		}
+	}
+
+	// TODO: Obsolete
+
+	/**
 	 * Store column data
 	 *
 	 * @param array $column_data
@@ -699,201 +890,6 @@ abstract class ListScreen {
 		do_action( 'ac/columns_stored', $this );
 
 		return true;
-	}
-
-	/**
-	 * Populate settings from the database
-	 */
-	public function populate_settings() {
-
-		// Load Columns
-		$this->set_settings( get_option( self::OPTIONS_KEY . $this->get_storage_key() ) );
-
-		// Load Settings
-		$data = ListScreenStore::get_layout_data( $this );
-
-		if ( ! empty( $data->name ) ) {
-			$this->set_custom_label( $data->name );
-		}
-		if ( ! empty( $data->users ) ) {
-			$this->set_users( $data->users );
-		}
-		if ( ! empty( $data->roles ) ) {
-			$this->set_roles( $data->roles );
-		}
-
-		// Load from API
-		AC()->api()->set_column_settings( $this );
-	}
-
-	/**
-	 * @param array $roles
-	 *
-	 * @return self
-	 */
-	public function set_custom_label( $label ) {
-		$this->custom_label = $label;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function get_custom_label() {
-		return $this->custom_label;
-	}
-
-	/**
-	 * @param array $roles
-	 *
-	 * @return self
-	 */
-	public function set_roles( $roles ) {
-		$this->roles = $roles;
-
-		return $this;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function get_roles() {
-		return $this->roles;
-	}
-
-	/**
-	 * @param array $users
-	 *
-	 * @return self
-	 */
-	public function set_users( $users ) {
-		$this->users = $users;
-
-		return $this;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function get_users() {
-		return $this->users;
-	}
-
-	/**
-	 * @param array $settings Column settings
-	 */
-	public function set_settings( $settings ) {
-		if ( ! is_array( $settings ) ) {
-			$settings = array();
-		}
-
-		$this->settings = $settings;
-
-		return $this;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function get_settings() {
-		if ( null === $this->settings ) {
-			$this->populate_settings();
-		}
-
-		return $this->settings;
-	}
-
-	/**
-	 * @return string
-	 */
-	private function get_default_key() {
-		return self::OPTIONS_KEY . $this->get_key() . "__default";
-	}
-
-	/**
-	 * @param array $column_headings Default column headings
-	 *
-	 * @return bool
-	 */
-	public function save_default_headings( $column_headings ) {
-		return update_option( $this->get_default_key(), $column_headings );
-	}
-
-	/**
-	 * @return array [ Column Name => Label ]
-	 */
-	public function get_stored_default_headings() {
-		return get_option( $this->get_default_key(), array() );
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function delete_default_headings() {
-		return delete_option( $this->get_default_key() );
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function delete() {
-
-		/**
-		 * Fires before a column setup is removed from the database
-		 * Primarily used when columns are deleted through the Admin Columns settings screen
-		 *
-		 * @since 3.0.8
-		 *
-		 * @param ListScreen $list_screen
-		 */
-		do_action( 'ac/columns_delete', $this );
-
-		return delete_option( self::OPTIONS_KEY . $this->get_storage_key() );
-	}
-
-	/**
-	 * @param string $column_name
-	 * @param int    $id
-	 * @param null   $original_value
-	 *
-	 * @return string
-	 */
-	public function get_display_value_by_column_name( $column_name, $id, $original_value = null ) {
-		$column = $this->get_column_by_name( $column_name );
-
-		if ( ! $column ) {
-			return $original_value;
-		}
-
-		$value = $column->get_value( $id );
-
-		// You can overwrite the display value for original columns by making sure get_value() does not return an empty string.
-		if ( $column->is_original() && ac_helper()->string->is_empty( $value ) ) {
-			return $original_value;
-		}
-
-		/**
-		 * Column display value
-		 *
-		 * @since 3.0
-		 *
-		 * @param string $value  Column display value
-		 * @param int    $id     Object ID
-		 * @param Column $column Column object
-		 */
-		$value = apply_filters( 'ac/column/value', $value, $id, $column );
-
-		return $value;
-	}
-
-	/**
-	 * Get default column headers
-	 *
-	 * @return array
-	 */
-	public function get_default_column_headers() {
-		return array();
 	}
 
 }
