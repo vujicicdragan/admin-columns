@@ -12,6 +12,7 @@ use AC\ListScreenStore;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\ListScreenGroups;
+use AC\ListScreenRepository;
 use AC\Preferences;
 use AC\Settings;
 
@@ -93,7 +94,7 @@ class Columns extends Page {
 	 * @return bool
 	 */
 	private function list_screen_id_exists( $type, $id ) {
-		return in_array( $id, ListScreenStore::get_ids( $type ) );
+		return get_option( ListScreen::SETTINGS_KEY . $type . $id );
 	}
 
 	/**
@@ -112,7 +113,8 @@ class Columns extends Page {
 				return ListScreenFactory::create( $type, $id );
 			}
 
-			return ListScreenFactory::create( $type, current( ListScreenStore::get_ids( $type ) ) );
+			$repo = new ListScreenRepository;
+			return $repo->first( $type );
 		}
 
 		return false;
@@ -135,7 +137,8 @@ class Columns extends Page {
 		if ( ! $list_screen ) {
 			$type = current( AC()->get_list_screens() )->get_type();
 
-			$list_screen = ListScreenFactory::create( $type, current( ListScreenStore::get_ids( $type ) ) );
+			$repo = new ListScreenRepository;
+			$list_screen = $repo->first( $type );
 		}
 
 		return $list_screen;
@@ -810,7 +813,7 @@ class Columns extends Page {
 			</div><!--.ac-right-->
 
 			<div class="ac-left">
-				<?php if ( ! ListScreenStore::get_default_headings( $list_screen ) && ! $list_screen->is_read_only() ) : ?>
+				<?php if ( ! $list_screen->get_original_columns() && ! $list_screen->is_read_only() ) : ?>
 					<div class="notice notice-warning">
 						<p>
 							<?php echo $this->get_error_message_visit_list_screen( $list_screen ); ?>

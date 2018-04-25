@@ -86,15 +86,11 @@ class Settings extends Page {
 	private function delete_all_column_settings() {
 		global $wpdb;
 
-		$sql = "
-			DELETE
-			FROM $wpdb->options
-			WHERE option_name LIKE %s";
+		$sql = $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", ListScreen::SETTINGS_KEY . '%' );
+		$wpdb->query( $sql );
 
-		$wpdb->query( $wpdb->prepare( $sql, ListScreen::OPTIONS_KEY . '%' ) );
-
-		// @since 3.0
-		do_action( 'ac/restore_all_columns' );
+		$sql = $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", ListScreen::COLUMNS_KEY . '%' );
+		$wpdb->query( $sql );
 	}
 
 	/**

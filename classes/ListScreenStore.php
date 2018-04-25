@@ -2,9 +2,9 @@
 
 namespace AC;
 
-abstract class ListScreenStore {
+class ListScreenStore {
 
-	const SETTINGS_KEY = 'cpac_layouts';
+	//const SETTINGS_KEY = 'cpac_layouts';
 
 	const COLUMNS_KEY = 'cpac_options_';
 
@@ -13,7 +13,7 @@ abstract class ListScreenStore {
 	 *
 	 * @return bool
 	 */
-	public static function update( ListScreen $list_screen ) {
+	/*public static function update( ListScreen $list_screen ) {
 
 		$data = array(
 			'id'    => $list_screen->get_id(),
@@ -25,65 +25,59 @@ abstract class ListScreenStore {
 		update_option( self::SETTINGS_KEY . $list_screen->get_storage_key(), (object) $data );
 		$result = update_option( self::COLUMNS_KEY . $list_screen->get_storage_key(), (array) $list_screen->get_settings() );
 
-		/**
-		 * Fires after a new column setup is stored in the database
-		 * Primarily used when columns are saved through the Admin Columns settings screen
-		 *
-		 * @since 3.0
-		 *
-		 * @param ListScreen $list_screen
-		 */
-		do_action( 'ac/columns_stored', $list_screen );
+		do_action_deprecated( 'ac/columns_stored', array( $list_screen ), 'NEWVERSION' );
+		do_action( 'ac/list_screen/update', $list_screen, $result );
 
 		return $result;
-	}
+	}*/
 
 	/**
 	 * @param ListScreen $list_screen
 	 *
 	 * @return bool
 	 */
-	public static function create( ListScreen $list_screen ) {
+	/*public static function create( ListScreen $list_screen ) {
 		$list_screen->set_id( uniqid() );
 
 		return self::update( $list_screen );
-	}
+	}*/
 
 	/**
 	 * @param ListScreen $list_screen
 	 */
-	public static function delete( ListScreen $list_screen ) {
+	/*public static function delete( ListScreen $list_screen ) {
 		delete_option( self::COLUMNS_KEY . $list_screen->get_storage_key() );
-
-		do_action( 'ac/columns_delete', $list_screen );
-
 		delete_option( self::SETTINGS_KEY . $list_screen->get_storage_key() );
 
-		do_action( 'ac/layout/delete', $list_screen );
-	}
+		do_action_deprecated( 'ac/columns_delete', array( $list_screen ), 'NEWVERSION' );
+		do_action_deprecated( 'ac/layout/delete', array( $list_screen ), 'NEWVERSION' );
+
+		do_action( 'ac/list_screen/delete', $list_screen );
+	}*/
 
 	/**
 	 * Delete all layouts from DB
 	 */
-	public static function delete_all() {
+	/*public static function delete_all() {
 		global $wpdb;
 
 		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( self::SETTINGS_KEY ) . '%' ) );
-	}
+	}*/
 
 	/**
 	 * @param ListScreen $list_screen
 	 * @param array      $headings
 	 */
-	public static function update_default_headings( ListScreen $list_screen, $headings ) {
+	/*public static function update_default_headings( ListScreen $list_screen, $headings ) {
 		update_option( self::COLUMNS_KEY . $list_screen->get_type() . "__default", $headings );
-	}
+	}*/
 
 	/**
 	 * @param ListScreen $list_screen
 	 *
 	 * @return array
 	 */
+	// TODO: remove
 	public static function get_default_headings( ListScreen $list_screen ) {
 		return get_option( self::COLUMNS_KEY . $list_screen->get_type() . "__default" );
 	}
@@ -95,23 +89,23 @@ abstract class ListScreenStore {
 	 *
 	 * @return \stdClass|false
 	 */
-	public static function get_layout_data( ListScreen $list_screen ) {
+	/*public static function get_layout_data( ListScreen $list_screen ) {
 		return get_option( self::SETTINGS_KEY . $list_screen->get_storage_key() );
-	}
+	}*/
 
 	/**
 	 * @param ListScreen $list_screen
 	 */
-	public static function get_column_data( ListScreen $list_screen ) {
+	/*public static function get_column_data( ListScreen $list_screen ) {
 		return get_option( self::COLUMNS_KEY . $list_screen->get_storage_key(), array() );
-	}
+	}*/
 
 	/**
 	 * @param string $type
 	 *
 	 * @return string[] ID's
 	 */
-	public static function get_ids( $type ) {
+	/*public static function get_ids( $type ) {
 		global $wpdb;
 
 		$ids = wp_cache_get( 'list-screen-ids', $type );
@@ -143,6 +137,6 @@ abstract class ListScreenStore {
 		}
 
 		return $ids;
-	}
+	}*/
 
 }

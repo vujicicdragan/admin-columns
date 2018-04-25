@@ -8,18 +8,6 @@ namespace AC;
 abstract class ListScreenWP extends ListScreen {
 
 	/**
-	 * Class name of the \WP_List_Table instance
-	 *
-	 * @see        \WP_List_Table
-	 *
-	 * @since      3.0
-	 * @deprecated 3.1
-	 *
-	 * @var string
-	 */
-	private $list_table_class;
-
-	/**
 	 * @return \WP_List_Table
 	 */
 	abstract protected function get_list_table();
@@ -81,7 +69,7 @@ abstract class ListScreenWP extends ListScreen {
 	 * @return string
 	 */
 	public function get_list_table_class() {
-		return $this->list_table_class;
+		return false;
 	}
 
 	/**
@@ -91,8 +79,6 @@ abstract class ListScreenWP extends ListScreen {
 	 */
 	public function set_list_table_class( $list_table_class ) {
 		_deprecated_function( __METHOD__, '3.1', 'AC\ListScreenWP::get_list_table()' );
-
-		$this->list_table_class = (string) $list_table_class;
 	}
 
 	/**

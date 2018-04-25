@@ -5,13 +5,15 @@ namespace AC\Table;
 use AC\Admin;
 use AC\Capabilities;
 use AC\Column;
-use AC\ListScreenStore;
+use AC\ListScreenRepository;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\Preferences;
 use AC\Settings;
 
 final class Screen {
+
+	const HEADINGS_KEY = 'cpac_options_';
 
 	/**
 	 * @var ListScreen;
@@ -128,7 +130,6 @@ final class Screen {
 	private function get_layout_id( ListScreen $list_screen ) {
 
 		return $this->preferences()->get( $list_screen->get_type() );
-
 
 		// TODO
 		/*$layouts = ac_layouts( $list_screen );
@@ -496,6 +497,23 @@ final class Screen {
 	}
 
 	/**
+	 * @param ListScreen $list_screen
+	 * @param array      $headings
+	 */
+	private function update_default_headings( ListScreen $list_screen, $headings ) {
+		update_option( self::HEADINGS_KEY . $list_screen->get_type() . "__default", $headings );
+	}
+
+	/**
+	 * @param ListScreen $list_screen
+	 *
+	 * @return array
+	 */
+	public static function get_default_headings( ListScreen $list_screen ) {
+		return get_option( self::HEADINGS_KEY . $list_screen->get_type() . "__default" );
+	}
+
+	/**
 	 * @since 2.0
 	 */
 	public function add_headings( $columns ) {
@@ -513,7 +531,7 @@ final class Screen {
 
 		// Store default headings
 		if ( ! AC()->is_doing_ajax() ) {
-			ListScreenStore::update_default_headings( $list_screen, $columns );
+			$this->update_default_headings( $list_screen, $columns );
 		}
 
 		// Run once
@@ -535,8 +553,8 @@ final class Screen {
 		// were stored. We force get_columns() to be re-populated.
 		// TODO: test
 		//if ( ! $list_screen->get_columns() ) {
-			//$list_screen->reset();
-			//$list_screen->reset_original_columns();
+		//$list_screen->reset();
+		//$list_screen->reset_original_columns();
 		//}
 
 		foreach ( $list_screen->get_columns() as $column ) {
@@ -563,13 +581,11 @@ final class Screen {
 	private function get_list_screens( ListScreen $list_screen ) {
 		$list_screens = array();
 
-		$layout_ids = ListScreenStore::get_ids( $list_screen->get_type() );
+		$repo = new ListScreenRepository();
 
-		foreach ( $layout_ids as $layout_id ) {
-			$list_screen = ListScreenFactory::create( $list_screen->get_type(), $layout_id );
-
-			if ( $this->is_current_user_eligible( $list_screen ) ) {
-				$list_screens[] = $list_screen;
+		foreach ( $repo->fetch_all( $list_screen->get_type() ) as $_list_screen ) {
+			if ( $this->is_current_user_eligible( $_list_screen ) ) {
+				$list_screens[] = $_list_screen;
 			}
 		}
 
@@ -639,7 +655,7 @@ final class Screen {
 				<span class="spinner"></span>
 				<select id="column-view-selector" name="layout" <?php echo ac_helper()->html->get_tooltip_attr( __( 'Switch View', 'codepress-admin-columns' ) ); ?>>
 					<?php foreach ( $list_screens as $_list_screens ) : ?>
-						<option value="<?php echo add_query_arg( array( 'layout' => $_list_screens->get_id(), 'list_screen' => $_list_screens->get_key() ), $link ); ?>"<?php selected( $_list_screens->get_id(), $current_screen->get_id() ); ?>><?php echo esc_html( $_list_screens->get_custom_label() ); ?></option>
+						<option value="<?php echo add_query_arg( array( 'layout' => $_list_screens->get_id(), 'list_screen' => $_list_screens->get_type() ), $link ); ?>"<?php selected( $_list_screens->get_id(), $current_screen->get_id() ); ?>><?php echo esc_html( $_list_screens->get_custom_label() ); ?></option>
 					<?php endforeach; ?>
 				</select>
 				<script type="text/javascript">
