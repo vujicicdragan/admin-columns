@@ -541,7 +541,12 @@ abstract class ListScreen {
 				continue;
 			}
 
-			$this->column_types[ $type ] = 'Column';
+			// TODO
+			$column = new Column();
+			$column->set_type( $type );
+			$column->set_list_screen( $this );
+
+			$this->column_types[ $type ] = $column;
 		}
 
 		// Load Custom columns
