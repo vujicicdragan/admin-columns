@@ -7,11 +7,8 @@ use AC\Capabilities;
 use AC\Column;
 use AC\ListScreenRepository;
 use AC\ListScreen;
-
-// TODO: add to ListScreen folder
 use AC\ListScreenFactory;
 use AC\ListScreenStore;
-
 use AC\Preferences;
 use AC\Settings;
 

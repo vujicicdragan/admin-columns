@@ -63,22 +63,12 @@ class ListScreenStore implements ListScreenLoader {
 			return false;
 		}
 
-		$defaults = array(
-			'columns' => array(),
-			'id'      => '',
-			'name'    => '',
-			'roles'   => array(),
-			'users'   => array(),
-		);
+		$columns = isset( $data['columns'] ) ? $data['columns'] : array();
+		unset( $data['columns'] );
 
-		$data = array_merge( $defaults, $data );
+		update_option( $this->settings_key(), (object) $data );
 
-		$settings = $data;
-		unset( $settings['columns'] );
-
-		update_option( $this->settings_key(), (object) $settings );
-
-		return update_option( $this->columns_key(), (array) $data['columns'] );
+		return update_option( $this->columns_key(), (array) $columns );
 	}
 
 	/**

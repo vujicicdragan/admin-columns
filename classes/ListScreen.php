@@ -360,7 +360,9 @@ abstract class ListScreen {
 	 * @return self
 	 */
 	public function set_roles( $roles ) {
-		$this->roles = $roles;
+		if ( is_array( $roles ) ) {
+			$this->roles = $roles;
+		}
 
 		return $this;
 	}
@@ -378,7 +380,9 @@ abstract class ListScreen {
 	 * @return self
 	 */
 	public function set_users( $users ) {
-		$this->users = $users;
+		if ( is_array( $users ) ) {
+			$this->users = $users;
+		}
 
 		return $this;
 	}
