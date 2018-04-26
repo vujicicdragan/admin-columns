@@ -78,7 +78,6 @@ class AdminColumns extends Plugin {
 		add_action( 'init', array( $this, 'install' ) );
 		add_action( 'init', array( $this, 'notice_checks' ) );
 		add_filter( 'plugin_action_links', array( $this, 'add_settings_link' ), 1, 2 );
-		add_action( 'after_setup_theme', array( $this, 'ready' ) );
 		add_action( 'plugins_loaded', array( $this, 'localize' ) );
 	}
 
@@ -117,14 +116,6 @@ class AdminColumns extends Plugin {
 		return '3.1.7';
 	}
 
-	public function ready() {
-		/**
-		 * For loading external resources, e.g. column settings.
-		 * Can be called from plugins and themes.
-		 */
-		do_action( 'ac/ready', $this );
-	}
-
 	/**
 	 * Initialize current user and make sure any administrator user can use Admin Columns
 	 *
@@ -133,13 +124,7 @@ class AdminColumns extends Plugin {
 	public function init_capabilities() {
 		$caps = new Capabilities();
 
-		if ( ! $caps->is_administrator() ) {
-			return;
-		}
-
-		register_activation_hook( $this->get_file(), array( $caps, 'add_manage' ) );
-
-		if ( $caps->has_manage() ) {
+		if ( ! $caps->is_administrator() || $caps->has_manage() ) {
 			return;
 		}
 
@@ -238,15 +223,15 @@ class AdminColumns extends Plugin {
 
 		// Post types
 		foreach ( $this->get_post_types() as $post_type ) {
-			$list_screens[] = new ListScreen\Post( $post_type );
+			$list_screens[] = new ListScreen\Type\Post( $post_type );
 		}
 
-		$list_screens[] = new ListScreen\Media();
-		$list_screens[] = new ListScreen\Comment();
+		$list_screens[] = new ListScreen\Type\Media();
+		$list_screens[] = new ListScreen\Type\Comment();
 
 		// Users, not for network users
 		if ( ! is_multisite() ) {
-			$list_screens[] = new ListScreen\User();
+			$list_screens[] = new ListScreen\Type\User();
 		}
 
 		foreach ( $list_screens as $list_screen ) {

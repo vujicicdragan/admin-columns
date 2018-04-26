@@ -201,7 +201,8 @@ final class Screen {
 			}
 
 			// Remove inline edit action if the default column (author) is not present
-			if ( $list_screen instanceof ListScreen\Comment && 'comment' !== $default ) {
+
+			if ( $list_screen instanceof ListScreen\Type\Comment && 'comment' !== $default ) {
 				add_filter( 'comment_row_actions', array( $this, 'remove_quick_edit_from_actions' ), 20, 2 );
 			}
 		}
@@ -249,6 +250,27 @@ final class Screen {
 	}
 
 	/**
+<<<<<<< HEAD:classes/Table/Screen.php
+=======
+	 * Add the default markup for the default primary column for the Taxonomy list screen which is necessary for bulk edit
+	 *
+	 * @param $actions
+	 * @param $term
+	 */
+	public function add_taxonomy_hidden_quick_edit_markup( $actions, $term ) {
+		$list_screen = $this->get_current_list_screen();
+
+		if ( $list_screen instanceof \ACP\ListScreen\Type\Taxonomy ) {
+
+			// TODO test and move to PRO
+			$actions .= sprintf( '<div class="hidden">%s</div>', $list_screen->get_list_table()->column_name( $term ) );
+		}
+
+		return $actions;
+	}
+
+	/**
+>>>>>>> 1080-all-namespace:classes/TableScreen.php
 	 * Adds a body class which is used to set individual column widths
 	 *
 	 * @since 1.4.0
