@@ -8,69 +8,48 @@ namespace AC;
 class ListScreenRepository {
 
 	/**
+	 * @var string ListScreen::type
+	 */
+	private $type;
+
+	public function __construct( $type ) {
+		$this->type = $type;
+	}
+
+	/**
 	 * @param string $type
 	 *
 	 * @return ListScreen[]
 	 */
-	public function fetch_all( $type ) {
+	public function fetch_all() {
 		$list_screens = array();
 
-		foreach ( $this->get_ids( $type ) as $id ) {
-			$list_screens[] = ListScreenFactory::create( $type, $id );
+		foreach ( $this->get_repositories() as $repo ) {
+			foreach ( $repo->get_ids() as $id ) {
+				$list_screens[] = ListScreenFactory::create( $this->type, $id );
+			}
 		}
 
 		return $list_screens;
 	}
 
 	/**
-	 * @param string $type
-	 *
 	 * @return ListScreen|false
 	 */
-	public function first( $type ) {
-		return ListScreenFactory::create( $type, current( $this->get_ids( $type ) ) );
+	public function first() {
+		return current( $this->fetch_all() );
 	}
 
 	/**
-	 * @return string[]
+	 * @param $type
+	 *
+	 * @return ListScreenRepo[]
 	 */
-	private function get_ids( $type ) {
-		global $wpdb;
-
-		$ids = wp_cache_get( 'list-screen-ids', $type );
-
-		if ( empty( $ids ) ) {
-
-			$ids = array();
-
-			// TODO
-			$key = ListScreenStore::SETTINGS_KEY . $type;
-
-			$results = $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value != '' ORDER BY option_id DESC", $wpdb->esc_like( $key ) . '%' ) );
-
-			if ( $results ) {
-				foreach ( $results as $result ) {
-
-					$data = maybe_unserialize( $result->option_value );
-
-					if ( ! $data ) {
-						continue;
-					}
-
-					// Removes incorrect layouts.
-					// For example when a list screen is called "Car" and one called "Carrot"
-					if ( strlen( $result->option_name ) !== strlen( $key . $data->id ) ) {
-						continue;
-					}
-
-					$ids[] = $data->id;
-				}
-			}
-
-			wp_cache_add( 'list-screen-ids', $ids, $type );
-		}
-
-		return $ids;
+	private function get_repositories() {
+		return array(
+			new ListScreenRepoDB( $this->type ),
+			new ListScreenRepoPHP( $this->type ),
+		);
 	}
 
 }

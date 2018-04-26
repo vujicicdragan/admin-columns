@@ -115,9 +115,9 @@ class Columns extends Page {
 				return ListScreenFactory::create( $type, $id );
 			}
 
-			$repo = new ListScreenRepository;
+			$repo = new ListScreenRepository( $type );
 
-			return $repo->first( $type );
+			return $repo->first();
 		}
 
 		return false;
@@ -140,8 +140,8 @@ class Columns extends Page {
 		if ( ! $list_screen ) {
 			$type = current( AC()->get_list_screens() )->get_type();
 
-			$repo = new ListScreenRepository;
-			$list_screen = $repo->first( $type );
+			$repo = new ListScreenRepository( $type );
+			$list_screen = $repo->first();
 		}
 
 		return $list_screen;

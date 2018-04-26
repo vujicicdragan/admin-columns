@@ -154,9 +154,12 @@ abstract class ListScreen {
 			if ( isset( $data['roles'] ) ) {
 				$this->set_roles( $data['roles'] );
 			}
+			if ( isset( $data['read_only'] ) ) {
+				$this->set_read_only( $data['read_only'] );
+			}
 		}
 
-		$this->set_original_columns( get_option( ListScreenStore::COLUMNS_KEY . $this->get_type() . "__default", array() ) );
+		$this->set_original_columns( get_option( ListScreenStoreDB::COLUMNS_KEY . $this->get_type() . "__default", array() ) );
 	}
 
 	/**
@@ -164,7 +167,8 @@ abstract class ListScreen {
 	 */
 	public function get_store_objects() {
 		return array(
-			new ListScreenStore( $this->get_type(), $this->get_id() ),
+			new ListScreenStoreDB( $this->get_type(), $this->get_id() ),
+			new ListScreenStorePHP( $this->get_type(), $this->get_id() ),
 		);
 	}
 
@@ -541,10 +545,12 @@ abstract class ListScreen {
 				continue;
 			}
 
-			// TODO
+			// TODO: change to string class?
 			$column = new Column();
-			$column->set_type( $type );
-			$column->set_list_screen( $this );
+
+			$column->set_original( true )
+			       ->set_type( $type )
+			       ->set_list_screen( $this );
 
 			$this->column_types[ $type ] = $column;
 		}
@@ -760,7 +766,7 @@ abstract class ListScreen {
 	 * @return bool
 	 */
 	private function update() {
-		$result = false;
+		$result = true;
 
 		foreach ( $this->get_store_objects() as $store ) {
 
@@ -772,7 +778,11 @@ abstract class ListScreen {
 				'users'   => $this->get_users(),
 			);
 
-			$result = $store->update( $data );
+			$succes = $store->update( $data );
+
+			if ( ! $succes ) {
+				$result = false;
+			}
 		}
 
 		do_action_deprecated( 'ac/columns_stored', array( $this ), 'NEWVERSION' );

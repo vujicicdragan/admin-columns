@@ -95,9 +95,11 @@ function ac_helper() {
  *
  * @since 2.2
  *
- * @param string|array $list_screen_key List screen key or keys
- * @param array        $column_data
+ * @param string|array $types List screen types
+ * @param array        $data
  */
-function ac_register_columns( $list_screen_keys, $column_data ) {
-	AC()->api()->load_columndata( $list_screen_keys, $column_data );
+function ac_register_columns( $types, $data ) {
+	foreach ( (array) $types as $type ) {
+		AC()->api()->load_data( $type, $data );
+	}
 }

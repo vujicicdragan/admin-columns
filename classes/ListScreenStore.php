@@ -2,11 +2,7 @@
 
 namespace AC;
 
-class ListScreenStore implements ListScreenLoader {
-
-	const SETTINGS_KEY = 'cpac_layouts';
-
-	const COLUMNS_KEY = 'cpac_options_';
+abstract class ListScreenStore {
 
 	/**
 	 * @var string
@@ -19,6 +15,26 @@ class ListScreenStore implements ListScreenLoader {
 	private $id;
 
 	/**
+	 * ListScreen data. Contains settings for columns and general
+	 * listscreen properties, e.g. users, roles and name.
+	 *
+	 * @return array
+	 */
+	abstract public function read();
+
+	/**
+	 * @param array $data
+	 *
+	 * @return bool
+	 */
+	abstract public function update( $data );
+
+	/**
+	 * @return bool
+	 */
+	abstract public function delete();
+
+	/**
 	 * @param ListScreen $list_screen
 	 */
 	public function __construct( $type, $id ) {
@@ -26,72 +42,12 @@ class ListScreenStore implements ListScreenLoader {
 		$this->id = $id;
 	}
 
-	/**
-	 * @return string $key
-	 */
-	private function settings_key() {
-		return self::SETTINGS_KEY . $this->type . $this->id;
+	protected function get_type() {
+		return $this->type;
 	}
 
-	/**
-	 * @return string $key
-	 */
-	private function columns_key() {
-		return self::COLUMNS_KEY . $this->type . $this->id;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function read() {
-		$data['columns'] = get_option( $this->columns_key(), array() );
-
-		if ( $settings = get_option( $this->settings_key() ) ) {
-			$data = array_merge( $data, (array) $settings );
-		}
-
-		return $data;
-	}
-
-	/**
-	 * @param array $data
-	 *
-	 * @return bool
-	 */
-	public function update( $data ) {
-		if ( empty( $data ) ) {
-			return false;
-		}
-
-		$columns = isset( $data['columns'] ) ? $data['columns'] : array();
-		unset( $data['columns'] );
-
-		update_option( $this->settings_key(), (object) $data );
-
-		return update_option( $this->columns_key(), (array) $columns );
-	}
-
-	/**
-	 * Delete stored data
-	 */
-	public function delete() {
-		delete_option( $this->columns_key() );
-		delete_option( $this->settings_key() );
-
-		return true;
-	}
-
-	/**
-	 * Delete all settings
-	 */
-	public static function delete_all() {
-		global $wpdb;
-
-		$sql = $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", self::SETTINGS_KEY . '%' );
-		$wpdb->query( $sql );
-
-		$sql = $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", self::COLUMNS_KEY . '%' );
-		$wpdb->query( $sql );
+	protected function get_id() {
+		return $this->id;
 	}
 
 }
