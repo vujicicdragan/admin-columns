@@ -6,21 +6,25 @@ class ListScreenFactory {
 
 	/**
 	 * @param string $type
-	 * @param int    $id Optional (layout) ID
+	 * @param int    $id         Optional (layout) ID
+	 * @param string $store_type 'db' or 'php'
 	 *
 	 * @return ListScreen|false
 	 */
-	public static function create( $type, $id = null ) {
+	public static function create( $type, $id = null, $store_type = 'db' ) {
 		$list_screens = AC()->get_list_screens();
 
 		if ( ! isset( $list_screens[ $type ] ) ) {
 			return false;
 		}
 
+		$store_object = ListScreenStoreFactory::create( $store_type, $type, $id );
+
 		$list_screen = clone $list_screens[ $type ];
 
-		$list_screen->set_id( $id );
-		$list_screen->load();
+		$list_screen->set_id( $id )
+		            ->set_store_object( $store_object )
+		            ->load();
 
 		return $list_screen;
 	}

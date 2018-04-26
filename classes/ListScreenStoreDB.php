@@ -8,6 +8,10 @@ class ListScreenStoreDB extends ListScreenStore {
 
 	const COLUMNS_KEY = 'cpac_options_';
 
+	public function get_store_type() {
+		return 'db';
+	}
+
 	/**
 	 * @return string $key
 	 */

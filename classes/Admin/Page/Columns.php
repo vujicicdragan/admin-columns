@@ -105,14 +105,14 @@ class Columns extends Page {
 	 *
 	 * @return ListScreen|false
 	 */
-	private function validate_list_screen( $type, $id ) {
+	private function validate_list_screen( $type, $id, $store_type ) {
 
 		// Type exists
 		if ( ListScreenFactory::create( $type ) ) {
 
 			// ID exists
 			if ( $this->list_screen_id_exists( $type, $id ) ) {
-				return ListScreenFactory::create( $type, $id );
+				return ListScreenFactory::create( $type, $id, $store_type );
 			}
 
 			$repo = new ListScreenRepository( $type );
@@ -129,11 +129,11 @@ class Columns extends Page {
 	private function get_requested_list_screen() {
 
 		// Requested
-		$list_screen = $this->validate_list_screen( filter_input( INPUT_GET, 'list_screen' ), filter_input( INPUT_GET, 'layout_id' ) );
+		$list_screen = $this->validate_list_screen( filter_input( INPUT_GET, 'list_screen' ), filter_input( INPUT_GET, 'layout_id' ), filter_input( INPUT_GET, 'store_type' ) );
 
 		// Preference
 		if ( ! $list_screen ) {
-			$list_screen = $this->validate_list_screen( $this->preferences()->get( 'list_screen_type' ), $this->preferences()->get( 'list_screen_id' ) );
+				$list_screen = $this->validate_list_screen( $this->preferences()->get( 'list_screen_type' ), $this->preferences()->get( 'list_screen_id' ), $this->preferences()->get( 'list_screen_store_type' )  );
 		}
 
 		// Fallback
@@ -168,6 +168,7 @@ class Columns extends Page {
 
 		$this->preferences()->set( 'list_screen_type', $list_screen->get_type() );
 		$this->preferences()->set( 'list_screen_id', $list_screen->get_id() );
+		$this->preferences()->set( 'list_screen_store_type', $list_screen->get_store_object()->get_store_type() );
 
 		$this->current_list_screen = $list_screen;
 

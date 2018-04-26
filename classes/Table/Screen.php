@@ -9,6 +9,7 @@ use AC\ListScreenRepository;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\ListScreenStoreDB;
+use AC\ListScreenStoreFactory;
 use AC\Preferences;
 use AC\Settings;
 
@@ -61,7 +62,7 @@ final class Screen {
 		$type = $list_screen->get_type();
 
 		// Requested
-		$list_screen = ListScreenFactory::create( $list_screen->get_type(), filter_input( INPUT_GET, 'layout' ) );
+		$list_screen = ListScreenFactory::create( $list_screen->get_type(), filter_input( INPUT_GET, 'layout' ), filter_input( INPUT_GET, 'store_type' ) );
 
 		// Preference
 		if ( ! $this->list_screen_exists( $list_screen ) ) {

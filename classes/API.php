@@ -72,11 +72,11 @@ class API {
 		// TODO: check old format
 		// TODO: export to new format
 
-		foreach ( $v2 as $list_screen_data ) {
-			$v3 = $list_screen_data;
+		foreach ( $v2 as $_data ) {
+			$v3 = $_data;
 
-			if ( isset( $list_screen_data['layout'] ) ) {
-				$v3 = array_merge( $v3, $list_screen_data['layout'] );
+			if ( isset( $_data['layout'] ) ) {
+				$v3 = array_merge( $v3, $_data['layout'] );
 			}
 
 			unset( $v3['layout'] );

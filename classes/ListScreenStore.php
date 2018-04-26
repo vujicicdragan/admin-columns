@@ -35,6 +35,11 @@ abstract class ListScreenStore {
 	abstract public function delete();
 
 	/**
+	 * @return string
+	 */
+	abstract public function get_store_type();
+
+	/**
 	 * @param ListScreen $list_screen
 	 */
 	public function __construct( $type, $id ) {

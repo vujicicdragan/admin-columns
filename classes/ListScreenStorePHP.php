@@ -4,6 +4,10 @@ namespace AC;
 
 class ListScreenStorePHP extends ListScreenStore {
 
+	public function get_store_type() {
+		return 'php';
+	}
+
 	public function read() {
 		$data = array();
 
