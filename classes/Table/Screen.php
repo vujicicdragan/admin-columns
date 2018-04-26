@@ -201,8 +201,7 @@ final class Screen {
 			}
 
 			// Remove inline edit action if the default column (author) is not present
-
-			if ( $list_screen instanceof ListScreen\Type\Comment && 'comment' !== $default ) {
+			if ( $list_screen instanceof ListScreen\Comment && 'comment' !== $default ) {
 				add_filter( 'comment_row_actions', array( $this, 'remove_quick_edit_from_actions' ), 20, 2 );
 			}
 		}
@@ -260,7 +259,7 @@ final class Screen {
 	public function add_taxonomy_hidden_quick_edit_markup( $actions, $term ) {
 		$list_screen = $this->get_current_list_screen();
 
-		if ( $list_screen instanceof \ACP\ListScreen\Type\Taxonomy ) {
+		if ( $list_screen instanceof \ACP\ListScreen\Taxonomy ) {
 
 			// TODO test and move to PRO
 			$actions .= sprintf( '<div class="hidden">%s</div>', $list_screen->get_list_table()->column_name( $term ) );
