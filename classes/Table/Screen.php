@@ -7,7 +7,11 @@ use AC\Capabilities;
 use AC\Column;
 use AC\ListScreenRepository;
 use AC\ListScreen;
+
+// TODO: add to ListScreen folder
 use AC\ListScreenFactory;
+use AC\ListScreenStore;
+
 use AC\Preferences;
 use AC\Settings;
 
@@ -481,8 +485,7 @@ final class Screen {
 
 		// Store default headings
 		if ( ! AC()->is_doing_ajax() ) {
-			$list_screen->set_original_columns( $columns )
-			            ->save();
+			update_option( ListScreenStore::COLUMNS_KEY . $list_screen->get_type() . "__default", $columns );
 		}
 
 		// Run once

@@ -43,7 +43,8 @@ class ListScreenRepository {
 
 			$ids = array();
 
-			$key = ListScreen::SETTINGS_KEY . $type;
+			// TODO
+			$key = ListScreenStore::SETTINGS_KEY . $type;
 
 			$results = $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value != '' ORDER BY option_id DESC", $wpdb->esc_like( $key ) . '%' ) );
 

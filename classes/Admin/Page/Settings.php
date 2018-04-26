@@ -4,6 +4,7 @@ namespace AC\Admin\Page;
 
 use AC\Admin\Page;
 use AC\Capabilities;
+use AC\ListScreenStore;
 use AC\Message;
 use AC\ListScreen;
 
@@ -81,19 +82,6 @@ class Settings extends Page {
 	}
 
 	/**
-	 * Deletes all stored column settings. Does not delete general settings.
-	 */
-	private function delete_all_column_settings() {
-		global $wpdb;
-
-		$sql = $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", ListScreen::SETTINGS_KEY . '%' );
-		$wpdb->query( $sql );
-
-		$sql = $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", ListScreen::COLUMNS_KEY . '%' );
-		$wpdb->query( $sql );
-	}
-
-	/**
 	 * @since 1.0
 	 */
 	public function handle_column_request() {
@@ -104,7 +92,8 @@ class Settings extends Page {
 		switch ( filter_input( INPUT_POST, 'ac_action' ) ) {
 			case 'restore_all' :
 				if ( $this->verify_nonce( 'restore-all' ) ) {
-					$this->delete_all_column_settings();
+
+					ListScreenStore::delete_all();
 
 					$notice = new Message\Notice();
 					$notice->set_message( __( 'Default settings successfully restored.', 'codepress-admin-columns' ) )

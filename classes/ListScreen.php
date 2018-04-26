@@ -9,10 +9,6 @@ namespace AC;
  */
 abstract class ListScreen {
 
-	const SETTINGS_KEY = 'cpac_layouts';
-
-	const COLUMNS_KEY = 'cpac_options_';
-
 	/**
 	 * @var string ID
 	 */
@@ -142,17 +138,34 @@ abstract class ListScreen {
 	 */
 	public function load() {
 
-		// TODO: Load API data
+		foreach ( $this->get_store_objects() as $store ) {
 
-		$this->set_settings( get_option( self::COLUMNS_KEY . $this->get_storage_key(), array() ) );
-		$this->set_original_columns( get_option( self::COLUMNS_KEY . $this->get_type() . "__default", array() ) );
+			$data = $store->read();
 
-		if ( $layout_data = get_option( self::SETTINGS_KEY . $this->get_storage_key() ) ) {
-
-			$this->set_custom_label( $layout_data->name );
-			$this->set_users( $layout_data->users );
-			$this->set_roles( $layout_data->roles );
+			if ( isset( $data['columns'] ) ) {
+				$this->set_settings( $data['columns'] );
+			}
+			if ( isset( $data['name'] ) ) {
+				$this->set_custom_label( $data['name'] );
+			}
+			if ( isset( $data['users'] ) ) {
+				$this->set_users( $data['users'] );
+			}
+			if ( isset( $data['roles'] ) ) {
+				$this->set_roles( $data['roles'] );
+			}
 		}
+
+		$this->set_original_columns( get_option( ListScreenStore::COLUMNS_KEY . $this->get_type() . "__default", array() ) );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_store_objects() {
+		return array(
+			new ListScreenStore( $this->get_type(), $this->get_id() ),
+		);
 	}
 
 	/**
@@ -738,18 +751,20 @@ abstract class ListScreen {
 	 * @return bool
 	 */
 	private function update() {
+		$result = false;
 
-		$data = array(
-			'id'    => $this->get_id(),
-			'name'  => $this->get_custom_label(),
-			'roles' => $this->get_roles(),
-			'users' => $this->get_users(),
-		);
+		foreach ( $this->get_store_objects() as $store ) {
 
-		update_option( self::SETTINGS_KEY . $this->get_storage_key(), (object) $data );
-		update_option( self::COLUMNS_KEY . $this->get_type() . "__default", $this->get_original_columns() );
+			$data = array(
+				'columns' => $this->get_settings(),
+				'id'      => $this->get_id(),
+				'name'    => $this->get_custom_label(),
+				'roles'   => $this->get_roles(),
+				'users'   => $this->get_users(),
+			);
 
-		$result = update_option( self::COLUMNS_KEY . $this->get_storage_key(), (array) $this->get_settings() );
+			$result = $store->update( $data );
+		}
 
 		do_action_deprecated( 'ac/columns_stored', array( $this ), 'NEWVERSION' );
 
@@ -762,8 +777,9 @@ abstract class ListScreen {
 	 * Delete stored data
 	 */
 	public function delete() {
-		delete_option( self::COLUMNS_KEY . $this->get_storage_key() );
-		delete_option( self::SETTINGS_KEY . $this->get_storage_key() );
+		foreach ( $this->get_store_objects() as $store ) {
+			$store->delete();
+		}
 
 		do_action_deprecated( 'ac/columns_delete', array( $this ), 'NEWVERSION' );
 		do_action_deprecated( 'ac/layout/delete', array( $this ), 'NEWVERSION' );

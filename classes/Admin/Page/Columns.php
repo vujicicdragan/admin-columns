@@ -94,6 +94,8 @@ class Columns extends Page {
 	 * @return bool
 	 */
 	private function list_screen_id_exists( $type, $id ) {
+		// TODO
+		return true;
 		return get_option( ListScreen::SETTINGS_KEY . $type . $id );
 	}
 
