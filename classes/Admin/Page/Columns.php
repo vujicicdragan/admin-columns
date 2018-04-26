@@ -427,9 +427,9 @@ class Columns extends Page {
 
 		$result = $list_screen->save();
 
-		if ( ! $result ) {
-			$view_link = ac_helper()->html->link( $list_screen->get_screen_link(), sprintf( __( 'View %s screen', 'codepress-admin-columns' ), $list_screen->get_label() ) );
+		$view_link = ac_helper()->html->link( $list_screen->get_screen_link(), sprintf( __( 'View %s screen', 'codepress-admin-columns' ), $list_screen->get_label() ) );
 
+		if ( ! $result ) {
 			wp_send_json_error( array(
 					'type'    => 'notice notice-warning',
 					'message' => sprintf( __( 'You are trying to store the same settings for %s.', 'codepress-admin-columns' ), "<strong>" . $this->get_list_screen_message_label( $list_screen ) . "</strong>" ) . ' ' . $view_link,

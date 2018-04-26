@@ -2,6 +2,8 @@
 
 namespace AC;
 
+// TODO: add interface for Read/Write
+
 class ListScreenStoreDB extends ListScreenStore {
 
 	const SETTINGS_KEY = 'cpac_layouts';

@@ -9,7 +9,6 @@ use AC\ListScreenRepository;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\ListScreenStoreDB;
-use AC\ListScreenStoreFactory;
 use AC\Preferences;
 use AC\Settings;
 
@@ -258,7 +257,7 @@ final class Screen {
 	 * @param $term
 	 */
 	public function add_taxonomy_hidden_quick_edit_markup( $actions, $term ) {
-		$list_screen = $this->get_current_list_screen();
+		$list_screen = $this->get_list_screen();
 
 		if ( $list_screen instanceof \ACP\ListScreen\Taxonomy ) {
 

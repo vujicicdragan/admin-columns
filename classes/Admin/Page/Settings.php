@@ -6,7 +6,6 @@ use AC\Admin\Page;
 use AC\Capabilities;
 use AC\ListScreenStoreDB;
 use AC\Message;
-use AC\ListScreen;
 
 class Settings extends Page {
 
