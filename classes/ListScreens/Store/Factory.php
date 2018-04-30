@@ -1,23 +1,25 @@
 <?php
 
-namespace AC;
+namespace AC\ListScreens\Store;
 
-class ListScreenStoreFactory {
+use AC\ListScreens\Store;
+
+class Factory {
 
 	/**
 	 * @param string $type
 	 * @param string $list_screen_type
 	 *
-	 * @return ListScreenStore
+	 * @return Store
 	 */
 	public static function create( $type, $list_screen_type, $list_screen_id ) {
 		switch ( $type ) {
 
 			case 'php' :
-				return new ListScreenStorePHP( $list_screen_type, $list_screen_id );
+				return new PHP( $list_screen_type, $list_screen_id );
 
 			default :
-				return new ListScreenStoreDB( $list_screen_type, $list_screen_id );
+				return new DB( $list_screen_type, $list_screen_id );
 
 		}
 	}

@@ -1,8 +1,10 @@
 <?php
 
-namespace AC;
+namespace AC\ListScreens\Store;
 
-class ListScreenStorePHP extends ListScreenStore {
+use AC\ListScreens\Store;
+
+class PHP extends Store {
 
 	public function get_store_type() {
 		return 'php';

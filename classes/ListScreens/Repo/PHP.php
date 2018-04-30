@@ -1,11 +1,13 @@
 <?php
 
-namespace AC;
+namespace AC\ListScreens\Repo;
+
+use AC\ListScreens\Repo;
 
 /**
  * @since NEWVERSION
  */
-class ListScreenRepoPHP extends ListScreenRepo {
+class PHP extends Repo {
 
 	public function get_ids() {
 		$ids = array();

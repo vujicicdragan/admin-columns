@@ -1,11 +1,14 @@
 <?php
 
-namespace AC;
+namespace AC\ListScreens;
+
+use AC\ListScreen;
+use AC\ListScreenFactory;
 
 /**
  * @since NEWVERSION
  */
-class ListScreenRepository {
+class Repository {
 
 	/**
 	 * @var string ListScreen::type
@@ -24,13 +27,13 @@ class ListScreenRepository {
 	public function fetch_all() {
 		$list_screens = array();
 
-		$repo = new ListScreenRepoDB( $this->type );
+		$repo = new Repo\DB( $this->type );
 
 		foreach ( $repo->get_ids() as $id ) {
 			$list_screens[] = ListScreenFactory::create( $this->type, $id, 'db' );
 		}
 
-		$repo = new ListScreenRepoPHP( $this->type );
+		$repo = new Repo\PHP( $this->type );
 
 		foreach ( $repo->get_ids() as $id ) {
 			$list_screens[] = ListScreenFactory::create( $this->type, $id, 'php' );

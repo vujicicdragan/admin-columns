@@ -11,7 +11,7 @@ use AC\Column;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\ListScreenGroups;
-use AC\ListScreenRepository;
+use AC\ListScreens\Repository;
 use AC\ListScreenWP;
 use AC\Preferences;
 use AC\Settings;
@@ -115,7 +115,7 @@ class Columns extends Page {
 				return ListScreenFactory::create( $type, $id, $store_type );
 			}
 
-			$repo = new ListScreenRepository( $type );
+			$repo = new Repository( $type );
 
 			return $repo->first();
 		}
@@ -140,7 +140,7 @@ class Columns extends Page {
 		if ( ! $list_screen ) {
 			$type = current( AC()->get_list_screens() )->get_type();
 
-			$repo = new ListScreenRepository( $type );
+			$repo = new Repository( $type );
 			$list_screen = $repo->first();
 		}
 

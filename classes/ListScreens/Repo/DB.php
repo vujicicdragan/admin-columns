@@ -1,11 +1,14 @@
 <?php
 
-namespace AC;
+namespace AC\ListScreens\Repo;
+
+use AC\ListScreens\Repo;
+use AC\ListScreens\Store;
 
 /**
  * @since NEWVERSION
  */
-class ListScreenRepoDB extends ListScreenRepo {
+class DB extends Repo {
 
 	public function get_ids() {
 		global $wpdb;
@@ -15,7 +18,7 @@ class ListScreenRepoDB extends ListScreenRepo {
 		if ( empty( $ids ) ) {
 			$ids = array();
 
-			$key = ListScreenStoreDB::SETTINGS_KEY . $this->get_type();
+			$key = Store\DB::SETTINGS_KEY . $this->get_type();
 
 			$results = $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value != '' ORDER BY option_id DESC", $wpdb->esc_like( $key ) . '%' ) );
 

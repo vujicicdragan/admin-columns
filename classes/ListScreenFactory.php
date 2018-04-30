@@ -2,6 +2,8 @@
 
 namespace AC;
 
+use AC\ListScreens\Store;
+
 class ListScreenFactory {
 
 	/**
@@ -18,7 +20,7 @@ class ListScreenFactory {
 			return false;
 		}
 
-		$store_object = ListScreenStoreFactory::create( $store_type, $type, $id );
+		$store_object = Store\Factory::create( $store_type, $type, $id );
 
 		$list_screen = clone $list_screens[ $type ];
 

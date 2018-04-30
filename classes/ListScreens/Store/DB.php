@@ -1,10 +1,12 @@
 <?php
 
-namespace AC;
+namespace AC\ListScreens\Store;
+
+use AC\ListScreens\Store;
 
 // TODO: add interface for Read/Write
 
-class ListScreenStoreDB extends ListScreenStore {
+class DB extends Store {
 
 	const SETTINGS_KEY = 'cpac_layouts';
 

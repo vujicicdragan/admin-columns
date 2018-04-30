@@ -1,11 +1,11 @@
 <?php
 
-namespace AC;
+namespace AC\ListScreens;
 
 /**
  * @since NEWVERSION
  */
-abstract class ListScreenRepo {
+abstract class Repo {
 
 	/**
 	 * @var string

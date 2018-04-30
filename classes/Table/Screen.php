@@ -5,10 +5,10 @@ namespace AC\Table;
 use AC\Admin;
 use AC\Capabilities;
 use AC\Column;
-use AC\ListScreenRepository;
+use AC\ListScreens;
 use AC\ListScreen;
 use AC\ListScreenFactory;
-use AC\ListScreenStoreDB;
+use AC\ListScreens\Store;
 use AC\Preferences;
 use AC\Settings;
 
@@ -503,7 +503,7 @@ final class Screen {
 
 		// Store default headings
 		if ( ! AC()->is_doing_ajax() ) {
-			update_option( ListScreenStoreDB::COLUMNS_KEY . $list_screen->get_type() . "__default", $columns );
+			update_option( Store\DB::COLUMNS_KEY . $list_screen->get_type() . "__default", $columns );
 		}
 
 		// Run once
@@ -545,7 +545,7 @@ final class Screen {
 	private function get_list_screens( ListScreen $list_screen ) {
 		$list_screens = array();
 
-		$repo = new ListScreenRepository( $list_screen->get_type() );
+		$repo = new ListScreens\Repository( $list_screen->get_type() );
 
 		foreach ( $repo->fetch_all() as $_list_screen ) {
 			if ( $this->is_current_user_eligible( $_list_screen ) ) {

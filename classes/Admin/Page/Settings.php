@@ -4,7 +4,7 @@ namespace AC\Admin\Page;
 
 use AC\Admin\Page;
 use AC\Capabilities;
-use AC\ListScreenStoreDB;
+use AC\ListScreens\Store;
 use AC\Message;
 
 class Settings extends Page {
@@ -92,7 +92,7 @@ class Settings extends Page {
 			case 'restore_all' :
 				if ( $this->verify_nonce( 'restore-all' ) ) {
 
-					ListScreenStoreDB::delete_all();
+					Store\DB::delete_all();
 
 					$notice = new Message\Notice();
 					$notice->set_message( __( 'Default settings successfully restored.', 'codepress-admin-columns' ) )

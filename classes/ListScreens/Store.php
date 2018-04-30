@@ -1,8 +1,10 @@
 <?php
 
-namespace AC;
+namespace AC\ListScreens;
 
-abstract class ListScreenStore {
+use AC\ListScreen;
+
+abstract class Store {
 
 	/**
 	 * @var string

@@ -2,6 +2,8 @@
 
 namespace AC;
 
+use AC\ListScreens\Store;
+
 /**
  * List Screen
  *
@@ -121,7 +123,7 @@ abstract class ListScreen {
 	private $network_only = false;
 
 	/**
-	 * @var ListScreenStore
+	 * @var Store
 	 */
 	private $store_object;
 
@@ -160,7 +162,7 @@ abstract class ListScreen {
 			$this->set_read_only( $data['read_only'] );
 		}
 
-		$this->set_original_columns( get_option( ListScreenStoreDB::COLUMNS_KEY . $this->get_type() . "__default", array() ) );
+		$this->set_original_columns( get_option( Store\DB::COLUMNS_KEY . $this->get_type() . "__default", array() ) );
 	}
 
 	/**
@@ -200,14 +202,14 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @return ListScreenStore
+	 * @return Store
 	 */
 	public function get_store_object() {
 		return $this->store_object;
 	}
 
 	/**
-	 * @param ListScreenStore $store_object
+	 * @param Store $store_object
 	 *
 	 * @return self
 	 */
