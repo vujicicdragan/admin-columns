@@ -20,7 +20,10 @@ class API {
 	 */
 	public function load_data( $type, $data ) {
 
+		// Since Version 3.8 - March 16th, 2016
 		$data = $this->convert_format_v1_to_v2( $data );
+
+		// Since Version NEWVERSION
 		$data = $this->convert_format_v2_to_v3( $data );
 
 		$data = $this->set_as_read_only( $data );
@@ -54,7 +57,7 @@ class API {
 	 * @return array
 	 */
 	private function set_as_read_only( $data ) {
-		foreach ( $data as $k => $column ) {
+		foreach ( $data as $k => $_data ) {
 			$data[ $k ]['read_only'] = true;
 		}
 
@@ -62,69 +65,57 @@ class API {
 	}
 
 	/**
-	 * @param array $v2
+	 * Converts older formats to Version NEWVERSION
+	 *
+	 * @param array $data
 	 *
 	 * @return array
 	 */
-	private function convert_format_v2_to_v3( $v2 ) {
-		$data = array();
+	private function convert_format_v2_to_v3( $data ) {
+		if ( empty( $data ) ) {
+			return array();
+		}
 
-		// TODO: check old format
-		// TODO: export to new format
-
-		foreach ( $v2 as $_data ) {
-			$v3 = $_data;
-
-			if ( isset( $_data['layout'] ) ) {
-				$v3 = array_merge( $v3, $_data['layout'] );
+		foreach ( $data as $k => $_data ) {
+			if ( ! isset( $_data['layout'] ) ) {
+				continue;
 			}
 
-			unset( $v3['layout'] );
+			$settings = $_data['layout'];
 
-			$data[] = $v3;
+			unset( $_data['layout'] );
+
+			$data[ $k ] = array_merge( $_data, $settings );
 		}
 
 		return $data;
 	}
 
 	/**
-	 * @param array $v1
+	 * Converts older formats to Version 3.8 (March 16th, 2016)
+	 *
+	 * @param array $data
 	 *
 	 * @return array
 	 */
-	private function convert_format_v1_to_v2( $columndata ) {
-
-		// TODO: test. break early
-
-		// Convert old export formats to new layout format
-		$old_format_columns = array();
-		foreach ( $columndata as $k => $data ) {
-			if ( ! isset( $data['columns'] ) ) {
-				$old_format_columns[ $k ] = $data;
-				unset( $columndata[ $k ] );
-			}
+	private function convert_format_v1_to_v2( $data ) {
+		if ( empty( $data ) ) {
+			return array();
 		}
 
-		if ( $old_format_columns ) {
-			array_unshift( $columndata, array( 'columns' => $old_format_columns ) );
+		if ( ! is_string( key( $data ) ) ) {
+			return $data;
 		}
 
-		// Add layout if missing
-		foreach ( $columndata as $k => $data ) {
-			if ( ! isset( $data['layout'] ) ) {
-
-				$columndata[ $k ] = array(
-					'columns' => isset( $data['columns'] ) ? $data['columns'] : $data,
-					'layout'  => array(
-						// unique id based on settings
-						'id'   => sanitize_key( substr( md5( serialize( $data ) ), 0, 16 ) ),
-						'name' => __( 'Imported' ) . ( $k ? ' #' . $k : '' ),
-					),
-				);
-			}
-		}
-
-		return $columndata;
+		return array(
+			array(
+				'columns' => $data,
+				'layout'  => array(
+					'name' => __( 'Imported' ),
+					'id'   => sanitize_key( substr( md5( serialize( $data ) ), 0, 16 ) ),
+				),
+			),
+		);
 	}
 
 }
