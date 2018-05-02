@@ -853,6 +853,13 @@ abstract class ListScreen {
 	}
 
 	/**
+	 * @return bool List Screen contains data
+	 */
+	public function exists() {
+		return false !== $this->get_store_object()->read();
+	}
+
+	/**
 	 * @deprecated NEWVERSION
 	 * @return string
 	 */

@@ -88,60 +88,36 @@ class Columns extends Page {
 	}
 
 	/**
-	 * @param ListScreen $list_screen
-	 * @param string     $id
-	 *
-	 * @return bool
-	 */
-	private function list_screen_id_exists( $type, $id ) {
-		// TODO
-		return true;
-		return get_option( ListScreen::SETTINGS_KEY . $type . $id );
-	}
-
-	/**
-	 * @param string $type
-	 * @param string $id
-	 *
-	 * @return ListScreen|false
-	 */
-	private function validate_list_screen( $type, $id, $store_type ) {
-
-		// Type exists
-		if ( ListScreenFactory::create( $type ) ) {
-
-			// ID exists
-			if ( $this->list_screen_id_exists( $type, $id ) ) {
-				return ListScreenFactory::create( $type, $id, $store_type );
-			}
-
-			$repo = new Repository( $type );
-
-			return $repo->first();
-		}
-
-		return false;
-	}
-
-	/**
 	 * @return ListScreen
 	 */
 	private function get_requested_list_screen() {
 
 		// Requested
-		$list_screen = $this->validate_list_screen( filter_input( INPUT_GET, 'list_screen' ), filter_input( INPUT_GET, 'layout_id' ), filter_input( INPUT_GET, 'store_type' ) );
+		$type = filter_input( INPUT_GET, 'list_screen' );
 
 		// Preference
-		if ( ! $list_screen ) {
-				$list_screen = $this->validate_list_screen( $this->preferences()->get( 'list_screen_type' ), $this->preferences()->get( 'list_screen_id' ), $this->preferences()->get( 'list_screen_store_type' )  );
+		if ( ! ListScreenFactory::create( $type ) ) {
+			$type = $this->preferences()->get( 'list_screen_type' );
 		}
 
 		// Fallback
-		if ( ! $list_screen ) {
-			$type = current( AC()->get_list_screens() )->get_type();
+		if ( ! ListScreenFactory::create( $type ) ) {
+			$type = key( AC()->get_list_screens() );
+		}
 
+		$list_screen = ListScreenFactory::create( $type, filter_input( INPUT_GET, 'layout_id' ), filter_input( INPUT_GET, 'store_type' ) );
+
+		if ( ! $list_screen->exists() ) {
+			$list_screen = ListScreenFactory::create( $type, $this->preferences()->get( $type . '_id' ), $this->preferences()->get( $type . '_store_type' ) );
+		}
+
+		if ( ! $list_screen->exists() ) {
 			$repo = new Repository( $type );
 			$list_screen = $repo->first();
+		}
+
+		if ( ! $list_screen || ! $list_screen->exists() ) {
+			$list_screen = ListScreenFactory::create( $type );
 		}
 
 		return $list_screen;
@@ -167,8 +143,9 @@ class Columns extends Page {
 		}
 
 		$this->preferences()->set( 'list_screen_type', $list_screen->get_type() );
-		$this->preferences()->set( 'list_screen_id', $list_screen->get_id() );
-		$this->preferences()->set( 'list_screen_store_type', $list_screen->get_store_object()->get_store_type() );
+
+		$this->preferences()->set( $list_screen->get_type() . '_id', $list_screen->get_id() );
+		$this->preferences()->set( $list_screen->get_type() . '_store_type', $list_screen->get_store_object()->get_store_type() );
 
 		$this->current_list_screen = $list_screen;
 
@@ -356,7 +333,7 @@ class Columns extends Page {
 	 *
 	 * @return array
 	 */
-	private function convert_to_column_settings( ListScreen $list_screen, $data ) {
+	private function sanitize_form_data( ListScreen $list_screen, $data ) {
 		$settings = array();
 
 		foreach ( $data as $column_name => $options ) {
@@ -418,11 +395,10 @@ class Columns extends Page {
 			);
 		}
 
-		$list_screen->set_settings( $this->convert_to_column_settings( $list_screen, $formdata['columns'] ) );
+		$list_screen->set_settings( $this->sanitize_form_data( $list_screen, $formdata['columns'] ) );
 
-		// TODO: what happens when first saving data
 		if ( ! $list_screen->get_custom_label() ) {
-			$list_screen->set_custom_label( __( 'Original', 'codepress-admin-columns' ) );
+			$list_screen->set_custom_label( __( 'Default', 'codepress-admin-columns' ) );
 		}
 
 		$result = $list_screen->save();

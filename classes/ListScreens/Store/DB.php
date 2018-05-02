@@ -20,24 +20,31 @@ class DB extends Store {
 	 * @return string $key
 	 */
 	private function settings_key() {
-		return self::SETTINGS_KEY . $this->get_type() . $this->get_id();
+		return self::SETTINGS_KEY . $this->list_screen->get_type() . $this->list_screen->get_id();
 	}
 
 	/**
 	 * @return string $key
 	 */
 	private function columns_key() {
-		return self::COLUMNS_KEY . $this->get_type() . $this->get_id();
+		return self::COLUMNS_KEY . $this->list_screen->get_type() . $this->list_screen->get_id();
 	}
 
 	/**
-	 * @return array
+	 * @return array|false
 	 */
 	public function read() {
-		$data['columns'] = get_option( $this->columns_key(), array() );
+		$columns = get_option( $this->columns_key(), array() );
+		$settings = (array) get_option( $this->settings_key(), array() ); // stored as object
 
-		if ( $settings = get_option( $this->settings_key() ) ) {
-			$data = array_merge( $data, (array) $settings );
+		if ( empty( $settings ) && empty( $columns ) ) {
+			return false;
+		}
+
+		$data['columns'] = $columns;
+
+		if ( $settings ) {
+			$data = array_merge( $data, $settings );
 		}
 
 		return $data;

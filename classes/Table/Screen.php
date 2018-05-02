@@ -34,15 +34,6 @@ final class Screen {
 	}
 
 	/**
-	 * @param ListScreen $list_screen
-	 *
-	 * @return bool
-	 */
-	private function list_screen_exists( $list_screen ) {
-		return null !== $list_screen->get_custom_label() && $this->is_current_user_eligible( $list_screen );
-	}
-
-	/**
 	 * Load current list screen
 	 *
 	 * @param \WP_Screen $wp_screen
@@ -52,32 +43,38 @@ final class Screen {
 			return;
 		}
 
-		$list_screen = ListScreenFactory::create_by_screen( $wp_screen );
+		$type = false;
 
-		if ( ! $list_screen ) {
+		foreach ( AC()->get_list_screens() as $list_screen ) {
+			if ( $list_screen->is_current_screen( $wp_screen ) ) {
+				$type = $list_screen->get_type();
+
+				break;
+			}
+		}
+
+		if ( ! $type ) {
 			return;
 		}
 
-		$type = $list_screen->get_type();
-
 		// Requested
-		$list_screen = ListScreenFactory::create( $list_screen->get_type(), filter_input( INPUT_GET, 'layout' ), filter_input( INPUT_GET, 'store_type' ) );
+		$list_screen = ListScreenFactory::create( $type, filter_input( INPUT_GET, 'layout' ), filter_input( INPUT_GET, 'store_type' ) );
 
 		// Preference
-		if ( ! $this->list_screen_exists( $list_screen ) ) {
-			$list_screen = ListScreenFactory::create( $type, $this->preferences()->get( $list_screen->get_type() ) );
+		if ( ! $this->is_current_user_eligible( $list_screen ) ) {
+			$list_screen = ListScreenFactory::create( $type, $this->preferences()->get( $type ) );
 		}
 
 		// Fallback
-		if ( ! $this->list_screen_exists( $list_screen ) ) {
+		if ( ! $this->is_current_user_eligible( $list_screen ) ) {
 			$list_screen = current( $this->get_list_screens( $list_screen ) );
 		}
 
 		if ( ! $list_screen ) {
-			return;
+			$list_screen = ListScreenFactory::create( $type );
 		}
 
-		$this->preferences()->set( $list_screen->get_type(), $list_screen->get_id() );
+		$this->preferences()->set( $type, $list_screen->get_id() );
 
 		$this->set_list_screen( $list_screen );
 	}
@@ -244,26 +241,6 @@ final class Screen {
 	 */
 	public function remove_quick_edit_from_actions( $actions ) {
 		unset( $actions['quickedit'] );
-
-		return $actions;
-	}
-
-	/**
-<<<<<<< HEAD:classes/Table/Screen.php
-=======
-	 * Add the default markup for the default primary column for the Taxonomy list screen which is necessary for bulk edit
-	 *
-	 * @param $actions
-	 * @param $term
-	 */
-	public function add_taxonomy_hidden_quick_edit_markup( $actions, $term ) {
-		$list_screen = $this->get_list_screen();
-
-		if ( $list_screen instanceof \ACP\ListScreen\Taxonomy ) {
-
-			// TODO test and move to PRO
-			$actions .= sprintf( '<div class="hidden">%s</div>', $list_screen->get_list_table()->column_name( $term ) );
-		}
 
 		return $actions;
 	}

@@ -39,7 +39,7 @@ class Repository {
 			$list_screens[] = ListScreenFactory::create( $this->type, $id, 'php' );
 		}
 
-		return $list_screens;
+		return array_filter( $list_screens );
 	}
 
 	/**
