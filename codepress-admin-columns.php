@@ -404,6 +404,35 @@ class CPAC extends AC_Plugin {
 	}
 
 	/**
+	 * Get a list of taxonomies supported by Admin Columns
+	 *
+	 * @since NEWVERSION
+	 *
+	 * @return array List of taxonomies
+	 *               TODO remove from pro
+	 */
+	private function get_taxonomies() {
+		$taxonomies = get_taxonomies( array( 'show_ui' => true ) );
+
+		if ( isset( $taxonomies['post_format'] ) ) {
+			unset( $taxonomies['post_format'] );
+		}
+
+		if ( isset( $taxonomies['link_category'] ) ) {
+			unset( $taxonomies['link_category'] );
+		}
+
+		/**
+		 * Filter the post types for which Admin Columns is active
+		 *
+		 * @since 2.0
+		 *
+		 * @param array $post_types List of active post type names
+		 */
+		return (array) apply_filters( 'ac/taxonomies', $taxonomies );
+	}
+
+	/**
 	 * Get registered list screens
 	 *
 	 * @since 3.0
@@ -423,6 +452,10 @@ class CPAC extends AC_Plugin {
 		// Users, not for network users
 		if ( ! is_multisite() ) {
 			$list_screens[] = new AC_ListScreen_User();
+		}
+
+		foreach ( $this->get_taxonomies() as $taxonomy ) {
+			$list_screens[] = new AC_ListScreen_Taxonomy( $taxonomy );
 		}
 
 		foreach ( $list_screens as $list_screen ) {
@@ -457,6 +490,7 @@ class CPAC extends AC_Plugin {
 		$groups->register_group( 'media', __( 'Media' ) );
 		$groups->register_group( 'comment', __( 'Comments' ) );
 		$groups->register_group( 'link', __( 'Links' ), 15 );
+		$groups->register_group( 'taxonomy', __( 'Taxonomy' ), 15 );
 
 		$this->list_screen_groups = $groups;
 
