@@ -254,7 +254,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 		}
 
 		// Placeholder message
-		if ( $column instanceof AC_Column_Placeholder ) {
+		if ( $column instanceof AC_Column_PlaceholderInterface ) {
 			wp_send_json_error( array(
 				'type'  => 'message',
 				'error' => $column->get_message(),

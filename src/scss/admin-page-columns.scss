@@ -1127,6 +1127,8 @@
  */
 .settings_page_codepress-admin-columns {
 	.select2-container.select2-container--default {
+		z-index: 2;
+
 		.select2-results {
 			> .select2-results__options {
 				max-height: 500px;

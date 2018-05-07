@@ -32,7 +32,7 @@ jQuery( document ).ready( function( $ ) {
 } );
 
 function ac_show_ajax_message( message, attr_class ) {
-	var msg = jQuery( '<div class="ac-message hidden ' + attr_class + '"><p>' + message + '</p></div>' );
+	let msg = jQuery( '<div class="ac-message hidden ' + attr_class + '"><p>' + message + '</p></div>' );
 	jQuery( '.ac-boxes' ).before( msg );
 	msg.slideDown();
 }
@@ -44,13 +44,13 @@ function ac_show_ajax_message( message, attr_class ) {
  */
 function cpac_submit_form( $ ) {
 
-	var $save_buttons = $( '.sidebox a.submit, .column-footer a.submit' );
+	let $save_buttons = $( '.sidebox a.submit, .column-footer a.submit' );
 
 	$save_buttons.click( function() {
 
-		var $button = $( this );
-		var $container = $button.closest( '.ac-admin' ).addClass( 'saving' );
-		var columns_data = $container.find( '.ac-columns form' ).serialize();
+		let $button = $( this );
+		let $container = $button.closest( '.ac-admin' ).addClass( 'saving' );
+		let columns_data = $container.find( '.ac-columns form' ).serialize();
 
 		$save_buttons.attr( 'disabled', 'disabled' );
 
@@ -113,7 +113,7 @@ function cpac_add_column( $ ) {
 	$( '.add_column' ).click( function( e ) {
 		e.preventDefault();
 
-		var clone = $( '#add-new-column-template' ).find( '.ac-column' ).clone();
+		let clone = $( '#add-new-column-template' ).find( '.ac-column' ).clone();
 
 		// increment clone id ( before adding to DOM, otherwise radio buttons will reset )
 		clone.cpac_update_clone_id();
@@ -142,7 +142,7 @@ function cpac_add_column( $ ) {
  * @since 2.2.1
  */
 function cpac_sidebar_feedback( $ ) {
-	var sidebox = $( '.sidebox#direct-feedback' );
+	let sidebox = $( '.sidebox#direct-feedback' );
 
 	sidebox.find( '#feedback-choice a.no' ).click( function( e ) {
 		e.preventDefault();
@@ -161,8 +161,8 @@ function cpac_sidebar_feedback( $ ) {
 
 function cpac_init( $ ) {
 
-	var container = $( '.ac-admin' );
-	var boxes = container.find( '.ac-boxes' );
+	let container = $( '.ac-admin' );
+	let boxes = container.find( '.ac-boxes' );
 
 	// Written for PHP Export
 	if ( boxes.hasClass( 'disabled' ) ) {
@@ -173,7 +173,7 @@ function cpac_init( $ ) {
 	}
 
 	else {
-		var columns = boxes.find( '.ac-columns' );
+		let columns = boxes.find( '.ac-columns' );
 
 		// we start by binding the toggle and remove events.
 		columns.find( '.ac-column' ).each( function( i, col ) {
@@ -213,7 +213,7 @@ function cpac_menu( $ ) {
  * @since 3.0.3
  */
 function cpac_reset_columns( $ ) {
-	var $container = $( '.ac-admin' );
+	let $container = $( '.ac-admin' );
 
 	$( 'a[data-clear-columns]' ).on( 'click', function() {
 		$container.find( '.ac-column' ).each( function() {
@@ -238,8 +238,8 @@ function cpac_reset_columns( $ ) {
 	 */
 	$.fn.column_bind_toggle = function() {
 
-		var $column = $( this );
-		var is_disabled = $column.closest( '.ac-boxes' ).hasClass( 'disabled' );
+		let $column = $( this );
+		let is_disabled = $column.closest( '.ac-boxes' ).hasClass( 'disabled' );
 
 		$column.find( '[data-toggle="column"]' ).click( function( e ) {
 			e.preventDefault();
@@ -283,7 +283,7 @@ function cpac_reset_columns( $ ) {
 		$( this ).find( '.clone-button' ).click( function( e ) {
 			e.preventDefault();
 
-			var $clone = $( this ).closest( '.ac-column' ).column_clone();
+			let $clone = $( this ).closest( '.ac-column' ).column_clone();
 
 			if ( typeof $clone !== 'undefined' ) {
 				$clone.removeClass( 'loading' ).hide().slideDown();
@@ -293,16 +293,16 @@ function cpac_reset_columns( $ ) {
 
 	$.fn.cpac_column_refresh = function() {
 
-		var el = $( this );
-		var select = el.find( '[data-refresh="column"]' );
-		var column_name = $( this ).attr( 'data-column-name' );
-		var opened = el.hasClass( 'opened' );
+		let el = $( this );
+		let select = el.find( '[data-refresh="column"]' );
+		let column_name = $( this ).attr( 'data-column-name' );
+		let opened = el.hasClass( 'opened' );
 
 		// Allow plugins to hook into this event
 		$( document ).trigger( 'pre_column_refresh', el );
 
-		var data = $( this ).find( ':input' ).serializeArray();
-		var request_data = {
+		let data = $( this ).find( ':input' ).serializeArray();
+		let request_data = {
 			action : 'ac_column_refresh',
 			_ajax_nonce : AC._ajax_nonce,
 			list_screen : AC.list_screen,
@@ -323,11 +323,11 @@ function cpac_reset_columns( $ ) {
 		select.prop( 'disabled', 1 );
 
 		// Fetch new form HTML
-		var xhr = $.post( ajaxurl, data, function( response ) {
+		let xhr = $.post( ajaxurl, data, function( response ) {
 
 			if ( response ) {
 				// Replace current form by new form
-				var newel = $( '<div>' + response.data + '</div>' ).children();
+				let newel = $( '<div>' + response.data + '</div>' ).children();
 				el.replaceWith( newel );
 				el = newel;
 
@@ -355,7 +355,7 @@ function cpac_reset_columns( $ ) {
 		}, 'json' );
 
 		xhr.fail( function( error ) {
-			var $msg = el.closest( '.ac-admin' ).find( '.ajax-message' );
+			let $msg = el.closest( '.ac-admin' ).find( '.ajax-message' );
 
 			$msg.addClass( 'error' ).find( 'p' ).html( AC.i18n.error );
 			$msg.slideDown();
@@ -373,10 +373,10 @@ function cpac_reset_columns( $ ) {
 	};
 
 	$.fn.column_onload = function() {
-		var column = $( this );
+		let column = $( this );
 
 		/** When an label contains an icon or span, the displayed label can appear empty. In this case we show the "type" label. */
-		var column_label = column.find( '.column_label .toggle' );
+		let column_label = column.find( '.column_label .toggle' );
 		if ( $.trim( column_label.html() ) && column_label.width() < 1 ) {
 			column_label.html( column.find( '.column_type .inner' ).html() );
 		}
@@ -388,21 +388,20 @@ function cpac_reset_columns( $ ) {
 	 * @since 2.0
 	 */
 	$.fn.column_bind_events = function() {
-		var column = $( this );
-		var container = column.closest( '.ac-admin ' );
+		let column = $( this );
+		let container = column.closest( '.ac-admin ' );
 
 		column.column_onload();
 		// Current column type
-		var default_value = column.find( 'select.ac-setting-input_type option:selected' ).val();
+		let default_value = column.find( 'select.ac-setting-input_type option:selected' ).val();
 
 		// Type selector
 		column.find( 'select.ac-setting-input_type' ).change( function() {
-			var option = $( 'optgroup', this ).children( ':selected' );
-			var type = option.val();
-			var msg = column.find( '.msg' ).hide();
-			var $select = $( this );
-			console.log( msg );
-			var current_original_columns = [];
+			let option = $( 'optgroup', this ).children( ':selected' );
+			let type = option.val();
+			let msg = column.find( '.msg' ).hide();
+			let $select = $( this );
+			let current_original_columns = [];
 			container.find( '.ac-column[data-original=1]' ).each( function() {
 				current_original_columns.push( $( this ).data( 'type' ) );
 			} );
@@ -427,10 +426,10 @@ function cpac_reset_columns( $ ) {
 					if ( response ) {
 
 						if ( response.success ) {
-							var el = column.closest( '.ac-column' );
+							let el = column.closest( '.ac-column' );
 
 							// Replace current form by new form
-							var newel = $( '<div>' + response.data + '</div>' ).children();
+							let newel = $( '<div>' + response.data + '</div>' ).children();
 							el.replaceWith( newel );
 							el = newel;
 
@@ -470,7 +469,7 @@ function cpac_reset_columns( $ ) {
 
 		/** change label */
 		column.find( '.ac-column-setting--label input' ).bind( 'keyup change', function() {
-			var value = $( this ).val();
+			let value = $( this ).val();
 			$( this ).closest( '.ac-column' ).find( 'td.column_label .inner > a.toggle' ).html( value );
 		} );
 
@@ -485,8 +484,8 @@ function cpac_reset_columns( $ ) {
 		 * Populates the main Label with the selected label from the dropdown,
 		 */
 		column.find( 'select[data-label="update"]' ).change( function() {
-			var $label = column.find( 'input.ac-setting-input_label' );
-			var field_label = $( this ).find( 'option:selected' ).text();
+			let $label = column.find( 'input.ac-setting-input_label' );
+			let field_label = $( this ).find( 'option:selected' ).text();
 
 			// Set new label
 			$label.val( field_label );
@@ -502,7 +501,7 @@ function cpac_reset_columns( $ ) {
 	};
 
 	$.fn.column_bind_settings = function() {
-		var $column = $( this );
+		let $column = $( this );
 
 		$column.find( '.ac-column-setting--image_size' ).cpac_column_setting_image_size();
 		$column.find( '.ac-column-setting--width' ).cpac_column_setting_width();
@@ -526,12 +525,12 @@ function cpac_reset_columns( $ ) {
 	 */
 	$.fn.column_clone = function() {
 
-		var column = $( this );
-		var columns = $( this ).closest( 'ac-columns' );
+		let column = $( this );
+		let columns = $( this ).closest( 'ac-columns' );
 
 		if ( '1' === column.attr( 'data-original' ) ) {
 
-			var message = AC.i18n.clone.replace( '%s', '<strong>' + column.find( '.column_label .toggle' ).text() + '</strong>' );
+			let message = AC.i18n.clone.replace( '%s', '<strong>' + column.find( '.column_label .toggle' ).text() + '</strong>' );
 
 			column.addClass( 'opened' ).find( '.ac-column-body' ).slideDown( 150 );
 			column.find( '.ac-setting-input_type' ).next( '.msg' ).html( message ).show();
@@ -539,7 +538,7 @@ function cpac_reset_columns( $ ) {
 			return;
 		}
 
-		var clone = $( this ).clone();
+		let clone = $( this ).clone();
 
 		clone.cpac_update_clone_id();
 
@@ -568,12 +567,12 @@ function cpac_reset_columns( $ ) {
 	 * @since 2.0
 	 */
 	$.fn.cpac_update_clone_id = function() {
-		var $el = $( this );
-		var original_column_name = $el.attr( 'data-column-name' );
-		var temp_column_name = '_new_column_' + incremental_column_name;
+		let $el = $( this );
+		let original_column_name = $el.attr( 'data-column-name' );
+		let temp_column_name = '_new_column_' + incremental_column_name;
 
 		// update input names with clone ID
-		var inputs = $el.find( 'input, select, label' );
+		let inputs = $el.find( 'input, select, label' );
 		$( inputs ).each( function( i, v ) {
 
 			// name
@@ -600,7 +599,7 @@ function cpac_reset_columns( $ ) {
 	 *
 	 */
 	$( document ).bind( 'column_init column_change column_add', function( e, column ) {
-		var is_disabled = $( column ).closest( '.ac-boxes' ).hasClass( 'disabled' );
+		let is_disabled = $( column ).closest( '.ac-boxes' ).hasClass( 'disabled' );
 
 		if ( is_disabled ) {
 			return;
@@ -616,23 +615,23 @@ function cpac_reset_columns( $ ) {
 	 */
 	$.fn.cpac_bind_column_addon_events = function() {
 
-		var column = $( this );
-		var inputs = column.find( '[data-trigger] label' );
+		let column = $( this );
+		let inputs = column.find( '[data-trigger] label' );
 
 		inputs.on( 'click', function() {
 
-			var id = $( this ).closest( 'td.input' ).data( 'trigger' );
-			var state = $( 'input', this ).val();
+			let id = $( this ).closest( 'td.input' ).data( 'trigger' );
+			let state = $( 'input', this ).val();
 
 			// Toggle indicator icon
-			var label = column.find( '[data-indicator-id="' + id + '"]' ).removeClass( 'on' );
-			if ( 'on' == state ) {
+			let label = column.find( '[data-indicator-id="' + id + '"]' ).removeClass( 'on' );
+			if ( 'on' === state ) {
 				label.addClass( 'on' );
 			}
 
 			// Toggle additional options
-			var additional = column.find( '[data-handle="' + id + '"]' ).addClass( 'hide' );
-			if ( 'on' == state ) {
+			let additional = column.find( '[data-handle="' + id + '"]' ).addClass( 'hide' );
+			if ( 'on' === state ) {
 				additional.removeClass( 'hide' );
 			}
 		} );
@@ -640,11 +639,11 @@ function cpac_reset_columns( $ ) {
 		// On load
 		column.find( '[data-trigger]' ).each( function() {
 
-			var trigger = $( this ).data( 'trigger' );
+			let trigger = $( this ).data( 'trigger' );
 
 			// Hide additional column settings
-			var additional = column.find( '[data-handle="' + trigger + '"]' ).addClass( 'hide' );
-			if ( 'on' == $( 'input:checked', this ).val() ) {
+			let additional = column.find( '[data-handle="' + trigger + '"]' ).addClass( 'hide' );
+			if ( 'on' === $( 'input:checked', this ).val() ) {
 				additional.removeClass( 'hide' );
 			}
 		} );
@@ -655,14 +654,14 @@ function cpac_reset_columns( $ ) {
 	 *
 	 */
 	$.fn.cpac_bind_indicator_events = function() {
-		var $column = $( this );
-		var $indicators = $column.find( '.ac-column-header [data-indicator-toggle]' );
+		let $column = $( this );
+		let $indicators = $column.find( '.ac-column-header [data-indicator-toggle]' );
 
 		$indicators.each( function() {
-			var $indicator = $( this );
-			var setting = $( this ).data( 'setting' );
-			var $setting = $column.find( '.ac-column-setting[data-setting=' + setting + ']' );
-			var $input = $setting.find( '.col-input:first .ac-setting-input:first input[type=radio]' );
+			let $indicator = $( this );
+			let setting = $( this ).data( 'setting' );
+			let $setting = $column.find( '.ac-column-setting[data-setting=' + setting + ']' );
+			let $input = $setting.find( '.col-input:first .ac-setting-input:first input[type=radio]' );
 
 			$indicator.unbind( 'click' ).on( 'click', function( e ) {
 				e.preventDefault();
@@ -676,8 +675,8 @@ function cpac_reset_columns( $ ) {
 			} );
 
 			$input.on( 'change', function() {
-				var value = $input.filter( ':checked' ).val();
-				if ( 'on' == value ) {
+				let value = $input.filter( ':checked' ).val();
+				if ( 'on' === value ) {
 					$indicator.addClass( 'on' );
 				} else {
 					$indicator.removeClass( 'on' );
@@ -709,7 +708,7 @@ function cpac_reset_columns( $ ) {
 	// Settings fields: Image _size
 	$.fn.cpac_column_setting_image_size = function() {
 		function initState( $setting, $select ) {
-			if ( 'cpac-custom' == $select.val() ) {
+			if ( 'cpac-custom' === $select.val() ) {
 				$setting.find( '.ac-column-setting' ).show();
 			} else {
 				$setting.find( '.ac-column-setting' ).hide();
@@ -717,8 +716,8 @@ function cpac_reset_columns( $ ) {
 		}
 
 		$( this ).each( function() {
-			var $setting = $( this );
-			var $select = $( this ).find( '.ac-setting-input select' );
+			let $setting = $( this );
+			let $select = $( this ).find( '.ac-setting-input select' );
 
 			initState( $setting, $select );
 			$select.on( 'change', function() {
@@ -736,9 +735,9 @@ function cpac_reset_columns( $ ) {
 	// Settings fields: Width
 	$.fn.column_width_slider = function() {
 
-		var column_width = $( this ).find( '.ac-setting-input-width' );
+		let column_width = $( this ).find( '.ac-setting-input-width' );
 
-		var input_width = column_width.find( '.description input' ),
+		let input_width = column_width.find( '.description input' ),
 			input_unit = column_width.find( '.unit-select input' ),
 			unit = input_unit.filter( ':checked' ).val(),
 			width = input_width.val(),
@@ -746,7 +745,7 @@ function cpac_reset_columns( $ ) {
 			indicator = $( this ).find( '.ac-column-header .ac-column-heading-setting--width' );
 
 		// width
-		if ( '%' == unit && width > 100 ) {
+		if ( '%' === unit && width > 100 ) {
 			width = 100;
 		}
 
@@ -755,7 +754,7 @@ function cpac_reset_columns( $ ) {
 		slider.slider( {
 			range : 'min',
 			min : 0,
-			max : '%' == unit ? 100 : 500,
+			max : '%' === unit ? 100 : 500,
 			value : width,
 			slide : function( event, ui ) {
 
@@ -769,15 +768,15 @@ function cpac_reset_columns( $ ) {
 	$.fn.cpac_column_setting_width = function() {
 
 		$( this ).each( function() {
-			var $column = $( this ).parents( '.ac-column' );
+			let $column = $( this ).parents( '.ac-column' );
 			$column.column_width_slider();
 
 			// indicator
-			var $width_indicator = $column.find( '.ac-column-header .ac-column-heading-setting--width' );
+			let $width_indicator = $column.find( '.ac-column-header .ac-column-heading-setting--width' );
 
 			$width_indicator.on( 'update', function() {
-				var _width = $column.find( '.ac-setting-input-width .description input' ).val();
-				var _unit = $column.find( '.ac-setting-input-width .description .unit' ).text();
+				let _width = $column.find( '.ac-setting-input-width .description input' ).val();
+				let _unit = $column.find( '.ac-setting-input-width .description .unit' ).text();
 				if ( _width > 0 ) {
 					$( this ).text( _width + _unit );
 				} else {
@@ -786,7 +785,7 @@ function cpac_reset_columns( $ ) {
 			} );
 
 			// unit selector
-			var width_unit_select = $column.find( '.ac-setting-input-width .unit-select label' );
+			let width_unit_select = $column.find( '.ac-setting-input-width .unit-select label' );
 			width_unit_select.on( 'click', function() {
 
 				$column.find( 'span.unit' ).text( $( this ).find( 'input' ).val() );
@@ -795,7 +794,7 @@ function cpac_reset_columns( $ ) {
 			} );
 
 			// width_input
-			var width_input = $column.find( '.ac-setting-input-width .description input' )
+			let width_input = $column.find( '.ac-setting-input-width .description input' )
 				.on( 'keyup', function() {
 					$column.column_width_slider(); // re-init slider
 					$( this ).trigger( 'validate' ); // validate input
@@ -804,8 +803,8 @@ function cpac_reset_columns( $ ) {
 
 				// width_input:validate
 				.on( 'validate', function() {
-					var _width = width_input.val();
-					var _new_width = $.trim( _width );
+					let _width = width_input.val();
+					let _new_width = $.trim( _width );
 
 					if ( !$.isNumeric( _new_width ) ) {
 						_new_width = _new_width.replace( /\D/g, '' );
@@ -825,16 +824,16 @@ function cpac_reset_columns( $ ) {
 	};
 
 	$.fn.cpac_column_sub_setting_toggle = function( options ) {
-		var settings = $.extend( {
+		let settings = $.extend( {
 			value_show : "on",
 			subfield : '.ac-column-setting'
 		}, options );
 
 		function initState( $setting, $input ) {
-			var value = $input.filter( ':checked' ).val();
-			var $subfields = $setting.find( settings.subfield );
+			let value = $input.filter( ':checked' ).val();
+			let $subfields = $setting.find( settings.subfield );
 
-			if ( settings.value_show == value ) {
+			if ( settings.value_show === value ) {
 				$subfields.show();
 			} else {
 				$subfields.hide();
@@ -842,8 +841,8 @@ function cpac_reset_columns( $ ) {
 		}
 
 		$( this ).each( function() {
-			var $setting = $( this );
-			var $input = $( this ).find( '.ac-setting-input input[type="radio"]' );
+			let $setting = $( this );
+			let $input = $( this ).find( '.ac-setting-input input[type="radio"]' );
 
 			initState( $setting, $input );
 			$input.on( 'change', function() {
@@ -857,23 +856,23 @@ function cpac_reset_columns( $ ) {
 
 		$( this ).each( function() {
 
-			var $container = $( this );
+			let $container = $( this );
 
 			// Custom input
-			var $radio_custom = $container.find( 'input.custom' );
-			var $input_custom = $container.find( '.ac-setting-input-date__custom' );
-			var $input_value = $container.find( '.ac-setting-input-date__value' );
-			var $example_custom = $container.find( '.ac-setting-input-date__example' );
-			var $selected = $container.find( 'input[type=radio]:checked' );
-			var $help_msg = $container.find( '.help-msg' );
+			let $radio_custom = $container.find( 'input.custom' );
+			let $input_custom = $container.find( '.ac-setting-input-date__custom' );
+			let $input_value = $container.find( '.ac-setting-input-date__value' );
+			let $example_custom = $container.find( '.ac-setting-input-date__example' );
+			let $selected = $container.find( 'input[type=radio]:checked' );
+			let $help_msg = $container.find( '.help-msg' );
 
 			// Click Event
 			$container.find( 'input[type=radio]' ).on( 'change', function() {
 
-				var $input = $( this );
-				var $input_container = $input.closest( 'label' );
-				var date_format = $input_container.find( 'code' ).text();
-				var description = $input_container.find( '.ac-setting-input-date__more' ).html();
+				let $input = $( this );
+				let $input_container = $input.closest( 'label' );
+				let date_format = $input_container.find( 'code' ).text();
+				let description = $input_container.find( '.ac-setting-input-date__more' ).html();
 
 				if ( date_format ) {
 					$input_custom.val( date_format ).trigger( 'change' );
@@ -908,7 +907,7 @@ function cpac_reset_columns( $ ) {
 				$example_custom.html( '<span class="spinner is-active"></span>' );
 				$radio_custom.val( $input_custom.val() );
 
-				var $custom_value = $( this ).val();
+				let $custom_value = $( this ).val();
 
 				if ( !$custom_value ) {
 					$example_custom.text( '' );
@@ -967,12 +966,22 @@ function cpac_reset_columns( $ ) {
 		$( column ).find( '.ac-column-setting--edit' ).cpac_column_sub_setting_toggle();
 
 		$( ".ac-setting-input_type" ).select2( {
+			width : '100%',
 			templateResult : function( state ) {
 				if ( !state.id ) {
 					return state.text;
 				}
 
-				return $( `<span>${state.text} <span  class="ac-type-pro-only">pro</span></span>` );
+				state.text = state.text.replace( '(PRO)', `<span  class="ac-type-pro-only">pro</span>` );
+
+				return $( `<span>${state.text} </span>` );
+			},
+			templateSelection : function( data ) {
+				let $value = $( `<div>${data.text}</div>` );
+
+				$value.find( '.ac-type-pro-only' ).remove();
+
+				return $value.text();
 			}
 		} )
 		;
@@ -993,7 +1002,7 @@ function cpac_reset_columns( $ ) {
 			$( this ).closest( '.ac-modal' ).removeClass( '-active' );
 		} );
 
-		$( '.ac-modal' ).on( 'click', function( e ) {
+		$( '.ac-modal' ).on( 'click', function() {
 			$( this ).removeClass( '-active' );
 		} );
 

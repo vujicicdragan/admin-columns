@@ -324,6 +324,7 @@ class CPAC extends AC_Plugin {
 		$groups->register_group( 'plugin', __( 'Plugins' ), 20 );
 		$groups->register_group( 'custom_field', __( 'Custom Fields', 'codepress-admin-columns' ), 30 );
 		$groups->register_group( 'custom', __( 'Custom', 'codepress-admin-columns' ), 40 );
+		$groups->register_group( 'pro', __( 'Pro Columns', 'codepress-admin-columns' ), 40 );
 
 		foreach ( $this->addons()->get_missing_addons() as $addon ) {
 			$groups->register_group( $addon->get_slug(), $addon->get_title(), 11 );

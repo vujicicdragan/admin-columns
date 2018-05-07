@@ -5,7 +5,8 @@
  *
  * @since 2.2
  */
-class AC_Column_Placeholder extends AC_Column {
+class AC_Column_Placeholder extends AC_Column
+	implements AC_Column_PlaceholderInterface {
 
 	/**
 	 * @var AC_Admin_Addon
