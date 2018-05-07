@@ -218,6 +218,12 @@ You can find a list of the available actions and filters (and examples on how to
 
 == Changelog ==
 
+= NEWVERSION =
+
+Release Date: TBD
+
+* [Added] New support for Taxonomy overviews to re-order columns
+
 = 3.1.10 =
 
 Release Date: May 1st, 2018
