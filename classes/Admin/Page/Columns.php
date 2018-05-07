@@ -55,8 +55,10 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 			'jquery-ui-slider',
 			'jquery-ui-sortable',
 			'wp-pointer',
+			'ac-select2',
 		), AC()->get_version() );
 
+		wp_enqueue_style( 'ac-select2' );
 		wp_enqueue_style( 'ac-admin-page-columns-css', AC()->get_plugin_url() . 'assets/css/admin-page-columns.css', array(), AC()->get_version() );
 
 		wp_localize_script( 'ac-admin-page-columns', 'AC', array(
@@ -69,6 +71,8 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 				'error' => __( 'Invalid response.', 'codepress-admin-columns' ),
 			),
 		) );
+
+		wp_enqueue_style( 'ac-select2' );
 
 		do_action( 'ac/settings/scripts' );
 	}
@@ -910,7 +914,7 @@ class AC_Admin_Page_Columns extends AC_Admin_Page {
 		if ( ! $this->is_current_screen() ) {
 			return;
 		}
-		
+
 		?>
 		<div class="ac-modal" id="ac-modal-pro">
 			<div class="ac-modal__dialog -mascot">

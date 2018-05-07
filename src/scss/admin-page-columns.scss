@@ -1123,6 +1123,31 @@
 }
 
 /**
+ * Select 2 setting
+ */
+.settings_page_codepress-admin-columns {
+	.select2-container.select2-container--default {
+		.select2-results {
+			> .select2-results__options {
+				max-height: 500px;
+			}
+		}
+
+		// Option Styling
+		.ac-type-pro-only {
+			display: inline-block;
+			background: $ac-pink;
+			color: #fff;
+			padding: 2px 5px;
+			font-size: 11px;
+			margin-left: 10px;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+	}
+}
+
+/**
  * Side box
  * ----------------------------------------------------------------------------
  */

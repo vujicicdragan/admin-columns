@@ -145,7 +145,7 @@ class CPAC extends AC_Plugin {
 		// Hooks
 		add_action( 'init', array( $this, 'localize' ) );
 		add_filter( 'plugin_action_links', array( $this, 'add_settings_link' ), 1, 2 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ), 1 );
 
 		// Notices
 		add_action( 'admin_notices', array( $this, 'display_notices' ) );
@@ -546,6 +546,10 @@ class CPAC extends AC_Plugin {
 	public function admin_scripts() {
 		wp_register_script( 'ac-sitewide-notices', AC()->get_plugin_url() . "assets/js/message.js", array( 'jquery' ), AC()->get_version() );
 		wp_register_style( 'ac-sitewide-notices', AC()->get_plugin_url() . "assets/css/message.css", array(), AC()->get_version() );
+
+		// Select 2 V4
+		wp_register_script( 'ac-select2', AC()->get_plugin_url() . "assets/js/select2/select2.min.js", array( 'jquery' ), AC()->get_version() );
+		wp_register_style( 'ac-select2', AC()->get_plugin_url() . "assets/css/select2/select2.min.css", array(), AC()->get_version() );
 	}
 
 	/**

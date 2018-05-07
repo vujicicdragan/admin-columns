@@ -399,9 +399,9 @@ function cpac_reset_columns( $ ) {
 		column.find( 'select.ac-setting-input_type' ).change( function() {
 			var option = $( 'optgroup', this ).children( ':selected' );
 			var type = option.val();
-			var msg = $( this ).next( '.msg' ).hide();
+			var msg = column.find( '.msg' ).hide();
 			var $select = $( this );
-
+			console.log( msg );
 			var current_original_columns = [];
 			container.find( '.ac-column[data-original=1]' ).each( function() {
 				current_original_columns.push( $( this ).data( 'type' ) );
@@ -965,6 +965,17 @@ function cpac_reset_columns( $ ) {
 		$( column ).find( '.ac-column-setting--filter' ).cpac_column_sub_setting_toggle();
 		$( column ).find( '.ac-column-setting--sort' ).cpac_column_sub_setting_toggle();
 		$( column ).find( '.ac-column-setting--edit' ).cpac_column_sub_setting_toggle();
+
+		$( ".ac-setting-input_type" ).select2( {
+			templateResult : function( state ) {
+				if ( !state.id ) {
+					return state.text;
+				}
+
+				return $( `<span>${state.text} <span  class="ac-type-pro-only">pro</span></span>` );
+			}
+		} )
+		;
 	} );
 
 	// AC Modal Events (todo move to separate logic)
