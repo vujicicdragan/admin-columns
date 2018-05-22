@@ -4,10 +4,7 @@ namespace AC;
 
 use AC\Check;
 use AC\Table;
-<<<<<<< HEAD
-=======
 use AC\ThirdParty;
->>>>>>> develop
 
 class AdminColumns extends Plugin {
 
@@ -21,11 +18,7 @@ class AdminColumns extends Plugin {
 	private $admin;
 
 	/**
-<<<<<<< HEAD
-	 * @var Screen
-=======
 	 * @var Table\Screen
->>>>>>> develop
 	 */
 	private $table_screen;
 
@@ -184,11 +177,7 @@ class AdminColumns extends Plugin {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * @return Screen Returns the screen manager for the list table
-=======
 	 * @return Table\Screen Returns the screen manager for the list table
->>>>>>> develop
 	 */
 	public function table_screen() {
 		return $this->table_screen;

@@ -141,7 +141,6 @@ abstract class ListScreen {
 	abstract protected function register_column_types();
 
 	/**
-<<<<<<< HEAD
 	 * Load all data
 	 */
 	public function load() {
@@ -216,25 +215,6 @@ abstract class ListScreen {
 	 */
 	public function set_store_object( $store_object ) {
 		$this->store_object = $store_object;
-
-		return $this;
-	}
-
-	/**
-=======
-	 * @return string
-	 */
-	public function get_key() {
-		return $this->key;
-	}
-
-	/**
-	 * @param string $key
-	 *
-	 * @return self
-	 */
-	protected function set_key( $key ) {
-		$this->key = $key;
 
 		return $this;
 	}
@@ -905,6 +885,8 @@ abstract class ListScreen {
 		_deprecated_function( __METHOD__, 'NEWVERSION', 'AC\ListScreen::set_type()' );
 
 		$this->set_type( $key );
+
+		return $this;
 	}
 
 	/**

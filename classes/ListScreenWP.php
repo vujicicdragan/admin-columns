@@ -10,7 +10,7 @@ abstract class ListScreenWP extends ListScreen {
 	/**
 	 * @return \WP_List_Table
 	 */
-	abstract protected function get_list_table();
+	abstract public function get_list_table();
 
 	/**
 	 * @param int $id
