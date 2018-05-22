@@ -14,8 +14,8 @@ class EventsCalendar extends Addon {
 			->set_logo( AC()->get_url() . 'assets/images/addons/events-calendar.png' )
 			->set_icon( AC()->get_url() . 'assets/images/addons/events-calendar-icon.png' )
 			->set_link( ac_get_site_utm_url( 'events-calendar', 'addon', 'events-calendar' ) )
-			->set_description( "Manage columns for your event, organizer or venue overviews." )
-			->add_plugin( 'the-events-calendar' );
+			->set_description( __( 'Manage columns for your event, organizer or venue overviews.', 'codepress-admin-columns' ) )
+			->add_plugin( 'events-calendar' );
 	}
 
 	public function display_promo() {

@@ -2,9 +2,11 @@
 
 namespace AC\Option;
 
+use AC\Expirable;
 use AC\Option;
 
-class Timestamp extends Option {
+class Timestamp extends Option
+	implements Expirable {
 
 	/**
 	 * @param int|null $time
@@ -26,12 +28,21 @@ class Timestamp extends Option {
 	}
 
 	/**
-	 * @param $value
+	 * @param int $value
+	 *
+	 * @return bool
+	 */
+	public function validate( $value ) {
+		return preg_match( '/^[1-9][0-9]*$/', $value );
+	}
+
+	/**
+	 * @param int $value
 	 *
 	 * @return bool
 	 */
 	public function save( $value ) {
-		if ( preg_match( '/^1-9[0-9]*$/', $value ) ) {
+		if ( ! $this->validate( $value ) ) {
 			throw new \Exception( 'Value needs to be a positive integer' );
 		}
 

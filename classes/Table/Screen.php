@@ -223,7 +223,11 @@ final class Screen {
 	}
 
 	/**
+<<<<<<< HEAD:classes/Table/Screen.php
 	 * Sets the inline data when the title columns is not present on a AC\ListScreen\Post screen
+=======
+	 * Sets the inline data when the title columns is not present on a AC\ListScreen_Post screen
+>>>>>>> develop:classes/Table/Screen.php
 	 *
 	 * @param array    $actions
 	 * @param \WP_Post $post
@@ -246,7 +250,10 @@ final class Screen {
 	}
 
 	/**
+<<<<<<< HEAD:classes/Table/Screen.php
 >>>>>>> 1080-all-namespace:classes/TableScreen.php
+=======
+>>>>>>> develop:classes/Table/Screen.php
 	 * Adds a body class which is used to set individual column widths
 	 *
 	 * @since 1.4.0
@@ -434,7 +441,11 @@ final class Screen {
 		 * @since 3.1.4
 		 *
 		 * @param ListScreen
+<<<<<<< HEAD:classes/Table/Screen.php
 		 * @param Screen
+=======
+		 * @param self
+>>>>>>> develop:classes/Table/Screen.php
 		 */
 		do_action( 'ac/admin_head', $list_screen, $this );
 	}
@@ -457,7 +468,87 @@ final class Screen {
 		 * @since 2.3.5
 		 *
 		 * @param ListScreen
+<<<<<<< HEAD:classes/Table/Screen.php
 		 * @param Screen
+=======
+		 * @param self
+		 */
+		do_action( 'ac/admin_footer', $this->current_list_screen, $this );
+	}
+
+	/**
+	 * Load current list screen
+	 *
+	 * @param \WP_Screen $wp_screen
+	 */
+	public function load_list_screen( $wp_screen ) {
+
+		foreach ( AC()->get_list_screens() as $list_screen ) {
+			if ( $list_screen->is_current_screen( $wp_screen ) ) {
+				$this->set_current_list_screen( ListScreenFactory::create( $list_screen->get_key() ) );
+
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Runs when doing Quick Edit, a native WordPress ajax call
+	 */
+	public function load_list_screen_doing_quick_edit() {
+		if ( AC()->is_doing_ajax() ) {
+
+			switch ( filter_input( INPUT_POST, 'action' ) ) {
+
+				// Quick edit post
+				case 'inline-save' :
+					$list_screen = filter_input( INPUT_POST, 'post_type' );
+					break;
+
+				// Adding term & Quick edit term
+				case 'add-tag' :
+				case 'inline-save-tax' :
+					$list_screen = 'wp-taxonomy_' . filter_input( INPUT_POST, 'taxonomy' );
+					break;
+
+				// Quick edit comment & Inline reply on comment
+				case 'edit-comment' :
+				case 'replyto-comment' :
+					$list_screen = 'wp-comments';
+					break;
+
+				default :
+					$list_screen = false;
+			}
+
+			$this->set_current_list_screen( ListScreenFactory::create( $list_screen ) );
+		}
+	}
+
+	/**
+	 * @param ListScreen $list_screen
+	 */
+	public function set_current_list_screen( $list_screen ) {
+		if ( ! $list_screen ) {
+			return;
+		}
+
+		$this->current_list_screen = $list_screen;
+
+		// Init Values
+		$list_screen->set_manage_value_callback();
+
+		/**
+		 * Init Headings
+		 * @see get_column_headers() for filter location
+		 */
+		add_filter( "manage_" . $list_screen->get_screen_id() . "_columns", array( $this, 'add_headings' ), 200 );
+
+		/**
+		 * @since 3.0
+		 *
+		 * @param ListScreen
+>>>>>>> develop:classes/Table/Screen.php
 		 */
 		do_action( 'ac/admin_footer', $list_screen, $this );
 	}

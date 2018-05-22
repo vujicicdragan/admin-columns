@@ -11,7 +11,7 @@ class AuthorUrl extends Column {
 
 	public function __construct() {
 		$this->set_type( 'column-author_url' );
-		$this->set_label( __( 'Author Url', 'codepress-admin-columns' ) );
+		$this->set_label( __( 'Author URL', 'codepress-admin-columns' ) );
 	}
 
 	public function get_value( $id ) {

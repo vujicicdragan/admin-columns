@@ -2,6 +2,7 @@
 
 namespace AC\Settings\Column;
 
+use AC;
 use AC\Collection;
 use AC\Settings;
 use AC\View;
@@ -24,20 +25,20 @@ class CustomFieldType extends Settings\Column
 		switch ( $this->get_field_type() ) {
 
 			case 'date' :
-				$settings[] = new Settings\Column\Date( $this->column );
+				$settings[] = new Date( $this->column );
 
 				break;
 			case 'image' :
 			case 'library_id' :
-				$settings[] = new Settings\Column\Image( $this->column );
+				$settings[] = new Image( $this->column );
 
 				break;
 			case 'excerpt' :
-				$settings[] = new Settings\Column\StringLimit( $this->column );
+				$settings[] = new StringLimit( $this->column );
 
 				break;
 			case 'link' :
-				$settings[] = new Settings\Column\LinkLabel( $this->column );
+				$settings[] = new LinkLabel( $this->column );
 
 				break;
 		}
@@ -68,8 +69,8 @@ class CustomFieldType extends Settings\Column
 	}
 
 	private function get_description_object_ids( $input ) {
-		$description = sprintf( __( "Uses the id from a %s to display information about it.", 'codepress-admin-columns' ), '<em>' . $input . '</em>' );
-		$description .= ' ' . __( "Multiple ids should be separated by a comma.", 'codepress-admin-columns' );
+		$description = sprintf( __( "Uses one or more %s IDs to display information about it.", 'codepress-admin-columns' ), '<em>' . $input . '</em>' );
+		$description .= ' ' . __( "Multiple IDs should be separated by commas.", 'codepress-admin-columns' );
 
 		return $description;
 	}
@@ -101,9 +102,9 @@ class CustomFieldType extends Settings\Column
 			'basic'      => array(
 				'color'   => __( 'Color', 'codepress-admin-columns' ),
 				'date'    => __( 'Date', 'codepress-admin-columns' ),
-				'excerpt' => __( 'Text' ),
+				'excerpt' => __( 'Excerpt', 'codepress-admin-columns' ),
 				'image'   => __( 'Image', 'codepress-admin-columns' ),
-				'link'    => __( 'Url', 'codepress-admin-columns' ),
+				'link'    => __( 'URL', 'codepress-admin-columns' ),
 				'numeric' => __( 'Number', 'codepress-admin-columns' ),
 			),
 			'choice'     => array(
@@ -254,7 +255,7 @@ class CustomFieldType extends Settings\Column
 				break;
 			case "count" :
 
-				if ( $this->column instanceof \AC\Column\Meta ) {
+				if ( $this->column instanceof AC\Column\Meta ) {
 					$value = $this->column->get_meta_value( $original_value, $this->column->get_meta_key(), false );
 
 					if ( $value ) {

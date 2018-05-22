@@ -38,6 +38,7 @@ class Columns extends Page {
 		add_action( 'current_screen', array( $this, 'set_current_list_screen' ) );
 		add_action( 'admin_init', array( $this, 'handle_request' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
+		add_action( 'admin_footer', array( $this, 'display_modal' ) );
 
 		// Ajax calls
 		add_action( 'wp_ajax_ac_column_select', array( $this, 'ajax_column_select' ) );
@@ -482,7 +483,7 @@ class Columns extends Page {
 	 * @return Promo|false
 	 */
 	public function get_active_promotion() {
-		$classes = Autoloader::instance()->get_class_names_from_dir( AC()->get_dir() . 'classes/Admin/Promo' );
+		$classes = Autoloader::instance()->get_class_names_from_dir( 'AC\Admin\Promo' );
 
 		foreach ( $classes as $class ) {
 
@@ -762,7 +763,7 @@ class Columns extends Page {
 								</p>
 							<?php endif; ?>
 							<p>
-								<?php printf( __( "For full documentation, bug reports, feature suggestions and other tips <a href='%s'>visit the Admin Columns website</a>", 'codepress-admin-columns' ), ac_get_site_utm_url( 'documentation', 'support' ) ); ?>
+								<?php printf( __( "For full documentation, bug reports, feature suggestions and other tips <a href='%s'>visit the Admin Columns website</a>.", 'codepress-admin-columns' ), ac_get_site_utm_url( 'documentation', 'support' ) ); ?>
 							</p>
 						</div>
 					</div><!--plugin-support-->
@@ -813,6 +814,9 @@ class Columns extends Page {
 					<div class="column-footer">
 						<?php if ( ! $list_screen->is_read_only() ) : ?>
 							<div class="order-message">
+								<svg class="order-message__icon" width="18" height="18">
+									<use xlink:href="<?php echo esc_url( AC()->get_plugin_url() ); ?>/assets/images/symbols.svg#arrow-left-top"/>
+								</svg>
 								<?php _e( 'Drag and drop to reorder', 'codepress-admin-columns' ); ?>
 							</div>
 							<div class="button-container">
@@ -848,6 +852,7 @@ class Columns extends Page {
 			<div id="add-new-column-template">
 				<?php $this->display_column_template( $list_screen ); ?>
 			</div>
+
 
 		</div><!--.ac-admin-->
 
@@ -995,4 +1000,42 @@ class Columns extends Page {
 		<?php
 	}
 
+	public function display_modal() {
+		if ( ! $this->is_current_screen() ) {
+			return;
+		}
+
+		?>
+		<div class="ac-modal" id="ac-modal-pro">
+			<div class="ac-modal__dialog -mascot">
+				<div class="ac-modal__dialog__header">
+					<?php _e( 'Do you like Admin Columns?', 'codepress-admin-columns' ); ?>
+					<button class="ac-modal__dialog__close">
+						<span class="dashicons dashicons-no"></span>
+					</button>
+				</div>
+				<div class="ac-modal__dialog__content">
+					<p class="ac-modal__dialog__content__lead">
+						<?php _e( 'Upgrade to PRO, and take Admin Columns to the next level:', 'codepress-admin-columns' ); ?>
+					</p>
+					<ul class="ac-modal__dialog__list">
+						<li><?php _e( 'Sort & Filter on all your content', 'codepress-admin-columns' ); ?></li>
+						<li><?php _e( 'Directly edit your content from the overview', 'codepress-admin-columns' ); ?></li>
+						<li><?php _e( 'Export all column data to CSV', 'codepress-admin-columns' ); ?></li>
+						<li><?php _e( 'Create multiple column groups per overview', 'codepress-admin-columns' ); ?></li>
+						<li><?php _e( 'Get add-ons for ACF, WooCommerce and many more', 'codepress-admin-columns' ); ?></li>
+					</ul>
+				</div>
+				<div class="ac-modal__dialog__footer">
+					<a class="button button-primary" target="_blank" href="<?php echo esc_url( ac_get_site_utm_url( 'admin-columns-pro', 'upgrade' ) ); ?>"><?php _e( 'Upgrade', 'codepress-admin-columns' ); ?></a>
+					<span class="ac-modal__dialog__footer__content"><?php echo sprintf( __( 'Only %s for 1 site', 'codepress-admin-columns' ), '$' . $this->get_lowest_pro_price() ); ?></span>
+					<svg class="ac-modal__dialog__mascot">
+						<use xlink:href="<?php echo esc_url( AC()->get_plugin_url() ); ?>/assets/images/symbols.svg#zebra-thumbs-up"/>
+					</svg>
+				</div>
+			</div>
+		</div>
+
+		<?php
+	}
 }

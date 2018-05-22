@@ -141,6 +141,7 @@ abstract class ListScreen {
 	abstract protected function register_column_types();
 
 	/**
+<<<<<<< HEAD
 	 * Load all data
 	 */
 	public function load() {
@@ -220,6 +221,26 @@ abstract class ListScreen {
 	}
 
 	/**
+=======
+	 * @return string
+	 */
+	public function get_key() {
+		return $this->key;
+	}
+
+	/**
+	 * @param string $key
+	 *
+	 * @return self
+	 */
+	protected function set_key( $key ) {
+		$this->key = $key;
+
+		return $this;
+	}
+
+	/**
+>>>>>>> develop
 	 * @return string
 	 */
 	public function get_label() {
@@ -303,7 +324,7 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param string $screen_base
+	 * @param string $screen_id
 	 *
 	 * @return self
 	 */
@@ -321,7 +342,7 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param string $screen_bas
+	 * @param string $page
 	 *
 	 * @return self
 	 */
@@ -339,7 +360,7 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param string $screen_base
+	 * @param string $group
 	 *
 	 * @return self
 	 */
@@ -378,9 +399,13 @@ abstract class ListScreen {
 
 	/**
 	 * @param bool $network_only
+	 *
+	 * @return self
 	 */
 	public function set_network_only( $network_only ) {
 		$this->network_only = (bool) $network_only;
+
+		return $this;
 	}
 
 	/**
@@ -610,13 +635,17 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param string $dir Absolute path to the column directory
+	 * @param string $namespace Namespace from the current path
 	 */
-	public function register_column_types_from_dir( $dir ) {
-		$classes = Autoloader::instance()->get_class_names_from_dir( $dir );
+	public function register_column_types_from_dir( $namespace ) {
+		$classes = Autoloader::instance()->get_class_names_from_dir( $namespace );
 
 		foreach ( $classes as $class ) {
-			$this->register_column_type( new $class );
+			$reflection = new \ReflectionClass( $class );
+
+			if ( $reflection->isInstantiable() ) {
+				$this->register_column_type( new $class );
+			}
 		}
 	}
 
@@ -636,7 +665,7 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param array $settings Column data
+	 * @param array $data Column data
 	 *
 	 * @return Column|false
 	 */
@@ -655,7 +684,6 @@ abstract class ListScreen {
 
 		/* @var Column $column */
 		$column = new $class();
-
 		$column->set_list_screen( $this )
 		       ->set_type( $data['type'] );
 
@@ -665,7 +693,6 @@ abstract class ListScreen {
 
 		// Mark as original
 		if ( $this->is_original_column( $data['type'] ) ) {
-
 			$column->set_original( true );
 			$column->set_name( $data['type'] );
 		}

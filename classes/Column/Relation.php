@@ -2,14 +2,14 @@
 
 namespace AC\Column;
 
-use AC\Relation;
+use AC;
 
-interface RelationInterface {
+interface Relation {
 
 	/**
 	 * Return information about the relation this column has.
 	 *
-	 * @return Relation
+	 * @return AC\Relation
 	 */
 	public function get_relation_object();
 

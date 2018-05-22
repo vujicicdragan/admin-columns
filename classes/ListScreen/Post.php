@@ -62,8 +62,8 @@ class Post extends ListScreenPost {
 	protected function register_column_types() {
 		parent::register_column_types();
 
-		$this->register_column_types_from_dir( AC()->get_dir() . 'classes/Column/Placeholder' );
-		$this->register_column_types_from_dir( AC()->get_dir() . 'classes/Column/Post' );
+		$this->register_column_types_from_dir( 'AC\Column\Placeholder' );
+		$this->register_column_types_from_dir( 'AC\Column\Post' );
 	}
 
 }

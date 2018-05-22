@@ -19,7 +19,6 @@ abstract class Menu extends Column {
 	}
 
 	/**
-	 * @see   Column::get_raw_value()
 	 * @since 2.2.5
 	 */
 	public function get_raw_value( $object_id ) {

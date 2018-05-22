@@ -2,9 +2,9 @@
 
 namespace AC\Settings\Form\Element;
 
-use AC\Form;
+use AC;
 
-class Select extends Form\Element\Select {
+class Select extends AC\Form\Element\Select {
 
 	protected function render_ajax_message() {
 		return '<div class="msg"></div>';
