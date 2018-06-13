@@ -1,7 +1,12 @@
 <?php
 
-class AC_Settings_Column_Image extends AC_Settings_Column
-	implements AC_Settings_FormatValueInterface {
+namespace AC\Settings\Column;
+
+use AC\Settings;
+use AC\View;
+
+class Image extends Settings\Column
+	implements Settings\FormatValue {
 
 	/**
 	 * @var string
@@ -24,20 +29,20 @@ class AC_Settings_Column_Image extends AC_Settings_Column
 
 	protected function define_options() {
 		return array(
-			'image_size',
-			'image_size_w' => 80,
-			'image_size_h' => 80,
+			'image_size'   => 'cpac-custom',
+			'image_size_w' => 60,
+			'image_size_h' => 60,
 		);
 	}
 
 	public function create_view() {
-		$width = new AC_View( array(
+		$width = new View( array(
 			'setting' => $this->create_element( 'number', 'image_size_w' ),
 			'label'   => __( 'Width', 'codepress-admin-columns' ),
 			'tooltip' => __( 'Width in pixels', 'codepress-admin-columns' ),
 		) );
 
-		$height = new AC_View( array(
+		$height = new View( array(
 			'setting' => $this->create_element( 'number', 'image_size_h' ),
 			'label'   => __( 'Height', 'codepress-admin-columns' ),
 			'tooltip' => __( 'Height in pixels', 'codepress-admin-columns' ),
@@ -46,7 +51,7 @@ class AC_Settings_Column_Image extends AC_Settings_Column
 		$size = $this->create_element( 'select', 'image_size' )
 		             ->set_options( $this->get_grouped_image_sizes() );
 
-		$view = new AC_View( array(
+		$view = new View( array(
 			'label'    => __( 'Image Size', 'codepress-admin-columns' ),
 			'setting'  => $size,
 			'sections' => array( $width, $height ),
@@ -182,7 +187,7 @@ class AC_Settings_Column_Image extends AC_Settings_Column
 
 		// fallback size
 		if ( empty( $size ) ) {
-			$size = array( 80, 80 );
+			$size = array( 60, 60 );
 		}
 
 		return $size;

@@ -1,11 +1,8 @@
 <?php
 
-/**
- * Class AC_Plugin_Update
- *
- * Assumes this regex for versions: ^[1-9]\.[0-9]\.[1-9][0-9]?$
- */
-abstract class AC_Plugin_Update {
+namespace AC\Plugin;
+
+abstract class Update {
 
 	/**
 	 * @var string
@@ -13,7 +10,7 @@ abstract class AC_Plugin_Update {
 	protected $stored_version;
 
 	/**
-	 * @var string
+	 * @var string Assumes this regex for versions: ^[1-9]\.[0-9]\.[1-9][0-9]?$
 	 */
 	protected $version;
 
@@ -27,7 +24,9 @@ abstract class AC_Plugin_Update {
 	 *
 	 * @return bool
 	 */
-	public abstract function needs_update();
+	public function needs_update() {
+		return $this->is_less_or_equal_stored_version();
+	}
 
 	/**
 	 * @return bool

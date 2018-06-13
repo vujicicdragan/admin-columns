@@ -1,13 +1,24 @@
 <?php
 
+namespace AC\Column\Comment;
+
+use AC;
+use AC\Column;
+
 /**
  * @since 2.4.2
  */
-class AC_Column_Comment_User extends AC_Column {
+class User extends Column {
 
 	public function __construct() {
 		$this->set_type( 'column-user' );
 		$this->set_label( __( 'User', 'codepress-admin-columns' ) );
+	}
+
+	public function get_value( $id ) {
+		$raw_value = $this->get_raw_value( $id );
+
+		return $this->get_formatted_value( $raw_value, $raw_value );
 	}
 
 	/**
@@ -22,7 +33,7 @@ class AC_Column_Comment_User extends AC_Column {
 	}
 
 	public function register_settings() {
-		$this->add_setting( new AC_Settings_Column_User( $this ) );
+		$this->add_setting( new AC\Settings\Column\User( $this ) );
 	}
 
 }

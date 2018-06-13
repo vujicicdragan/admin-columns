@@ -1,7 +1,12 @@
 <?php
 
-class AC_Settings_Column_AttachmentDisplay extends AC_Settings_Column
-	implements AC_Settings_FormatValueInterface {
+namespace AC\Settings\Column;
+
+use AC\Settings;
+use AC\View;
+
+class AttachmentDisplay extends Settings\Column
+	implements Settings\FormatValue {
 
 	private $attachment_display;
 
@@ -15,8 +20,10 @@ class AC_Settings_Column_AttachmentDisplay extends AC_Settings_Column
 		$settings = array();
 
 		switch ( $this->get_attachment_display() ) {
-			case 'thumbnail':
-				$settings[] = new AC_Settings_Column_Images( $this->column );
+			case 'thumbnail' :
+				$settings[] = new Settings\Column\Images( $this->column );
+
+				break;
 		}
 
 		return $settings;
@@ -27,11 +34,11 @@ class AC_Settings_Column_AttachmentDisplay extends AC_Settings_Column
 		$setting = $this->create_element( 'select' )
 		                ->set_attribute( 'data-refresh', 'column' )
 		                ->set_options( array(
-			                'thumbnail' => __( 'Thumbnails' ),
-			                'count'     => __( 'Count' ),
+			                'thumbnail' => __( 'Thumbnails', 'codepress-admin-columns' ),
+			                'count'     => __( 'Count', 'codepress-admin-columns' ),
 		                ) );
 
-		$view = new AC_View( array(
+		$view = new View( array(
 			'label'   => __( 'Display', 'codepress-admin-columns' ),
 			'setting' => $setting,
 		) );

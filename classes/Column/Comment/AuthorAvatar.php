@@ -1,9 +1,13 @@
 <?php
 
+namespace AC\Column\Comment;
+
+use AC\Column;
+
 /**
  * @since 2.0
  */
-class AC_Column_Comment_AuthorAvatar extends AC_Column {
+class AuthorAvatar extends Column {
 
 	public function __construct() {
 		$this->set_type( 'column-author_avatar' );
@@ -13,7 +17,7 @@ class AC_Column_Comment_AuthorAvatar extends AC_Column {
 	public function get_value( $id ) {
 		$comment = get_comment( $id );
 
-		return get_avatar( $comment, 80 );
+		return get_avatar( $comment, 60 );
 	}
 
 }

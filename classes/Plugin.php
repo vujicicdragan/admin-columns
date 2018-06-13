@@ -1,33 +1,8 @@
 <?php
 
-abstract class AC_Plugin {
+namespace AC;
 
-	/**
-	 * @var string
-	 */
-	private $plugin_dir;
-
-	/**
-	 * @var string
-	 */
-	private $plugin_url;
-
-	/**
-	 * @var string
-	 */
-	private $basename;
-
-	/**
-	 * @var bool
-	 */
-	private $fresh_install;
-
-	/**
-	 * Return the file from this plugin
-	 *
-	 * @return string
-	 */
-	abstract protected function get_file();
+abstract class Plugin extends Addon {
 
 	/**
 	 * Check if plugin is network activated
@@ -44,19 +19,29 @@ abstract class AC_Plugin {
 	 * @see get_plugin_data()
 	 * @return array
 	 */
-	protected function get_plugin_data() {
+	protected function get_data() {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return get_plugin_data( $this->get_file(), false, false );
 	}
 
 	/**
-	 * @return string
+	 * @since NEWVERSION
+	 * @return false|string
 	 */
-	public function get_basename() {
-		if ( null === $this->basename ) {
-			$this->set_basename();
-		}
+	public function get_name() {
+		return $this->get_header( 'Name' );
+	}
+
+	/**
+	 * Return a plugin header from the plugin data
+	 *
+	 * @param $key
+	 *
+	 * @return false|string
+	 */
+	protected function get_header( $key ) {
+		$data = $this->get_data();
 
 		return $this->basename;
 	}
@@ -81,14 +66,45 @@ abstract class AC_Plugin {
 	}
 
 	/**
-	 * @return string
+	 * Apply updates to the database
+	 *
+	 * @param null|string $updates_dir
 	 */
-	public function get_plugin_url() {
-		if ( null === $this->plugin_url ) {
-			$this->set_plugin_url();
+	public function install() {
+		if ( 0 === version_compare( $this->get_version(), $this->get_stored_version() ) ) {
+			return;
 		}
 
-		return $this->plugin_url;
+		$updater = new Plugin\Updater( $this );
+
+		if ( ! $updater->check_update_conditions() ) {
+			return;
+		}
+
+		$classes = Autoloader::instance()->get_class_names_from_dir( __NAMESPACE__ . '\Plugin\Update' );
+
+		foreach ( $classes as $class ) {
+			$updater->add_update( new $class( $this->get_stored_version() ) );
+		}
+
+		$updater->parse_updates();
+	}
+
+	/**
+	 * Check if a plugin is in beta
+	 *
+	 * @since NEWVERSION
+	 * @return bool
+	 */
+	public function is_beta() {
+		return false !== strpos( $this->get_version(), 'beta' );
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_version() {
+		return $this->get_header( 'Version' );
 	}
 
 	protected function set_plugin_url() {
@@ -98,12 +114,16 @@ abstract class AC_Plugin {
 	/**
 	 * @return string
 	 */
-	public abstract function get_version();
+	abstract protected function get_version_key();
 
 	/**
-	 * @return string
+	 * @param string $version
+	 *
+	 * @return bool
 	 */
-	abstract protected function get_version_key();
+	public function is_version_gte( $version ) {
+		return version_compare( $this->get_version(), $version, '>=' );
+	}
 
 	/**
 	 * @return string
@@ -115,22 +135,18 @@ abstract class AC_Plugin {
 	/**
 	 * Update the stored version to match the (current) version
 	 */
-	public function update_stored_version( $version ) {
+	public function update_stored_version( $version = null ) {
+		if ( null === $version ) {
+			$version = $this->get_version();
+		}
+
 		return update_option( $this->get_version_key(), $version );
 	}
 
 	/**
-	 * Check if the plugin was updated or is a fresh install
+	 * Check if the plugin was updated or is a new install
 	 */
-	public function is_fresh_install() {
-		if ( null === $this->fresh_install ) {
-			$this->set_fresh_install();
-		}
-
-		return $this->fresh_install;
-	}
-
-	protected function set_fresh_install() {
+	public function is_new_install() {
 		global $wpdb;
 
 		$sql = "
@@ -143,6 +159,33 @@ abstract class AC_Plugin {
 		$results = $wpdb->get_results( $sql );
 
 		$this->fresh_install = empty( $results );
+	}
+
+	/**
+	 * Return a plugin header from the plugin data
+	 *
+	 * @param $key
+	 *
+	 * @deprecated
+	 * @return false|string
+	 */
+	protected function get_plugin_header( $key ) {
+		_deprecated_function( __METHOD__, '3.2', 'AC\Plugin::get_header()' );
+
+		return $this->get_header( $key );
+	}
+
+	/**
+	 * Calls get_plugin_data() for this plugin
+	 *
+	 * @deprecated
+	 * @see get_plugin_data()
+	 * @return array
+	 */
+	protected function get_plugin_data() {
+		_deprecated_function( __METHOD__, '3.2', 'AC\Plugin::get_data()' );
+
+		return $this->get_data();
 	}
 
 }

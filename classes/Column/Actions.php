@@ -1,11 +1,16 @@
 <?php
 
+namespace AC\Column;
+
+use AC\Column;
+use AC\Settings;
+
 /**
  * Base class for columns containing action links for items.
  *
  * @since 2.2.6
  */
-class AC_Column_Actions extends AC_Column {
+class Actions extends Column {
 
 	/**
 	 * @since 2.2.6
@@ -19,7 +24,7 @@ class AC_Column_Actions extends AC_Column {
 	 * @since 2.2.6
 	 */
 	public function get_value( $id ) {
-		if ( $this->get_option( 'use_icons' ) ) {
+		if ( $this->get_setting( 'use_icons' )->get_value() ) {
 			return '<span class="cpac_use_icons"></span>';
 		}
 
@@ -27,7 +32,7 @@ class AC_Column_Actions extends AC_Column {
 	}
 
 	public function register_settings() {
-		$this->add_setting( new AC_Settings_Column_ActionIcons( $this ) );
+		$this->add_setting( new Settings\Column\ActionIcons( $this ) );
 	}
 
 }

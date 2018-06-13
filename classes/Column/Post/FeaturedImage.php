@@ -1,32 +1,29 @@
 <?php
 
+namespace AC\Column\Post;
+
+use AC\Column;
+use AC\Settings;
+
 /**
  * @since 2.0
  */
-class AC_Column_Post_FeaturedImage extends AC_Column_Meta {
+class FeaturedImage extends Column\Meta {
 
 	public function __construct() {
 		$this->set_type( 'column-featured_image' );
 		$this->set_label( __( 'Featured Image', 'codepress-admin-columns' ) );
 	}
 
-	// Meta
-
 	public function get_meta_key() {
 		return '_thumbnail_id';
 	}
 
-	// Display
-
-	public function get_value( $post_id ) {
-		$value = parent::get_value( $post_id );
+	public function get_value( $id ) {
+		$value = parent::get_value( $id );
 
 		if ( ! $value ) {
-			return false;
-		}
-
-		if ( $link = get_edit_post_link( $post_id ) ) {
-			$value = ac_helper()->html->link( $link . '#postimagediv', $value );
+			return $this->get_empty_char();
 		}
 
 		return $value;
@@ -48,7 +45,7 @@ class AC_Column_Post_FeaturedImage extends AC_Column_Meta {
 	}
 
 	public function register_settings() {
-		$this->add_setting( new AC_Settings_Column_Image( $this ) );
+		$this->add_setting( new Settings\Column\Image( $this ) );
 	}
 
 	public function is_valid() {

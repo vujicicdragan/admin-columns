@@ -1,6 +1,8 @@
 <?php
 
-class AC_Helper_Icon {
+namespace AC\Helper;
+
+class Icon {
 
 	public function dashicon( $args = array() ) {
 		$defaults = array(
@@ -33,6 +35,11 @@ class AC_Helper_Icon {
 
 	/**
 	 * @since 3.0
+	 *
+	 * @param string $tooltip
+	 * @param string $title
+	 * @param string $class
+	 *
 	 * @return string
 	 */
 	public function yes( $tooltip = false, $title = true, $class = 'green' ) {

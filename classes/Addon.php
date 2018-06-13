@@ -1,6 +1,8 @@
 <?php
 
-class AC_Addon {
+namespace AC;
+
+abstract class Addon {
 
 	/**
 	 * @var string
@@ -275,8 +277,8 @@ class AC_Addon {
 	 *
 	 * @return string
 	 */
-	public function get_activation_url( $basename ) {
-		return $this->get_plugin_action_url( 'activate', $basename );
+	public function get_dir() {
+		return plugin_dir_path( $this->get_file() );
 	}
 
 	/**
@@ -321,25 +323,30 @@ class AC_Addon {
 	 *
 	 * @return string
 	 */
-	public function get_plugin_url() {
-		if ( null === $this->plugin_url ) {
-			$this->set_plugin_url( add_query_arg( array(
-				'tab'  => 'search',
-				'type' => 'term',
-				's'    => $this->get_title(),
-			), admin_url( 'plugin-install.php' ) ) );
-		}
-
-		return $this->plugin_url;
+	public function get_url() {
+		return plugin_dir_url( $this->get_file() );
 	}
 
 	/**
-	 * Show notice on admin page only
+	 * @return string
 	 *
-	 * @return bool
+	 * @deprecated
 	 */
-	public function show_missing_notice_on_current_page() {
-		return AC()->admin()->is_admin_screen() || AC()->table_screen()->get_current_list_screen();
+	public function get_plugin_url() {
+		_deprecated_function( __METHOD__, '3.2', 'AC\Addon::get_url()' );
+
+		return $this->get_url();
+	}
+
+	/**
+	 * @return string
+	 *
+	 * @deprecated
+	 */
+	public function get_plugin_dir() {
+		_deprecated_function( __METHOD__, '3.2', 'AC\Addon::get_dir()' );
+
+		return $this->get_dir();
 	}
 
 }

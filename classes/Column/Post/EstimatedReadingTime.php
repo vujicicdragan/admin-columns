@@ -1,9 +1,14 @@
 <?php
 
+namespace AC\Column\Post;
+
+use AC\Column;
+use AC\Settings;
+
 /**
  * @since 2.3.3
  */
-class AC_Column_Post_EstimatedReadingTime extends AC_Column {
+class EstimatedReadingTime extends Column {
 
 	public function __construct() {
 		$this->set_type( 'column-estimated_reading_time' );
@@ -14,7 +19,7 @@ class AC_Column_Post_EstimatedReadingTime extends AC_Column {
 	 * Estimate read time in seconds
 	 * @since 2.3.3
 	 *
-	 * @return int Seconds
+	 * @return string Raw Post Content
 	 */
 	public function get_raw_value( $post_id ) {
 		return ac_helper()->post->get_raw_field( 'post_content', $post_id );
@@ -25,7 +30,7 @@ class AC_Column_Post_EstimatedReadingTime extends AC_Column {
 	}
 
 	public function register_settings() {
-		$this->add_setting( new AC_Settings_Column_WordsPerMinute( $this ) );
+		$this->add_setting( new Settings\Column\WordsPerMinute( $this ) );
 	}
 
 }

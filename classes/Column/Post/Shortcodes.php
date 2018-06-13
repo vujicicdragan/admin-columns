@@ -1,11 +1,15 @@
 <?php
 
+namespace AC\Column\Post;
+
+use AC\Column;
+
 /**
  * Display used shortcodes
  *
  * @since 2.3.5
  */
-class AC_Column_Post_Shortcodes extends AC_Column {
+class Shortcodes extends Column {
 
 	public function __construct() {
 		$this->set_type( 'column-shortcode' );
@@ -45,9 +49,13 @@ class AC_Column_Post_Shortcodes extends AC_Column {
 		$_shortcodes = array_keys( $shortcode_tags );
 		asort( $_shortcodes );
 
-		foreach ( $_shortcodes as $sc ) {
-			if ( $count = substr_count( $content, '[' . $sc ) ) {
-				$shortcodes[ $sc ] = $count;
+		foreach ( $_shortcodes as $shortcode ) {
+
+			$count = substr_count( $content, '[' . $shortcode . ']' );
+			$count += substr_count( $content, '[' . $shortcode . ' ' );
+
+			if ( $count ) {
+				$shortcodes[ $shortcode ] = $count;
 			}
 		}
 

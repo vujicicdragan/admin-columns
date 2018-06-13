@@ -1,6 +1,8 @@
 <?php
 
-class AC_Helper_Image {
+namespace AC\Helper;
+
+class Image {
 
 	/**
 	 * Resize image
@@ -13,7 +15,7 @@ class AC_Helper_Image {
 	 * @param null|string $dest_path
 	 * @param int         $jpeg_quality
 	 *
-	 * @return bool|string|WP_Error
+	 * @return bool|string|\WP_Error
 	 */
 	public function resize( $file, $max_w, $max_h, $crop = false, $suffix = null, $dest_path = null, $jpeg_quality = 90 ) {
 		$editor = wp_get_image_editor( $file );
@@ -104,7 +106,7 @@ class AC_Helper_Image {
 	 * @return string
 	 */
 	public function get_image_by_url( $url, $size ) {
-		$dimensions = array( 80, 80 );
+		$dimensions = array( 60, 60 );
 
 		if ( is_string( $size ) && ( $sizes = $this->get_image_sizes_by_name( $size ) ) ) {
 			$dimensions = array( $sizes['width'], $sizes['height'] );
@@ -305,7 +307,7 @@ class AC_Helper_Image {
 			return array();
 		}
 
-		$dom = new DOMDocument;
+		$dom = new \DOMDocument;
 		@$dom->loadHTML( $string );
 		$dom->preserveWhiteSpace = false;
 
@@ -315,7 +317,7 @@ class AC_Helper_Image {
 
 		foreach ( $images as $img ) {
 
-			/** @var DOMElement $img */
+			/** @var \DOMElement $img */
 			$urls[] = $img->getAttribute( 'src' );
 		}
 

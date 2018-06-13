@@ -1,22 +1,33 @@
 {
-    "name": "Codepress",
-    "version": "1.0.0",
-    "description": "Gulp",
-    "private": true,
-    "dependencies": {
-        "gulp": "*",
-        "gulp-util": "*",
-        "gulp-livereload": "*",
-        "gulp-plumber": "*",
-        "gulp-rename": "*",
-        "gulp-sass": "2.3.2",
-        "gulp-uglify": "2.1.2",
-        "gulp-cssnano": "2.1.2",
-        "gulp-concat": "*",
-        "gulp-wp-pot": "*",
-        "gulp-gettext": "*",
-        "gulp-iconfont": "4.0.0",
-        "gulp-consolidate": "0.1.2",
-        "lodash": "3.10.0"
-    }
+  "name": "admincolumns",
+  "version": "1.0.0",
+  "description": "Sass and JS for Admin Columns",
+  "private": true,
+  "devDependencies": {
+    "nps": "latest",
+    "wp-pot": "latest",
+    "babel-cli": "latest",
+    "babel-preset-es2015": "latest",
+    "node-sass": "latest",
+    "rimraf": "latest",
+    "svg-symbols": "1.0.4",
+    "svgstore-cli": "1.3.1",
+    "webfont": "8.1.2"
+  },
+  "scripts": {
+    "ac:build:production": "nps build.production && npm run ac:languages",
+    "ac:build:development": "nps build.development",
+    "ac:languages": "nps languages.production",
+    "ac:webfont": "nps webfont.build",
+    "ac:svgsymbols": "svgstore ./svg-symbols/*.svg -o ../assets/images/symbols.svg"
+  },
+  "webfont": {
+    "formats": "woff",
+    "template": "./webfont/template.scss.njk",
+    "fontName": "cpac_icons",
+    "fontHeight": "1000",
+    "cssTemplateFontPath": "../fonts/",
+    "cssTemplateClassName": "cpacicon",
+    "normalize": true
+  }
 }
