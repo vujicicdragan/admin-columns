@@ -593,7 +593,6 @@ abstract class ListScreen {
 				continue;
 			}
 
-			// TODO: change to string class?
 			$column = new Column();
 
 			$column->set_original( true )

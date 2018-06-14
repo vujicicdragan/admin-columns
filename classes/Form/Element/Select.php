@@ -38,11 +38,20 @@ class Select extends Element {
 		$attributes = array();
 		$attributes['value'] = $key;
 
-		if ( selected( $this->get_value(), $key, false ) ) {
+		if ( $this->selected( $key ) ) {
 			$attributes['selected'] = 'selected';
 		}
 
 		return $attributes;
+	}
+
+	/**
+	 * @param string $key
+	 *
+	 * @return bool
+	 */
+	protected function selected( $key ) {
+		return (bool) selected( $this->get_value(), $key, false );
 	}
 
 	/**
@@ -62,7 +71,7 @@ class Select extends Element {
 	}
 
 	public function render() {
-		if ( ! $this->get_options() ) {
+		if ( ! $this->get_options() && $this->get_no_result() ) {
 			return $this->get_no_result();
 		}
 
