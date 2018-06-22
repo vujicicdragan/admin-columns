@@ -263,6 +263,9 @@ class Column {
 		return $this->get_settings()->get( $id );
 	}
 
+	/**
+	 * @return Settings\FormatCollection[]|Settings\FormatValue[]
+	 */
 	public function get_formatters() {
 		if ( null === $this->formatters ) {
 			foreach ( $this->get_settings() as $setting ) {

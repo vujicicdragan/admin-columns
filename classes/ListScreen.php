@@ -128,6 +128,11 @@ abstract class ListScreen {
 	private $store_object;
 
 	/**
+	 * @var int
+	 */
+	private $menu_order;
+
+	/**
 	 * Contains the hook that contains the manage_value callback
 	 *
 	 * @return void
@@ -162,6 +167,7 @@ abstract class ListScreen {
 			$this->set_read_only( $data['read_only'] );
 		}
 
+		// TODO
 		$this->set_original_columns( get_option( Store\DB::COLUMNS_KEY . $this->get_type() . "__default", array() ) );
 	}
 
@@ -220,7 +226,7 @@ abstract class ListScreen {
 	}
 
 	/**
->>>>>>> develop
+	 * >>>>>>> develop
 	 * @return string
 	 */
 	public function get_label() {
@@ -274,6 +280,24 @@ abstract class ListScreen {
 	 */
 	protected function set_meta_type( $meta_type ) {
 		$this->meta_type = $meta_type;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_menu_order() {
+		return $this->menu_order;
+	}
+
+	/**
+	 * @param int $menu_order
+	 *
+	 * @return self
+	 */
+	protected function set_menu_order( $menu_order ) {
+		$this->menu_order = intval( $menu_order );
 
 		return $this;
 	}
@@ -794,13 +818,6 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @since 2.0
-	 */
-	public function get_edit_link() {
-		return add_query_arg( array( 'list_screen' => $this->get_type(), 'layout_id' => $this->get_id(), 'store_type' => $this->get_store_object()->get_store_type() ), AC()->admin_columns_screen()->get_link() );
-	}
-
-	/**
 	 * @since 2.0.3
 	 *
 	 * @param \WP_Screen $screen
@@ -808,7 +825,7 @@ abstract class ListScreen {
 	 * @return boolean
 	 */
 	public function is_current_screen( $wp_screen ) {
-		return $wp_screen && $wp_screen->id === $this->get_screen_id() && $wp_screen->base === $this->get_screen_base();
+		return $wp_screen instanceof \WP_Screen && $wp_screen->id === $this->get_screen_id() && $wp_screen->base === $this->get_screen_base();
 	}
 
 	/**
@@ -817,11 +834,12 @@ abstract class ListScreen {
 	private function update() {
 
 		$data = array(
-			'columns' => $this->get_settings(),
-			'id'      => $this->get_id(),
-			'name'    => $this->get_custom_label(),
-			'roles'   => $this->get_roles(),
-			'users'   => $this->get_users(),
+			'columns'    => $this->get_settings(),
+			'id'         => $this->get_id(),
+			'name'       => $this->get_custom_label(),
+			'roles'      => $this->get_roles(),
+			'users'      => $this->get_users(),
+			'menu_order' => $this->get_menu_order(),
 		);
 
 		$result = $this->get_store_object()->update( $data );
@@ -896,6 +914,16 @@ abstract class ListScreen {
 		_deprecated_function( __METHOD__, 'NEWVERSION', 'AC\ListScreen::get_original_columns()' );
 
 		return array();
+	}
+
+	/**
+	 * @since 2.0
+	 * @deprecated NEWVERSION
+	 */
+	public function get_edit_link() {
+		_deprecated_function( __METHOD__, 'NEWVERSION', 'AC()->admin_columns_screen()->get_edit_link' );
+
+		return AC()->admin_columns_screen()->get_edit_link( $this );
 	}
 
 }

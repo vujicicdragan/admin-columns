@@ -65,8 +65,10 @@ class AdminColumns extends Plugin {
 
 		// Init
 		$this->addons = new Admin\Addons();
-		$this->table_screen = new Table\Screen();
 		$this->api = new API();
+
+		$this->table_screen = new Table\Screen();
+		$this->table_screen->register();
 
 		$this->admin = new Admin();
 		$this->admin->register();

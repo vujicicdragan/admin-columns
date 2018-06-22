@@ -19,7 +19,7 @@ final class Screen {
 	 */
 	private $list_screen;
 
-	public function __construct() {
+	public function register() {
 		add_action( 'current_screen', array( $this, 'load_list_screen' ) );
 		add_action( 'admin_init', array( $this, 'load_list_screen_doing_quick_edit' ) );
 		add_filter( 'list_table_primary_column', array( $this, 'set_primary_column' ), 20 );
@@ -410,7 +410,7 @@ final class Screen {
 			return false;
 		}
 
-		return $list_screen->get_edit_link();
+		return AC()->admin_columns_screen()->get_edit_link( $list_screen );
 	}
 
 	/**

@@ -89,6 +89,15 @@ class Columns extends Page {
 	}
 
 	/**
+	 * @param ListScreen $list_screen
+	 *
+	 * @return string
+	 */
+	public function get_edit_link( ListScreen $list_screen ) {
+		return add_query_arg( array( 'list_screen' => $list_screen->get_type(), 'listscreen_id' => $list_screen->get_id(), 'store_type' => $list_screen->get_store_object()->get_store_type() ), $this->get_link() );
+	}
+
+	/**
 	 * @return ListScreen
 	 */
 	private function get_requested_list_screen() {
@@ -106,7 +115,7 @@ class Columns extends Page {
 			$type = key( AC()->get_list_screens() );
 		}
 
-		$list_screen = ListScreenFactory::create( $type, filter_input( INPUT_GET, 'layout_id' ), filter_input( INPUT_GET, 'store_type' ) );
+		$list_screen = ListScreenFactory::create( $type, filter_input( INPUT_GET, 'listscreen_id' ), filter_input( INPUT_GET, 'store_type' ) );
 
 		if ( ! $list_screen->exists() ) {
 			$list_screen = ListScreenFactory::create( $type, $this->preferences()->get( $type . '_id' ), $this->preferences()->get( $type . '_store_type' ) );
