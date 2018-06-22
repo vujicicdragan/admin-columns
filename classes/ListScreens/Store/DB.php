@@ -20,14 +20,14 @@ class DB extends Store {
 	 * @return string $key
 	 */
 	private function settings_key() {
-		return self::SETTINGS_KEY . $this->list_screen->get_type() . $this->list_screen->get_id();
+		return self::SETTINGS_KEY . $this->type . $this->id;
 	}
 
 	/**
 	 * @return string $key
 	 */
 	private function columns_key() {
-		return self::COLUMNS_KEY . $this->list_screen->get_type() . $this->list_screen->get_id();
+		return self::COLUMNS_KEY . $this->type . $this->id;
 	}
 
 	/**

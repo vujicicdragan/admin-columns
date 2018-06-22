@@ -11,7 +11,7 @@ class PHP extends Store {
 	}
 
 	public function read() {
-		$raw_data = AC()->api()->get_data_per_type( $this->list_screen->get_type() );
+		$raw_data = AC()->api()->get_data_per_type( $this->type );
 
 		if ( ! $raw_data ) {
 			return false;
@@ -20,7 +20,7 @@ class PHP extends Store {
 		$data = array();
 
 		foreach ( $raw_data as $list_screen ) {
-			if ( $list_screen['id'] == $this->list_screen->get_id() ) {
+			if ( $list_screen['id'] == $this->id ) {
 				$data = $list_screen;
 				break;
 			}

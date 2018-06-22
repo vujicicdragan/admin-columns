@@ -18,26 +18,29 @@ class DB extends Repo {
 		if ( empty( $ids ) ) {
 			$ids = array();
 
-			$key = Store\DB::SETTINGS_KEY . $this->get_type();
+			$prefix = Store\DB::COLUMNS_KEY . $this->get_type();
 
-			$results = $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value != '' ORDER BY option_id DESC", $wpdb->esc_like( $key ) . '%' ) );
+			$sql = $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( $prefix ) . '%' );
+			$keys = $wpdb->get_col( $sql );
 
-			if ( $results ) {
-				foreach ( $results as $result ) {
+			if ( $keys ) {
 
-					$data = maybe_unserialize( $result->option_value );
+				foreach ( $keys as $key ) {
 
-					if ( ! $data ) {
-						continue;
+					$id = str_replace( $prefix, '', $key );
+
+					// TODO
+					if ( '' === $id ) {
+						$ids[] = '';
 					}
 
-					// Removes incorrect layouts.
-					// For example when a list screen is called "Car" and one called "Carrot"
-					if ( strlen( $result->option_name ) !== strlen( $key . $data->id ) ) {
-						continue;
+					if ( '__default' === $id ) {
+						$ids[] = '';
 					}
 
-					$ids[] = $data->id;
+					if ( 13 === strlen( $id ) ) {
+						$ids[] = $id;
+					}
 				}
 			}
 

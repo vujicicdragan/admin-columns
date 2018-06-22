@@ -2,14 +2,17 @@
 
 namespace AC\ListScreens;
 
-use AC\ListScreen;
-
 abstract class Store {
 
 	/**
-	 * @var ListScreen
+	 * @var string
 	 */
-	protected $list_screen;
+	protected $type;
+
+	/**
+	 * @var string
+	 */
+	protected $id;
 
 	/**
 	 * ListScreen data. Contains settings for columns and general
@@ -36,8 +39,13 @@ abstract class Store {
 	 */
 	abstract public function get_store_type();
 
-	public function __construct( ListScreen $list_screen ) {
-		$this->list_screen = $list_screen;
+	/**
+	 * @param string $type
+	 * @param string $id
+	 */
+	public function __construct( $type, $id ) {
+		$this->type = $type;
+		$this->id = $id;
 	}
 
 }
