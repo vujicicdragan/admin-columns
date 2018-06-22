@@ -184,7 +184,7 @@ class Columns extends Page {
 			case 'restore_by_type' :
 				if ( $this->verify_nonce( 'restore-type' ) ) {
 
-					$list_screen = ListScreenFactory::create( filter_input( INPUT_POST, 'list_screen' ), filter_input( INPUT_POST, 'layout' ) );
+					$list_screen = ListScreenFactory::create( filter_input( INPUT_POST, 'list_screen' ), filter_input( INPUT_POST, 'list_screen_type' ) );
 					$list_screen->set_settings( array() )
 					            ->save();
 
@@ -590,7 +590,7 @@ class Columns extends Page {
 
 							<form class="form-reset" method="post">
 								<input type="hidden" name="list_screen" value="<?php echo esc_attr( $list_screen->get_type() ); ?>"/>
-								<input type="hidden" name="layout" value="<?php echo esc_attr( $list_screen->get_id() ); ?>"/>
+								<input type="hidden" name="list_screen_id" value="<?php echo esc_attr( $list_screen->get_id() ); ?>"/>
 								<input type="hidden" name="action" value="restore_by_type"/>
 
 								<?php $this->nonce_field( 'restore-type' ); ?>

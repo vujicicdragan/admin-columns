@@ -162,7 +162,7 @@ abstract class ListScreen {
 
 		$this->id = $id;
 
-		foreach ( $this->store->read() as $key => $value ) {
+		foreach ( $data as $key => $value ) {
 			switch ( $key ) {
 				case 'columns':
 					$this->set_settings( $value );
@@ -692,7 +692,7 @@ abstract class ListScreen {
 	public function get_screen_link() {
 		return add_query_arg(
 			array(
-				'layout' => $this->get_id(),
+				'list_screen_id' => $this->get_id(),
 			),
 			$this->get_admin_url()
 		);

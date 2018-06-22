@@ -58,7 +58,7 @@ final class Screen {
 		}
 
 		// Requested
-		$list_screen = ListScreenFactory::create( $type, filter_input( INPUT_GET, 'layout' ), filter_input( INPUT_GET, 'store_type' ) );
+		$list_screen = ListScreenFactory::create( $type, filter_input( INPUT_GET, 'list_screen_id' ), filter_input( INPUT_GET, 'store_type' ) );
 
 		// Preference
 		if ( ! $this->is_current_user_eligible( $list_screen ) ) {
@@ -621,9 +621,9 @@ final class Screen {
 					<?php _e( 'Switch View', 'codepress-admin-columns' ); ?>
 				</label>
 				<span class="spinner"></span>
-				<select id="column-view-selector" name="layout" <?php echo ac_helper()->html->get_tooltip_attr( __( 'Switch View', 'codepress-admin-columns' ) ); ?>>
+				<select id="column-view-selector" name="list_screen_id" <?php echo ac_helper()->html->get_tooltip_attr( __( 'Switch View', 'codepress-admin-columns' ) ); ?>>
 					<?php foreach ( $list_screens as $_list_screens ) : ?>
-						<option value="<?php echo add_query_arg( array( 'layout' => $_list_screens->get_id(), 'list_screen' => $_list_screens->get_type() ), $link ); ?>"<?php selected( $_list_screens->get_id(), $current_screen->get_id() ); ?>><?php echo esc_html( $_list_screens->get_custom_label() ); ?></option>
+						<option value="<?php echo add_query_arg( array( 'list_screen_id' => $_list_screens->get_id(), 'list_screen' => $_list_screens->get_type() ), $link ); ?>"<?php selected( $_list_screens->get_id(), $current_screen->get_id() ); ?>><?php echo esc_html( $_list_screens->get_custom_label() ); ?></option>
 					<?php endforeach; ?>
 				</select>
 				<script type="text/javascript">

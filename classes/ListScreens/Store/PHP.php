@@ -10,7 +10,7 @@ class PHP extends Store {
 		return 'php';
 	}
 
-	public function read() {
+	public function read( $id ) {
 		$raw_data = AC()->api()->get_data_per_type( $this->type );
 
 		if ( ! $raw_data ) {
@@ -20,7 +20,7 @@ class PHP extends Store {
 		$data = array();
 
 		foreach ( $raw_data as $list_screen ) {
-			if ( $list_screen['id'] == $this->id ) {
+			if ( $list_screen['id'] == $id ) {
 				$data = $list_screen;
 				break;
 			}
@@ -29,11 +29,11 @@ class PHP extends Store {
 		return $data;
 	}
 
-	public function update( $data ) {
+	public function update( $id, $data ) {
 		return true;
 	}
 
-	public function delete() {
+	public function delete( $id ) {
 		return true;
 	}
 

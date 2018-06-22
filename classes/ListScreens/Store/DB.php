@@ -20,22 +20,24 @@ class DB extends Store {
 	 * @return string $key
 	 */
 	private function settings_key() {
-		return self::SETTINGS_KEY . $this->type . $this->id;
+		return self::SETTINGS_KEY . $this->type;
 	}
 
 	/**
 	 * @return string $key
 	 */
 	private function columns_key() {
-		return self::COLUMNS_KEY . $this->type . $this->id;
+		return self::COLUMNS_KEY . $this->type;
 	}
 
 	/**
+	 * @param string $id
+	 *
 	 * @return array|false
 	 */
-	public function read() {
-		$columns = get_option( $this->columns_key(), array() );
-		$settings = (array) get_option( $this->settings_key(), array() ); // stored as object
+	public function read( $id ) {
+		$columns = get_option( $this->columns_key() . $id, array() );
+		$settings = (array) get_option( $this->settings_key() . $id, array() ); // stored as object
 
 		if ( empty( $settings ) && empty( $columns ) ) {
 			return false;
@@ -51,11 +53,12 @@ class DB extends Store {
 	}
 
 	/**
-	 * @param array $data
+	 * @param string $id
+	 * @param array  $data
 	 *
 	 * @return bool
 	 */
-	public function update( $data ) {
+	public function update( $id, $data ) {
 		if ( empty( $data ) ) {
 			return false;
 		}
@@ -63,17 +66,17 @@ class DB extends Store {
 		$columns = isset( $data['columns'] ) ? $data['columns'] : array();
 		unset( $data['columns'] );
 
-		update_option( $this->settings_key(), (object) $data );
+		update_option( $this->settings_key() . $id, (object) $data );
 
-		return update_option( $this->columns_key(), (array) $columns );
+		return update_option( $this->columns_key() . $id, (array) $columns );
 	}
 
 	/**
 	 * Delete stored data
 	 */
-	public function delete() {
-		delete_option( $this->columns_key() );
-		delete_option( $this->settings_key() );
+	public function delete( $id ) {
+		delete_option( $this->columns_key() . $id );
+		delete_option( $this->settings_key() . $id );
 
 		return true;
 	}

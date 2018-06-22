@@ -18,21 +18,26 @@ abstract class Store {
 	 * ListScreen data. Contains settings for columns and general
 	 * listscreen properties, e.g. users, roles and name.
 	 *
+	 * @param string $id
+	 *
 	 * @return array|false False when no data can be retrieved
 	 */
-	abstract public function read();
+	abstract public function read( $id );
 
 	/**
-	 * @param array $data
+	 * @param string $id
+	 * @param array  $data
 	 *
 	 * @return bool
 	 */
-	abstract public function update( $data );
+	abstract public function update( $id, $data );
 
 	/**
+	 * @param string $id
+	 *
 	 * @return bool
 	 */
-	abstract public function delete();
+	abstract public function delete( $id );
 
 	/**
 	 * @return string
@@ -41,11 +46,9 @@ abstract class Store {
 
 	/**
 	 * @param string $type
-	 * @param string $id
 	 */
-	public function __construct( $type, $id ) {
+	public function __construct( $type ) {
 		$this->type = $type;
-		$this->id = $id;
 	}
 
 }
