@@ -57,38 +57,10 @@ abstract class ListScreen {
 	private $meta_type;
 
 	/**
-	 * Page menu slug. Applies only when a menu page is used.
-	 *
-	 * @since 2.4.10
-	 * @var string
-	 */
-	private $page;
-
-	/**
 	 * Group slug. Used for menu.
 	 * @var string
 	 */
 	private $group;
-
-	/**
-	 * Name of the base PHP file (without extension).
-	 *
-	 * @see   \WP_Screen::base
-	 *
-	 * @since 2.0
-	 * @var string
-	 */
-	private $screen_base;
-
-	/**
-	 * The unique ID of the screen.
-	 *
-	 * @see   \WP_Screen::id
-	 *
-	 * @since 2.5
-	 * @var string
-	 */
-	private $screen_id;
 
 	/**
 	 * @since 2.0.1
@@ -125,12 +97,27 @@ abstract class ListScreen {
 	/**
 	 * @var Store
 	 */
-	private $store_object;
+	private $store;
 
 	/**
-	 * @var int
+	 * @param string     $type
+	 * @param string     $group
+	 * @param string     $meta_type
+	 * @param string     $label
+	 * @param Store|null $store
 	 */
-	private $menu_order;
+	public function __construct( $type, $group, $meta_type, $label, Store $store = null ) {
+		if ( null === $store ) {
+			$store = new Store\DB( $type );
+		}
+
+		$this->store = $store;
+		$this->type = $type;
+		$this->group = $group;
+		$this->meta_type = $meta_type;
+		$this->label = $label;
+		$this->singular_label = $label;
+	}
 
 	/**
 	 * Contains the hook that contains the manage_value callback
@@ -141,34 +128,64 @@ abstract class ListScreen {
 
 	/**
 	 * Register column types
+	 *
 	 * @return void
 	 */
 	abstract protected function register_column_types();
 
 	/**
-	 * Load all data
+	 * Check if this ListScreen is the current
+	 *
+	 * @param \WP_Screen $screen
+	 *
+	 * @since 2.0.3
+	 * @return bool
 	 */
-	public function load() {
-		$data = $this->get_store_object()->read();
+	abstract public function is_current_screen( \WP_Screen $screen );
 
-		if ( isset( $data['columns'] ) ) {
-			$this->set_settings( $data['columns'] );
+	/**
+	 * @return string
+	 */
+	abstract protected function get_screen_base();
+
+	/**
+	 * Load all data
+	 *
+	 * @return bool
+	 */
+	public function load( $id ) {
+		$data = $this->store->read( $id );
+
+		if ( empty( $data ) ) {
+			return false;
 		}
-		if ( isset( $data['name'] ) ) {
-			$this->set_custom_label( $data['name'] );
-		}
-		if ( isset( $data['users'] ) ) {
-			$this->set_users( $data['users'] );
-		}
-		if ( isset( $data['roles'] ) ) {
-			$this->set_roles( $data['roles'] );
-		}
-		if ( isset( $data['read_only'] ) ) {
-			$this->set_read_only( $data['read_only'] );
+
+		$this->id = $id;
+
+		foreach ( $this->store->read() as $key => $value ) {
+			switch ( $key ) {
+				case 'columns':
+					$this->set_settings( $value );
+					break;
+				case 'name':
+					$this->set_custom_label( $value );
+					break;
+				case 'users':
+					$this->set_users( $value );
+					break;
+				case 'roles':
+					$this->set_roles( $value );
+					break;
+				case 'read_only':
+					$this->set_read_only( $value );
+					break;
+			}
 		}
 
 		// TODO
-		$this->set_original_columns( get_option( Store\DB::COLUMNS_KEY . $this->get_type() . "__default", array() ) );
+		$this->set_original_columns( get_option( Store\DB::COLUMNS_KEY . $this->get_type() . '__default', array() ) );
+
+		return true;
 	}
 
 	/**
@@ -179,17 +196,6 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param string $id
-	 *
-	 * @return self
-	 */
-	public function set_id( $id ) {
-		$this->id = $id;
-
-		return $this;
-	}
-
-	/**
 	 * @return string
 	 */
 	public function get_type() {
@@ -197,73 +203,10 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param string $type
-	 *
-	 * @return self
-	 */
-	public function set_type( $type ) {
-		$this->type = $type;
-
-		return $this;
-	}
-
-	/**
-	 * @return Store
-	 */
-	public function get_store_object() {
-		return $this->store_object;
-	}
-
-	/**
-	 * @param Store $store_object
-	 *
-	 * @return self
-	 */
-	public function set_store_object( $store_object ) {
-		$this->store_object = $store_object;
-
-		return $this;
-	}
-
-	/**
-	 * >>>>>>> develop
 	 * @return string
 	 */
 	public function get_label() {
 		return $this->label;
-	}
-
-	/**
-	 * @param string $label
-	 *
-	 * @return self
-	 */
-	protected function set_label( $label ) {
-		$this->label = $label;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function get_singular_label() {
-		if ( null === $this->singular_label ) {
-			$this->set_singular_label( $this->label );
-		}
-
-		return $this->singular_label;
-	}
-
-	/**
-	 * @param string $label
-	 *
-	 * @return self
-	 */
-	protected function set_singular_label( $label ) {
-		$this->singular_label = $label;
-
-		return $this;
 	}
 
 	/**
@@ -274,89 +217,6 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param string $meta_type
-	 *
-	 * @return self
-	 */
-	protected function set_meta_type( $meta_type ) {
-		$this->meta_type = $meta_type;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function get_menu_order() {
-		return $this->menu_order;
-	}
-
-	/**
-	 * @param int $menu_order
-	 *
-	 * @return self
-	 */
-	protected function set_menu_order( $menu_order ) {
-		$this->menu_order = intval( $menu_order );
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function get_screen_base() {
-		return $this->screen_base;
-	}
-
-	/**
-	 * @param string $screen_base
-	 *
-	 * @return self
-	 */
-	protected function set_screen_base( $screen_base ) {
-		$this->screen_base = $screen_base;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function get_screen_id() {
-		return $this->screen_id;
-	}
-
-	/**
-	 * @param string $screen_id
-	 *
-	 * @return self
-	 */
-	protected function set_screen_id( $screen_id ) {
-		$this->screen_id = $screen_id;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function get_page() {
-		return $this->page;
-	}
-
-	/**
-	 * @param string $page
-	 *
-	 * @return self
-	 */
-	protected function set_page( $page ) {
-		$this->page = $page;
-
-		return $this;
-	}
-
-	/**
 	 * @return string
 	 */
 	public function get_group() {
@@ -364,12 +224,26 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @param string $group
+	 * @return Store
+	 */
+	public function get_store() {
+		return $this->store;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_singular_label() {
+		return $this->singular_label;
+	}
+
+	/**
+	 * @param string $label
 	 *
 	 * @return self
 	 */
-	public function set_group( $group ) {
-		$this->group = $group;
+	protected function set_singular_label( $label ) {
+		$this->singular_label = $label;
 
 		return $this;
 	}
@@ -510,7 +384,7 @@ abstract class ListScreen {
 	 * @return string
 	 */
 	public function get_storage_key() {
-		return $this->get_type() . $this->get_id();
+		return $this->type . $this->get_id();
 	}
 
 	/**
@@ -813,36 +687,30 @@ abstract class ListScreen {
 	 * @since 2.0
 	 * @return string Link
 	 */
-	public function get_screen_link() {
-		return add_query_arg( array( 'page' => $this->get_page(), 'layout' => $this->get_id() ), $this->get_admin_url() );
-	}
 
-	/**
-	 * @since 2.0.3
-	 *
-	 * @param \WP_Screen $screen
-	 *
-	 * @return boolean
-	 */
-	public function is_current_screen( $wp_screen ) {
-		return $wp_screen instanceof \WP_Screen && $wp_screen->id === $this->get_screen_id() && $wp_screen->base === $this->get_screen_base();
+	// TODO: removed page
+	public function get_screen_link() {
+		return add_query_arg(
+			array(
+				'layout' => $this->get_id(),
+			),
+			$this->get_admin_url()
+		);
 	}
 
 	/**
 	 * @return bool
 	 */
 	private function update() {
-
 		$data = array(
-			'columns'    => $this->get_settings(),
-			'id'         => $this->get_id(),
-			'name'       => $this->get_custom_label(),
-			'roles'      => $this->get_roles(),
-			'users'      => $this->get_users(),
-			'menu_order' => $this->get_menu_order(),
+			'columns' => $this->get_settings(),
+			'id'      => $this->get_id(),
+			'name'    => $this->get_custom_label(),
+			'roles'   => $this->get_roles(),
+			'users'   => $this->get_users(),
 		);
 
-		$result = $this->get_store_object()->update( $data );
+		$result = $this->store->update( $data );
 
 		do_action_deprecated( 'ac/columns_stored', array( $this ), 'NEWVERSION' );
 
@@ -855,7 +723,7 @@ abstract class ListScreen {
 	 * Delete stored data
 	 */
 	public function delete() {
-		$this->get_store_object()->delete();
+		$this->store->delete();
 
 		do_action_deprecated( 'ac/columns_delete', array( $this ), 'NEWVERSION' );
 		do_action_deprecated( 'ac/layout/delete', array( $this ), 'NEWVERSION' );
@@ -870,7 +738,7 @@ abstract class ListScreen {
 	 */
 	public function save() {
 		if ( null === $this->get_id() ) {
-			$this->set_id( uniqid() );
+			$this->id = uniqid();
 		}
 
 		return $this->update();
@@ -879,8 +747,10 @@ abstract class ListScreen {
 	/**
 	 * @return bool List Screen contains data
 	 */
+
+	// TODO: remove in favor of load returning bool
 	public function exists() {
-		return false !== $this->get_store_object()->read();
+		return false !== $this->store->read();
 	}
 
 	/**
@@ -890,7 +760,7 @@ abstract class ListScreen {
 	public function get_key() {
 		_deprecated_function( __METHOD__, 'NEWVERSION', 'AC\ListScreen::get_type()' );
 
-		return $this->get_type();
+		return $this->type;
 	}
 
 	/**
@@ -901,7 +771,7 @@ abstract class ListScreen {
 	protected function set_key( $key ) {
 		_deprecated_function( __METHOD__, 'NEWVERSION', 'AC\ListScreen::set_type()' );
 
-		$this->set_type( $key );
+		$this->type = $key;
 
 		return $this;
 	}
@@ -917,7 +787,7 @@ abstract class ListScreen {
 	}
 
 	/**
-	 * @since 2.0
+	 * @since      2.0
 	 * @deprecated NEWVERSION
 	 */
 	public function get_edit_link() {
