@@ -2,7 +2,7 @@
 
 namespace AC;
 
-use AC\ListScreens\Store;
+use AC\ListScreens\StoreFactory;
 
 class ListScreenFactory {
 
@@ -24,7 +24,7 @@ class ListScreenFactory {
 
 		$list_screen->set_id( $id );
 
-		$store_object = Store\Factory::create( $store_type, $list_screen );
+		$store_object = StoreFactory::create( $store_type, $list_screen );
 
 		$list_screen->set_store_object( $store_object )
 		            ->load();

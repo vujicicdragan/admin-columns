@@ -1,10 +1,11 @@
 <?php
 
-namespace AC\ListScreens\Store;
+namespace AC\ListScreens;
 
-use AC\ListScreens\Store;
+use AC\ListScreens\Store\DB;
+use AC\ListScreens\Store\PHP;
 
-class Factory {
+class StoreFactory {
 
 	/**
 	 * @param string $type

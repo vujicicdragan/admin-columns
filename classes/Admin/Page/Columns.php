@@ -605,7 +605,7 @@ class Columns extends Page {
 						</div><!--form-actions-->
 					<?php endif; ?>
 
-					<?php do_action( 'ac/settings/sidebox', $list_screen ); ?>
+					<?php do_action( 'ac/settings/sidebox', $list_screen, $this ); ?>
 
 					<?php if ( apply_filters( 'ac/show_banner', true ) ) : ?>
 
