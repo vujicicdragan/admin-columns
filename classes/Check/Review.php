@@ -54,7 +54,7 @@ class Review
 			return;
 		}
 
-		wp_enqueue_script( 'ac-notice-review', AC()->get_url() . 'assets/js/message-review.js', array( 'jquery' ), AC()->get_version() );
+		wp_enqueue_script( 'ac-notice-review', AC()->get_url() . 'assets/js/message-review.js', array( 'jquery' ) );
 
 		$notice = new Message\Notice\Dismissible( $this->get_ajax_handler() );
 		$notice->set_message( $this->get_message() )

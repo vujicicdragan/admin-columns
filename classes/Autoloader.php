@@ -2,44 +2,63 @@
 
 namespace AC;
 
-class Autoloader {
+/**
+ * PSR-4 autoloader
+ */
+final class Autoloader {
 
 	/**
-	 * @var self;
+	 * @var array
 	 */
-	protected static $instance;
+	private $class_map = array();
 
 	/**
 	 * Register prefixes and their path
 	 *
 	 * @var string[]
 	 */
-	protected $prefixes;
+	private $prefixes = array();
 
-	protected function __construct() {
-		$this->prefixes = array();
-
+	/**
+	 * Register the SPL autoload
+	 */
+	public function register() {
 		spl_autoload_register( array( $this, 'autoload' ) );
 	}
 
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
+	/**
+	 * @return string[]
+	 */
+	public function get_prefixes() {
+		return $this->prefixes;
+	}
+
+	/**
+	 * @param array $prefixes
+	 *
+	 * @return $this
+	 */
+	public function set_prefixes( array $prefixes ) {
+		foreach ( $prefixes as $prefix => $path ) {
+			$this->add_prefix( $prefix, $path );
 		}
 
-		return self::$instance;
+		return $this;
 	}
 
 	/**
 	 * Register a prefix that should autoload
 	 *
-	 * @param $prefix string Unique prefix to this set of classes
-	 * @param $dir    string Path to directory where classes are stored
+	 * @param string $prefix
+	 * @param string $path
 	 *
 	 * @return $this
 	 */
-	public function register_prefix( $prefix, $dir ) {
-		$this->prefixes[ $prefix ] = trailingslashit( $dir );
+	public function add_prefix( $prefix, $path ) {
+		$prefix = rtrim( $prefix, '\\' ) . '\\';
+		$path = rtrim( $path . '/' ) . '/';
+
+		$this->prefixes[ $prefix ] = $path;
 
 		// make sure that more specific prefixes are checked first
 		krsort( $this->prefixes );
@@ -48,52 +67,21 @@ class Autoloader {
 	}
 
 	/**
-	 * @param $haystack
-	 * @param $needle
+	 * @param array $class_map
 	 *
-	 * @return false|string
+	 * @return $this
 	 */
-	protected function get_prefix( $class ) {
-		foreach ( array_keys( $this->prefixes ) as $prefix ) {
-			if ( 0 === strpos( $class, $prefix ) ) {
-				return $prefix;
-			}
-		}
+	public function set_class_map( array $class_map ) {
+		$this->class_map = $class_map;
 
-		return false;
+		return $this;
 	}
 
 	/**
-	 * @param $prefix
-	 *
-	 * @return false|string
+	 * @return array
 	 */
-	protected function get_path( $prefix ) {
-		if ( ! isset( $this->prefixes[ $prefix ] ) ) {
-			return false;
-		}
-
-		return $this->prefixes[ $prefix ];
-	}
-
-	/**
-	 * Get the path from a given namespace that has a registered prefix
-	 *
-	 * @param string $namespace
-	 *
-	 * @return false|string
-	 */
-	protected function get_path_from_namespace( $namespace ) {
-		$prefix = $this->get_prefix( $namespace );
-
-		if ( ! $prefix ) {
-			return false;
-		}
-
-		$path = $this->get_path( $prefix ) . substr( $namespace, strlen( $prefix ) );
-		$path = str_replace( '\\', '/', $path );
-
-		return $path;
+	public function get_class_map() {
+		return $this->class_map;
 	}
 
 	/**
@@ -102,43 +90,51 @@ class Autoloader {
 	 * @return bool
 	 */
 	public function autoload( $class ) {
-		$path = $this->get_path_from_namespace( $class );
-		$file = realpath( $path . '.php' );
+		if ( isset( $this->class_map[ $class ] ) ) {
+			return ac_include_file( $this->class_map[ $class ] );
+		}
+
+		$prefix = $this->get_prefix( $class );
+
+		if ( ! $prefix ) {
+			return false;
+		}
+
+		$file = $this->prefixes[ $prefix ] . substr( $class, strlen( $prefix ) );
+		$file = str_replace( '\\', '/', $file );
+		$file = realpath( $file . '.php' );
 
 		if ( ! $file ) {
 			return false;
 		}
 
-		require_once $file;
-
-		return true;
+		return ac_include_file( $file );
 	}
 
 	/**
-	 * Get list of all auto-loadable class names from a directory
+	 * @param string $class
 	 *
-	 * @param string $dir
-	 *
-	 * @return array
+	 * @return false|string
 	 */
-	public function get_class_names_from_dir( $namespace ) {
-		$path = $this->get_path_from_namespace( $namespace );
-		$path = realpath( $path );
-
-		if ( ! $path ) {
-			return array();
-		}
-
-		$iterator = new \FilesystemIterator( $path, \FilesystemIterator::SKIP_DOTS );
-		$classes = array();
-
-		/* @var \DirectoryIterator $leaf */
-		foreach ( $iterator as $leaf ) {
-			if ( 'php' === $leaf->getExtension() ) {
-				$classes[] = $namespace . '\\' . pathinfo( $leaf->getBasename(), PATHINFO_FILENAME );
+	private function get_prefix( $namespace ) {
+		foreach ( $this->prefixes as $prefix => $path ) {
+			if ( 0 === strpos( $namespace, $prefix ) ) {
+				return $prefix;
 			}
 		}
 
-		return $classes;
+		return false;
 	}
+
+}
+
+/**
+ * Scoped include file to prevent access to autoloader itself
+ *
+ * @param string $file
+ */
+function ac_include_file( $file ) {
+	include $file;
+
+	return true;
 }

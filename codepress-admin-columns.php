@@ -35,19 +35,16 @@ if ( ! is_admin() ) {
 	return;
 }
 
-define( 'AC_FILE', __FILE__ );
-
-require_once 'classes/Dependencies.php';
+// TODO
+//define( 'AC_FILE', __FILE__ );
 
 function ac_init() {
-	$dependencies = new AC_Dependencies( plugin_basename( AC_FILE ) );
-	$dependencies->check_php_version( '5.3' );
+	$dependencies = new AC\Dependencies( plugin_basename( __FILE__ ) );
+	$dependencies->check_php_version( '5.3.2' );
 
 	if ( $dependencies->has_missing() ) {
 		return;
 	}
-
-	require_once __DIR__ . '/bootstrap.php';
 }
 
 add_action( 'after_setup_theme', 'ac_init', 1 );

@@ -59,7 +59,7 @@ class Columns extends Page {
 		}
 
 		// Width slider
-		wp_enqueue_style( 'jquery-ui-lightness', AC()->get_url() . 'assets/ui-theme/jquery-ui-1.8.18.custom.css', array(), AC()->get_version() );
+		wp_enqueue_style( 'jquery-ui-lightness', AC()->get_url() . 'assets/ui-theme/jquery-ui-1.8.18.custom.css' );
 		wp_enqueue_script( 'jquery-ui-slider' );
 
 		wp_enqueue_script( 'ac-admin-page-columns', AC()->get_url() . "assets/js/admin-page-columns.js", array(
@@ -68,9 +68,9 @@ class Columns extends Page {
 			'jquery-ui-slider',
 			'jquery-ui-sortable',
 			'wp-pointer',
-		), AC()->get_version() );
+		) );
 
-		wp_enqueue_style( 'ac-admin-page-columns-css', AC()->get_url() . 'assets/css/admin-page-columns.css', array(), AC()->get_version() );
+		wp_enqueue_style( 'ac-admin-page-columns-css', AC()->get_url() . 'assets/css/admin-page-columns.css' );
 
 		wp_localize_script( 'ac-admin-page-columns', 'AC', array(
 			'_ajax_nonce'      => wp_create_nonce( 'ac-settings' ),

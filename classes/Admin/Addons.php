@@ -93,10 +93,15 @@ class Addons {
 	 */
 	private function set_addons() {
 		$this->addons = array();
-		$classes = AC\Autoloader::instance()->get_class_names_from_dir( __NAMESPACE__ . '\Addon' );
+		$iterator = new AC\FilesystemIterator( dirname( __FILE__ ) . '/Addon' );
 
-		foreach ( $classes as $class ) {
-			$this->addons[] = new $class;
+		/** @var AC\FileObject $leaf */
+		foreach ( $iterator as $leaf ) {
+			if ( $leaf->isPhpFile() ) {
+				$class = __NAMESPACE__ . '\Addon\\' . $leaf->getBasenameWithoutExtension();
+
+				$this->addons[] = new $class;
+			}
 		}
 	}
 

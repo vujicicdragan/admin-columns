@@ -1,11 +1,13 @@
 <?php
 
+namespace AC;
+
 /**
  * Show a notice when plugin dependencies are not met
  *
  * @version 1.4
  */
-final class AC_Dependencies {
+final class Dependencies {
 
 	/**
 	 * Missing dependency messages

@@ -2,11 +2,12 @@
 
 namespace AC;
 
+use AC\Asset\LocationFactory;
 use AC\Check;
 use AC\Table;
 use AC\ThirdParty;
 
-class AdminColumns extends Plugin {
+class AdminColumns {
 
 	/**
 	 * Admin Columns settings class instance
@@ -75,7 +76,8 @@ class AdminColumns extends Plugin {
 		$screen->register();
 
 		add_action( 'init', array( $this, 'init_capabilities' ) );
-		add_action( 'init', array( $this, 'install' ) );
+		// TODO: reactivate
+		//add_action( 'init', array( $this, 'install' ) );
 		add_action( 'init', array( $this, 'notice_checks' ) );
 		add_filter( 'plugin_action_links', array( $this, 'add_settings_link' ), 1, 2 );
 		add_action( 'plugins_loaded', array( $this, 'localize' ) );
@@ -93,27 +95,6 @@ class AdminColumns extends Plugin {
 		foreach ( $checks as $check ) {
 			$check->register();
 		}
-	}
-
-	/**
-	 * @return string
-	 */
-	protected function get_file() {
-		return AC_FILE;
-	}
-
-	/**
-	 * @return string
-	 */
-	protected function get_version_key() {
-		return 'ac_version';
-	}
-
-	/**
-	 * @return string
-	 */
-	public function get_version() {
-		return '3.2.3';
 	}
 
 	/**
@@ -138,7 +119,10 @@ class AdminColumns extends Plugin {
 	 * @see   filter:plugin_action_links
 	 */
 	public function add_settings_link( $links, $file ) {
-		if ( $file === $this->get_basename() ) {
+		// TODO test / refactor factory
+		$factory = new PluginFactory();
+
+		if ( $file === $factory->get_plugin( 'AC' )->get_basename() ) {
 			array_unshift( $links, ac_helper()->html->link( AC()->admin()->get_link( 'columns' ), __( 'Settings', 'codepress-admin-columns' ) ) );
 		}
 
@@ -365,4 +349,32 @@ class AdminColumns extends Plugin {
 		return ac_helper();
 	}
 
+	// TODO remove
+
+	/**
+	 * @return string
+	 */
+	protected function get_file() {
+		return AC_FILE;
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function get_version_key() {
+		return 'ac_version';
+	}
+
+	/**
+	 * @return string
+	 */
+
+	// TODO: this should simply work, and AC should have it's plugin file removed from the core (e.g. singleton != plugin)
+	public function get_version() {
+		return '3.2.3';
+	}
+
+	public function get_url() {
+		return LocationFactory::get_location( 'ac' )->get_url();
+	}
 }

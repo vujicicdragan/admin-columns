@@ -2,7 +2,54 @@
 
 namespace AC;
 
-abstract class Plugin extends Addon {
+use AC\Asset\Location;
+
+final class Plugin {
+
+	/**
+	 * @var string
+	 */
+	protected $file;
+
+	/**
+	 * @var Location[]
+	 */
+	protected $locations;
+
+	/**
+	 * @param string $file
+	 */
+	public function __construct( $file ) {
+		$this->file = $file;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_file() {
+		return $this->file;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_basename() {
+		return plugin_basename( $this->get_file() );
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_dir() {
+		return plugin_dir_path( $this->get_file() );
+	}
+
+	/**
+	 * @return string
+	 */
+	public function get_url() {
+		return plugin_dir_url( $this->get_file() );
+	}
 
 	/**
 	 * Check if plugin is network activated
@@ -40,7 +87,7 @@ abstract class Plugin extends Addon {
 	 *
 	 * @return false|string
 	 */
-	protected function get_header( $key ) {
+	public function get_header( $key ) {
 		$data = $this->get_data();
 
 		if ( ! isset( $data[ $key ] ) ) {
@@ -49,6 +96,59 @@ abstract class Plugin extends Addon {
 
 		return $data[ $key ];
 	}
+
+	/**
+	 * @return string
+	 */
+	public function get_version() {
+		return $this->get_header( 'Version' );
+	}
+
+	/**
+	 * @param string $version
+	 *
+	 * @return bool
+	 */
+	public function is_version_gte( $version ) {
+		return version_compare( $this->get_version(), $version, '>=' );
+	}
+
+	/**
+	 * Check if a plugin is in beta
+	 *
+	 * @since 3.2
+	 * @return bool
+	 */
+	public function is_beta() {
+		return false !== strpos( $this->get_version(), 'beta' );
+	}
+
+	/**
+	 * @param string   $key
+	 * @param Location $location
+	 *
+	 * @return $this
+	 */
+	public function add_location( $key, Location $location ) {
+		$this->locations[ $key ] = $location;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $key
+	 *
+	 * @return Location|false
+	 */
+	public function get_location( $key ) {
+		if ( ! isset( $this->locations[ $key ] ) ) {
+			return false;
+		}
+
+		return $this->locations[ $key ];
+	}
+
+	// TODO: cut of keep/ loose
 
 	/**
 	 * Apply updates to the database
@@ -76,36 +176,14 @@ abstract class Plugin extends Addon {
 		$updater->parse_updates();
 	}
 
-	/**
-	 * Check if a plugin is in beta
-	 *
-	 * @since 3.2
-	 * @return bool
-	 */
-	public function is_beta() {
-		return false !== strpos( $this->get_version(), 'beta' );
-	}
+	// TODO: Stored version object or something, not this!
 
 	/**
 	 * @return string
 	 */
-	public function get_version() {
-		return $this->get_header( 'Version' );
-	}
+	//abstract protected function get_version_key();
 
-	/**
-	 * @return string
-	 */
-	abstract protected function get_version_key();
-
-	/**
-	 * @param string $version
-	 *
-	 * @return bool
-	 */
-	public function is_version_gte( $version ) {
-		return version_compare( $this->get_version(), $version, '>=' );
-	}
+	// TODO: mv
 
 	/**
 	 * @return string
@@ -113,6 +191,8 @@ abstract class Plugin extends Addon {
 	public function get_stored_version() {
 		return get_option( $this->get_version_key() );
 	}
+
+	// TODO: mv
 
 	/**
 	 * Update the stored version to match the (current) version
@@ -128,6 +208,8 @@ abstract class Plugin extends Addon {
 	/**
 	 * Check if the plugin was updated or is a new install
 	 */
+
+	// TODO: mv
 	public function is_new_install() {
 		global $wpdb;
 
@@ -168,6 +250,28 @@ abstract class Plugin extends Addon {
 		_deprecated_function( __METHOD__, '3.2', 'AC\Plugin::get_data()' );
 
 		return $this->get_data();
+	}
+
+	/**
+	 * @return string
+	 *
+	 * @deprecated
+	 */
+	public function get_plugin_url() {
+		_deprecated_function( __METHOD__, '3.2.', 'AC\Plugin::get_url()' );
+
+		return $this->get_url();
+	}
+
+	/**
+	 * @return string
+	 *
+	 * @deprecated
+	 */
+	public function get_plugin_dir() {
+		_deprecated_function( __METHOD__, '3.2', 'AC\Plugin::get_dir()' );
+
+		return $this->get_dir();
 	}
 
 }
