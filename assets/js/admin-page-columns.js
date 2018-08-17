@@ -1511,6 +1511,9 @@ var pro = function pro(column) {
     $container.find('input').on('click', function (e) {
       e.preventDefault();
       $container.find('[data-ac-open-modal]').trigger('click');
+    }).on('change', function () {
+      // Even when you try to change it programatically, we set it back to false
+      $container.find('input[value=off]').prop('checked', true).trigger('change');
     });
   });
 };
@@ -1579,12 +1582,14 @@ __webpack_require__(/*! core-js/modules/es6.array.find */ "./node_modules/core-j
 __webpack_require__(/*! core-js/modules/es6.regexp.replace */ "./node_modules/core-js/modules/es6.regexp.replace.js");
 
 var acSelect2FormatState = function acSelect2FormatState(state) {
+  var indicator = '(PRO)';
+
   if (!state.id) {
     return state.text;
   }
 
-  if (-1 !== state.text.indexOf('(PRO')) {
-    var label = state.text.replace('(PRO)', '');
+  if (-1 !== state.text.indexOf(indicator)) {
+    var label = state.text.replace(indicator, '');
     return $("<span>".concat(label, " <span  class=\"ac-type-pro-only\">pro</span></span>"));
   }
 

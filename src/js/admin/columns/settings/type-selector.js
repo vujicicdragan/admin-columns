@@ -1,10 +1,12 @@
 let acSelect2FormatState = ( state ) => {
+	let indicator = '(PRO)';
+
 	if ( !state.id ) {
 		return state.text;
 	}
 
-	if ( -1 !== state.text.indexOf( '(PRO' ) ) {
-		let label = state.text.replace( '(PRO)', '' );
+	if ( -1 !== state.text.indexOf( indicator ) ) {
+		let label = state.text.replace( indicator, '' );
 		return $( `<span>${label} <span  class="ac-type-pro-only">pro</span></span>` );
 	}
 

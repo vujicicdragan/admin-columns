@@ -3,8 +3,22 @@
 namespace AC\Settings\Column\Pro;
 
 use AC\Settings;
+use AC\View;
 
-class Filtering extends Settings\Column\Pro {
+class Filtering extends Settings\Column\Pro
+	implements Settings\Header {
+
+	public function create_header_view() {
+		$view = new View( array(
+			'title'    => __( 'Enable Filtering', 'codepress-admin-columns' ),
+			'dashicon' => 'dashicons-filter',
+			'state'    => 'off',
+		) );
+
+		$view->set_template( 'settings/header-icon' );
+
+		return $view;
+	}
 
 	protected function get_label() {
 		return __( 'Filtering', 'codepress-admin-columns' );
