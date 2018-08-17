@@ -68,7 +68,6 @@ class Columns extends Page {
 			'jquery-ui-slider',
 			'jquery-ui-sortable',
 			'wp-pointer',
-			'ac-select2',
 		), AC()->get_version() );
 
 		wp_enqueue_style( 'ac-select2' );
