@@ -253,8 +253,7 @@ class Columns extends Page {
 		}
 
 		// Placeholder message
-		// TODO check interface
-		if ( $column instanceof Column\Placeholder ) {
+		if ( $column instanceof Column\Promotion ) {
 			wp_send_json_error( array(
 				'type'  => 'message',
 				'error' => $column->get_message(),
