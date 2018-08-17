@@ -1,6 +1,10 @@
 <?php
 
-class AC_Admin_Addon {
+namespace AC\Admin;
+
+use AC;
+
+class Addon {
 
 	/**
 	 * @var string
@@ -19,41 +23,36 @@ class AC_Admin_Addon {
 
 	/**
 	 * Icon is a small version of the logo. Mainly used on the promo banner.
-	 *
 	 * @var string
 	 */
 	private $icon;
 
 	/**
 	 * Plugin folder name
-	 *
-	 * @var AC_PluginInformation
+	 * @var AC\PluginInformation
 	 */
 	private $addon;
 
 	/**
 	 * Plugin basename. Example: plugin/plugin.php
-	 *
-	 * @var AC_PluginInformation[]
+	 * @var AC\PluginInformation[]
 	 */
 	private $plugins;
 
 	/**
 	 * External website link
-	 *
 	 * @var string
 	 */
 	private $link;
 
 	/**
 	 * Plugin URL. Place where the plugin can be downloaded from. Default is install plugin screen.
-	 *
 	 * @var string Url
 	 */
 	private $plugin_url;
 
 	public function __construct( $addon_dirname ) {
-		$this->addon = new AC_PluginInformation( $addon_dirname );
+		$this->addon = new AC\PluginInformation( $addon_dirname );
 	}
 
 	/**
@@ -65,6 +64,8 @@ class AC_Admin_Addon {
 
 	/**
 	 * @param string $title
+	 *
+	 * @return $this
 	 */
 	protected function set_title( $title ) {
 		$this->title = $title;
@@ -74,24 +75,25 @@ class AC_Admin_Addon {
 
 	/**
 	 * Plugin folder name
-	 *
-	 * @return AC_PluginInformation[]
+	 * @return AC\PluginInformation[]
 	 */
 	public function get_plugins() {
 		return $this->plugins;
 	}
 
 	/**
-	 * @param string $slug Plugin folder name. Example: 'plugin/init.php' then directory name is 'plugin'.
+	 * @param string $plugin
+	 *
+	 * @return $this
 	 */
 	protected function add_plugin( $plugin ) {
-		$this->plugins[] = new AC_PluginInformation( $plugin );
+		$this->plugins[] = new AC\PluginInformation( $plugin );
 
 		return $this;
 	}
 
 	/**
-	 * @return AC_PluginInformation
+	 * @return AC\PluginInformation
 	 */
 	public function get_plugin() {
 		return $this->plugins[0];
@@ -109,7 +111,9 @@ class AC_Admin_Addon {
 	}
 
 	/**
-	 * @param string $link
+	 * @param string $url
+	 *
+	 * @return $this
 	 */
 	protected function set_link( $url ) {
 		if ( ac_helper()->string->is_valid_url( $url ) ) {
@@ -128,6 +132,8 @@ class AC_Admin_Addon {
 
 	/**
 	 * @param string $description
+	 *
+	 * @return $this
 	 */
 	protected function set_description( $description ) {
 		$this->description = $description;
@@ -144,6 +150,8 @@ class AC_Admin_Addon {
 
 	/**
 	 * @param string $logo
+	 *
+	 * @return $this
 	 */
 	protected function set_logo( $logo ) {
 		$this->logo = $logo;
@@ -160,6 +168,8 @@ class AC_Admin_Addon {
 
 	/**
 	 * @param string $icon
+	 *
+	 * @return $this
 	 */
 	protected function set_icon( $icon ) {
 		$this->icon = $icon;
@@ -169,7 +179,6 @@ class AC_Admin_Addon {
 
 	/**
 	 * Plugin folder name
-	 *
 	 * @return string
 	 */
 	public function get_slug() {
@@ -237,7 +246,7 @@ class AC_Admin_Addon {
 	 */
 	public function display_icon() {
 		if ( $this->get_icon() ) : ?>
-            <img class="icon <?php echo esc_attr( $this->get_slug() ); ?>" src="<?php echo esc_attr( $this->get_icon() ); ?>" alt="<?php echo esc_attr( $this->get_title() ); ?>">
+			<img class="icon <?php echo esc_attr( $this->get_slug() ); ?>" src="<?php echo esc_attr( $this->get_icon() ); ?>" alt="<?php echo esc_attr( $this->get_title() ); ?>">
 		<?php endif;
 	}
 
@@ -252,10 +261,10 @@ class AC_Admin_Addon {
 	}
 
 	/**
-	 * @return AC_Column_Placeholder
+	 * @return AC\Column\Placeholder
 	 */
 	public function get_placeholder_column() {
-		$column = new AC_Column_Placeholder();
+		$column = new AC\Column\Placeholder();
 		$column->set_addon( $this );
 
 		return $column;
@@ -273,6 +282,8 @@ class AC_Admin_Addon {
 	/**
 	 * Activate plugin
 	 *
+	 * @param $basename
+	 *
 	 * @return string
 	 */
 	public function get_activation_url( $basename ) {
@@ -281,6 +292,8 @@ class AC_Admin_Addon {
 
 	/**
 	 * Deactivate plugin
+	 *
+	 * @param $basename
 	 *
 	 * @return string
 	 */
@@ -292,6 +305,7 @@ class AC_Admin_Addon {
 	 * Activate or Deactivate plugin
 	 *
 	 * @param string $action
+	 * @param        $basename
 	 *
 	 * @return string
 	 */
@@ -317,8 +331,6 @@ class AC_Admin_Addon {
 	}
 
 	/**
-	 * @param string $search_term
-	 *
 	 * @return string
 	 */
 	public function get_plugin_url() {
@@ -334,12 +346,10 @@ class AC_Admin_Addon {
 	}
 
 	/**
-	 * Show notice on admin page only
-	 *
-	 * @return bool
+	 * @return bool Should a notice be always shown
 	 */
-	public function show_missing_notice_on_current_page() {
-		return AC()->admin()->is_admin_screen() || AC()->table_screen()->get_current_list_screen();
+	public function is_notice_screen() {
+		return true;
 	}
 
 }

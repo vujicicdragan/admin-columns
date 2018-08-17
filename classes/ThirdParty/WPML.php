@@ -1,9 +1,11 @@
 <?php
 
+namespace AC\ThirdParty;
+
 /**
  * WPML compatibility
  */
-class AC_ThirdParty_WPML {
+class WPML {
 
 	function __construct() {
 
@@ -17,7 +19,7 @@ class AC_ThirdParty_WPML {
 		add_filter( 'ac/headings/label', array( $this, 'register_translated_label' ), 100 );
 	}
 
-	public function replace_flags( $list_screen ) {
+	public function replace_flags() {
 		if ( ! class_exists( 'SitePress', false ) ) {
 			return;
 		}
@@ -32,7 +34,7 @@ class AC_ThirdParty_WPML {
 		$post_types['page'] = 1;
 		foreach ( $post_types as $post_type => $value ) {
 			if ( $value ) {
-				new AC_ThirdParty_WPMLColumn( $post_type );
+				new WPMLColumn( $post_type );
 			}
 		}
 	}
@@ -53,7 +55,6 @@ class AC_ThirdParty_WPML {
 
 	/**
 	 * @param string $label
-	 * @param AC_Column $column
 	 *
 	 * @return string
 	 */
