@@ -15,6 +15,7 @@ class ListScreenGroups {
 		$groups->register_group( 'media', __( 'Media' ) );
 		$groups->register_group( 'comment', __( 'Comments' ) );
 		$groups->register_group( 'link', __( 'Links' ), 15 );
+		$groups->register_group( 'taxonomy', __( 'Taxonomy' ), 15 );
 
 		do_action( 'ac/list_screen_groups', $groups );
 

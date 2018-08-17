@@ -295,6 +295,11 @@ class AdminColumns extends Plugin {
 			$list_screens[] = new ListScreen\Post( $post_type );
 		}
 
+		// Taxonomies
+		foreach ( $this->get_taxonomies() as $taxonomy ) {
+			$list_screens[] = new ListScreen\Taxonomy( $taxonomy );
+		}
+
 		$list_screens[] = new ListScreen\Media();
 		$list_screens[] = new ListScreen\Comment();
 
@@ -308,6 +313,32 @@ class AdminColumns extends Plugin {
 		}
 
 		do_action( 'ac/list_screens', $this );
+	}
+
+	/**
+	 * Get a list of taxonomies supported by Admin Columns
+	 * @since NEWVERSION
+	 * @return array List of taxonomies
+	 *               TODO remove from pro
+	 */
+	private function get_taxonomies() {
+		$taxonomies = get_taxonomies( array( 'show_ui' => true ) );
+
+		if ( isset( $taxonomies['post_format'] ) ) {
+			unset( $taxonomies['post_format'] );
+		}
+
+		if ( isset( $taxonomies['link_category'] ) ) {
+			unset( $taxonomies['link_category'] );
+		}
+
+		/**
+		 * Filter the post types for which Admin Columns is active
+		 * @since 2.0
+		 *
+		 * @param array $post_types List of active post type names
+		 */
+		return (array) apply_filters( 'ac/taxonomies', $taxonomies );
 	}
 
 	/**
