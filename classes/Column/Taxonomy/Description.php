@@ -1,9 +1,14 @@
 <?php
 
+namespace AC\Column\Taxonomy;
+
+use AC;
+use AC\Settings;
+
 /**
  * @since NEWVERSION
  */
-class AC_Column_Taxonomy_Description extends AC_Column {
+class Description extends AC\Column {
 
 	public function __construct() {
 		$this->set_original( true );
@@ -11,7 +16,7 @@ class AC_Column_Taxonomy_Description extends AC_Column {
 	}
 
 	public function register_settings() {
-		$this->add_setting( new AC_Settings_Column_Pro_Editing( $this ) );
-		$this->add_setting( new AC_Settings_Column_Pro_Export( $this ) );
+		$this->add_setting( new Settings\Column\Pro\Editing( $this ) );
+		$this->add_setting( new Settings\Column\Pro\Export( $this ) );
 	}
 }

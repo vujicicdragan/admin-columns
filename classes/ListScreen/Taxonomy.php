@@ -147,7 +147,7 @@ class Taxonomy extends AC\ListScreenWP {
 	}
 
 	protected function register_column_types() {
-		$this->register_column_types_from_dir( AC()->get_plugin_dir() . 'classes/Column/Taxonomy', AC()->get_prefix() );
+		$this->register_column_types_from_dir( 'AC\Column\Taxonomy' );
 	}
 
 }

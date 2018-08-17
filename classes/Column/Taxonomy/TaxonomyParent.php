@@ -1,9 +1,13 @@
 <?php
 
+namespace AC\Column\Taxonomy;
+
+use AC;
+
 /**
  * @since NEWVERSION
  */
-class AC_Column_Taxonomy_Parent extends AC_Column_Pro {
+class TaxonomyParent extends AC\Column\Pro {
 
 	public function __construct() {
 		parent::__construct();
