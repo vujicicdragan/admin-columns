@@ -10,7 +10,7 @@ use AC\Column;
  * @since 2.2
  */
 class Placeholder extends Column
-	implements PlaceholderInterface {
+	implements Promotion {
 
 	/**
 	 * @var Addon

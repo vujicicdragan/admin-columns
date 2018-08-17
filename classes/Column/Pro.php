@@ -6,11 +6,10 @@ use AC;
 
 /**
  * Pro only column
- *
  * @since NEWVERSION
  */
 class Pro extends AC\Column
-	implements PlaceholderInterface {
+	implements Promotion {
 
 	public function __construct() {
 		$this->set_group( 'pro' );
