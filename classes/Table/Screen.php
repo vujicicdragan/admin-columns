@@ -44,7 +44,7 @@ final class Screen {
 	 * Register hooks
 	 */
 	public function register() {
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ), 1 );
 		add_action( 'admin_footer', array( $this, 'admin_footer_scripts' ) );
 		add_action( 'admin_head', array( $this, 'admin_head_scripts' ) );
 		add_action( 'admin_head', array( $this, 'register_settings_button' ) );

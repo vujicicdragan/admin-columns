@@ -58,6 +58,10 @@ class Columns extends Page {
 			return;
 		}
 
+		// Select 2 V4
+		wp_register_script( 'ac-select2', AC()->get_url() . "assets/js/select2/select2.min.js", array( 'jquery' ), AC()->get_version() );
+		wp_register_style( 'ac-select2', AC()->get_url() . "assets/css/select2/select2.min.css", array(), AC()->get_version() );
+
 		// Width slider
 		wp_enqueue_style( 'jquery-ui-lightness', AC()->get_url() . 'assets/ui-theme/jquery-ui-1.8.18.custom.css', array(), AC()->get_version() );
 		wp_enqueue_script( 'jquery-ui-slider' );
@@ -68,6 +72,7 @@ class Columns extends Page {
 			'jquery-ui-slider',
 			'jquery-ui-sortable',
 			'wp-pointer',
+			'ac-select2',
 		), AC()->get_version() );
 
 		wp_enqueue_style( 'ac-select2' );

@@ -1175,6 +1175,20 @@
 			letter-spacing: 1px;
 			text-transform: uppercase;
 		}
+
+		.selection {
+			.select2-selection__rendered {
+				line-height: 26px;
+			}
+
+			.ac-type-pro-only {
+				display: inline-block;
+				float: right;
+				line-height: 16px;
+				margin-left: 10px;
+				transform: translateY(5px);
+			}
+		}
 	}
 }
 

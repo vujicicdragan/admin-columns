@@ -134,6 +134,8 @@ var _pro = _interopRequireDefault(__webpack_require__(/*! ./admin/columns/settin
 
 var _width = _interopRequireDefault(__webpack_require__(/*! ./admin/columns/settings/width */ "./js/admin/columns/settings/width.js"));
 
+var _typeSelector2 = _interopRequireDefault(__webpack_require__(/*! ./admin/columns/settings/type-selector */ "./js/admin/columns/settings/type-selector.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
@@ -155,7 +157,7 @@ jQuery(document).on('AC_Form_Loaded', function () {
   /** Register Events **/
   AC.Column.registerEvent('toggle', _toggle.default).registerEvent('remove', _remove.default).registerEvent('clone', _clone.default).registerEvent('refresh', _refresh.default).registerEvent('type_selector', _typeSelector.default).registerEvent('indicator', _indicator.default).registerEvent('label', _label.default.label).registerEvent('label_setting', _label.default.setting).registerEvent('addons', _addons.default)
   /** Register Settings **/
-  .registerSetting('date', _date.default).registerSetting('image_size', _imageSize.default).registerSetting('pro', _pro.default).registerSetting('sub_setting_toggle', _subSettingToggle.default).registerSetting('width', _width.default);
+  .registerSetting('date', _date.default).registerSetting('image_size', _imageSize.default).registerSetting('pro', _pro.default).registerSetting('sub_setting_toggle', _subSettingToggle.default).registerSetting('width', _width.default).registerSetting('type_select2', _typeSelector2.default);
 });
 jQuery(document).ready(function () {
   AC.Form = new _form.default('#cpac .ac-columns form');
@@ -1559,6 +1561,47 @@ var subsetting = function subsetting(column) {
 };
 
 module.exports = subsetting;
+
+/***/ }),
+
+/***/ "./js/admin/columns/settings/type-selector.js":
+/*!****************************************************!*\
+  !*** ./js/admin/columns/settings/type-selector.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+__webpack_require__(/*! core-js/modules/es6.array.find */ "./node_modules/core-js/modules/es6.array.find.js");
+
+__webpack_require__(/*! core-js/modules/es6.regexp.replace */ "./node_modules/core-js/modules/es6.regexp.replace.js");
+
+var acSelect2FormatState = function acSelect2FormatState(state) {
+  if (!state.id) {
+    return state.text;
+  }
+
+  if (-1 !== state.text.indexOf('(PRO')) {
+    var label = state.text.replace('(PRO)', '');
+    return $("<span>".concat(label, " <span  class=\"ac-type-pro-only\">pro</span></span>"));
+  }
+
+  return state.text;
+};
+
+var type_select2 = function type_select2(column) {
+  var $column = column.$el;
+  var $settings = $column.find('.ac-setting-input_type');
+  $settings.select2({
+    width: '100%',
+    templateResult: acSelect2FormatState,
+    templateSelection: acSelect2FormatState
+  });
+};
+
+module.exports = type_select2;
 
 /***/ }),
 
