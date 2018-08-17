@@ -1,10 +1,11 @@
 <?php
 
-abstract class AC_Admin_Page {
+namespace AC\Admin;
+
+abstract class Page {
 
 	/**
 	 * Should this page be displayed when no page is selected
-	 *
 	 * @var bool
 	 */
 	private $default;
@@ -26,14 +27,12 @@ abstract class AC_Admin_Page {
 
 	/**
 	 * Display pages
-	 *
 	 * @return void
 	 */
 	public abstract function display();
 
 	/**
 	 * Is this the default to to display when no active page is present
-	 *
 	 * @return bool
 	 */
 	public function is_default() {
@@ -89,7 +88,6 @@ abstract class AC_Admin_Page {
 
 	/**
 	 * Cast page to an array
-	 *
 	 * @return array
 	 */
 	public function to_array() {
@@ -102,7 +100,6 @@ abstract class AC_Admin_Page {
 
 	/**
 	 * Show the label of the page
-	 *
 	 * @return string
 	 */
 	public function __toString() {
@@ -120,6 +117,8 @@ abstract class AC_Admin_Page {
 
 	/**
 	 * Nonce Field
+	 *
+	 * @param string $action
 	 */
 	public function nonce_field( $action ) {
 		wp_nonce_field( $action, '_ac_nonce', false );

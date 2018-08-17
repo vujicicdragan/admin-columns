@@ -1,6 +1,10 @@
 <?php
 
-class AC_Admin_Help_Introduction extends AC_Admin_Help {
+namespace AC\Admin\Help;
+
+use AC\Admin\Help;
+
+class Introduction extends Help {
 
 	public function get_title() {
 		return __( "Overview", 'codepress-admin-columns' );
@@ -10,9 +14,9 @@ class AC_Admin_Help_Introduction extends AC_Admin_Help {
 		ob_start();
 		?>
 
-        <p>
+		<p>
 			<?php _e( "This plugin is for adding and removing additional columns to the administration screens for post(types), pages, media library, comments, links and users. Change the column's label and reorder them.", 'codepress-admin-columns' ); ?>
-        </p>
+		</p>
 
 		<?php
 

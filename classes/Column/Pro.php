@@ -1,12 +1,16 @@
 <?php
 
+namespace AC\Column;
+
+use AC;
+
 /**
  * Pro only column
  *
  * @since NEWVERSION
  */
-class AC_Column_Pro extends AC_Column
-	implements AC_Column_PlaceholderInterface {
+class Pro extends AC\Column
+	implements PlaceholderInterface {
 
 	public function __construct() {
 		$this->set_group( 'pro' );

@@ -1,6 +1,8 @@
 <?php
 
-class AC_ThirdParty_ACF {
+namespace AC\ThirdParty;
+
+class ACF {
 
 	public function __construct() {
 		add_filter( 'ac/post_types', array( $this, 'remove_acf_field_group' ) );
@@ -8,8 +10,9 @@ class AC_ThirdParty_ACF {
 
 	/**
 	 * Fix which remove the Advanced Custom Fields Type (acf) from the admin columns settings page
-	 *
 	 * @since 2.0
+	 *
+	 * @param $post_types
 	 *
 	 * @return array Post Types
 	 */

@@ -1,6 +1,11 @@
 <?php
 
-class AC_ListScreen_Taxonomy extends AC_ListScreenWP {
+namespace AC\ListScreen;
+
+use AC;
+use WP_Terms_List_Table;
+
+class Taxonomy extends AC\ListScreenWP {
 
 	/**
 	 * @var string Taxonomy name
@@ -9,24 +14,29 @@ class AC_ListScreen_Taxonomy extends AC_ListScreenWP {
 
 	/**
 	 * Constructor
-	 *
 	 * @since 1.2.0
+	 *
+	 * @param $taxonomy
 	 */
 	public function __construct( $taxonomy ) {
 
-		$this->set_meta_type( 'term' );
-		$this->set_screen_base( 'edit-tags' );
-		$this->set_screen_id( 'edit-' . $taxonomy );
-		$this->set_key( 'wp-taxonomy_' . $taxonomy );
-		$this->set_taxonomy( $taxonomy );
-		$this->set_group( 'taxonomy' );
+		$this->set_taxonomy( $taxonomy )
+		     ->set_meta_type( 'term' )
+		     ->set_screen_base( 'edit-tags' )
+		     ->set_screen_id( 'edit-' . $taxonomy )
+		     ->set_key( 'wp-taxonomy_' . $taxonomy )
+		     ->set_group( 'taxonomy' );
 	}
 
 	/**
 	 * @param string $taxonomy
+	 *
+	 * @return self
 	 */
 	protected function set_taxonomy( $taxonomy ) {
 		$this->taxonomy = (string) $taxonomy;
+
+		return $this;
 	}
 
 	/**
@@ -57,7 +67,7 @@ class AC_ListScreen_Taxonomy extends AC_ListScreenWP {
 	 *
 	 * @param int $term_id
 	 *
-	 * @return WP_Term
+	 * @return \WP_Term
 	 */
 	protected function get_object( $term_id ) {
 		return get_term_by( 'id', $term_id, $this->get_taxonomy() );
@@ -79,6 +89,10 @@ class AC_ListScreen_Taxonomy extends AC_ListScreenWP {
 
 	/**
 	 * @since 3.7.3
+	 *
+	 * @param $wp_screen
+	 *
+	 * @return bool
 	 */
 	public function is_current_screen( $wp_screen ) {
 		return parent::is_current_screen( $wp_screen ) && $this->get_taxonomy() === filter_input( INPUT_GET, 'taxonomy' );
@@ -86,9 +100,7 @@ class AC_ListScreen_Taxonomy extends AC_ListScreenWP {
 
 	/**
 	 * Get screen link
-	 *
 	 * @since 1.2.0
-	 *
 	 * @return string Link
 	 */
 	public function get_screen_link() {
@@ -105,11 +117,13 @@ class AC_ListScreen_Taxonomy extends AC_ListScreenWP {
 
 	/**
 	 * Manage value
-	 *
 	 * @since 1.2.0
 	 *
+	 * @param string $value
 	 * @param string $column_name
-	 * @param int    $post_id
+	 * @param int    $term_id
+	 *
+	 * @return string
 	 */
 	public function manage_value( $value, $column_name, $term_id ) {
 		return $this->get_display_value_by_column_name( $column_name, $term_id, $value );

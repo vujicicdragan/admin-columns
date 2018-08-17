@@ -13,8 +13,8 @@ module.exports = {
 		},
 
 		scripts : {
-			production : `babel js --presets es2015 --out-dir ${core_path}js/ --minified`,
-			development : `babel js --presets es2015 --out-dir ${core_path}js/ --minified --watch`,
+			production : `webpack --mode=production`,
+			development : `webpack --mode=development`,
 		},
 
 		webfont : {
