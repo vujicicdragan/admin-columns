@@ -105,10 +105,12 @@ class Help extends Page {
 		$post_types = get_post_types();
 
 		$columns = array();
-		foreach ( AC()->get_list_screens() as $list_screen ) {
-			foreach ( $list_screen->get_column_types() as $column ) {
-				$columns[ $column->get_type() ] = $column->get_type();
-			}
+		foreach ( AC\ListScreenTypes::instance()->get_list_screens() as $list_screen ) {
+
+			// todo
+//			foreach ( $list_screen->get_column_types() as $column ) {
+//				$columns[ $column->get_type() ] = $column->get_type();
+//			}
 		}
 
 		// Filters

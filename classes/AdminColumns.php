@@ -51,21 +51,46 @@ class AdminColumns extends Plugin {
 	 * @since 1.0
 	 */
 	private function __construct() {
-		new ThirdParty\ACF();
-		new ThirdParty\NinjaForms();
-		new ThirdParty\WooCommerce();
-		new ThirdParty\WPML();
 
-		$this->api = new API();
+		$registar = ColumnTypes::instance();
 
+		$registar
+			->register_column( ListScreen\Post::TYPE, new Column\Original( 'Title', 'title', MetaType::POST ) )
+			->register_column( ListScreen\Post::TYPE, new Column\Original( 'Date', 'date', MetaType::POST ) );
+
+		$composite = new Column\Composite( 'Custom Field', 'meta' );
+
+		$composite
+			->add_column( new Column\Meta\Numeric( MetaType::POST ) )
+			->add_column( new Column\Meta\Text( MetaType::POST ) );
+
+		$registar
+			->register_composite( ListScreen\Post::TYPE, $composite );
+
+		$registar = ListScreenTypes::instance();
+
+		$registar
+			->register_list_screen( new ListScreen\Post( 'post', 'Post' ) )
+			->register_list_screen( new ListScreen\Post( 'page', 'Page' ) )
+			->register_list_screen( new ListScreen\Post( 'house', 'House' ) )
+			->register_list_screen( new ListScreen\User() );
+
+		// todo
+//		new ThirdParty\ACF();
+//		new ThirdParty\NinjaForms();
+//		new ThirdParty\WooCommerce();
+//		new ThirdParty\WPML();
+//
+//		$this->api = new API();
+//
 		$this->admin = new Admin();
 		$this->admin->register();
-
-		$screen = new Screen();
-		$screen->register();
-
-		$screen = new Screen\QuickEdit();
-		$screen->register();
+//
+//		$screen = new Screen();
+//		$screen->register();
+//
+//		$screen = new Screen\QuickEdit();
+//		$screen->register();
 
 		add_action( 'init', array( $this, 'init_capabilities' ) );
 		add_action( 'init', array( $this, 'install' ) );
@@ -204,7 +229,7 @@ class AdminColumns extends Plugin {
 	 */
 	public function add_settings_link( $links, $file ) {
 		if ( $file === $this->get_basename() ) {
-			array_unshift( $links, ac_helper()->html->link( AC()->admin()->get_link( 'columns' ), __( 'Settings', 'codepress-admin-columns' ) ) );
+			array_unshift( $links, ac_helper()->html->link( $this->admin()->get_link( 'columns' ), __( 'Settings', 'codepress-admin-columns' ) ) );
 		}
 
 		return $links;
@@ -257,50 +282,50 @@ class AdminColumns extends Plugin {
 	/**
 	 * @return ListScreen[]
 	 */
-	public function get_list_screens() {
-		if ( null === $this->list_screens ) {
-			$this->register_list_screens();
-		}
-
-		return $this->list_screens;
-	}
+//	public function get_list_screens() {
+//		if ( null === $this->list_screens ) {
+//			$this->register_list_screens();
+//		}
+//
+//		return $this->list_screens;
+//	}
 
 	/**
 	 * @param ListScreen $list_screen
 	 *
 	 * @return self
 	 */
-	public function register_list_screen( ListScreen $list_screen ) {
-		$this->list_screens[ $list_screen->get_key() ] = $list_screen;
-
-		return $this;
-	}
+//	public function register_list_screen( ListScreen $list_screen ) {
+//		$this->list_screens[ $list_screen->get_key() ] = $list_screen;
+//
+//		return $this;
+//	}
 
 	/**
 	 * Register List Screens
 	 */
-	public function register_list_screens() {
-		$list_screens = array();
-
-		// Post types
-		foreach ( $this->get_post_types() as $post_type ) {
-			$list_screens[] = new ListScreen\Post( $post_type );
-		}
-
-		$list_screens[] = new ListScreen\Media();
-		$list_screens[] = new ListScreen\Comment();
-
-		// Users, not for network users
-		if ( ! is_multisite() ) {
-			$list_screens[] = new ListScreen\User();
-		}
-
-		foreach ( $list_screens as $list_screen ) {
-			$this->register_list_screen( $list_screen );
-		}
-
-		do_action( 'ac/list_screens', $this );
-	}
+//	public function register_list_screens() {
+//		$list_screens = array();
+//
+//		// Post types
+//		foreach ( $this->get_post_types() as $post_type ) {
+//			$list_screens[] = new ListScreen\Post( $post_type );
+//		}
+//
+//		$list_screens[] = new ListScreen\Media();
+//		$list_screens[] = new ListScreen\Comment();
+//
+//		// Users, not for network users
+//		if ( ! is_multisite() ) {
+//			$list_screens[] = new ListScreen\User();
+//		}
+//
+//		foreach ( $list_screens as $list_screen ) {
+//			$this->register_list_screen( $list_screen );
+//		}
+//
+//		do_action( 'ac/list_screens', $this );
+//	}
 
 	/**
 	 * Get a list of post types for which Admin Columns is active

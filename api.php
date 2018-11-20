@@ -97,5 +97,23 @@ function ac_helper() {
  * @param array        $column_data
  */
 function ac_register_columns( $list_screen_keys, $column_data ) {
-	AC()->api()->load_columndata( $list_screen_keys, $column_data );
+
+	// todo
+	//AC()->api()->load_columndata( $list_screen_keys, $column_data );
+}
+
+/**
+ * @param string $page
+ * @param array  $args
+ */
+function ac_view( $page, $args = array() ) {
+	extract( $args );
+
+	$path = "templates/{$page}.php";
+
+	if ( ! file_exists( $path ) ) {
+		return;
+	}
+
+	require $path;
 }

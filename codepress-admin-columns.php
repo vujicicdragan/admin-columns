@@ -52,11 +52,11 @@ add_action( 'after_setup_theme', function () {
 	require_once __DIR__ . '/classes/Autoloader.php';
 
 	AC\Autoloader::instance()->register_prefix( 'AC', __DIR__ . '/classes' );
-	AC\Autoloader\Underscore::instance()
-		->add_alias( 'AC\ListScreen', 'AC_ListScreen' )
-		->add_alias( 'AC\Settings\FormatValue', 'AC_Settings_FormatValueInterface' )
-		->add_alias( 'AC\Column\Media\MediaParent', 'AC_Column_Media_Parent' )
-		->add_alias( 'AC\Column\Post\PostParent', 'AC_Column_Post_Parent' );
+//	AC\Autoloader\Underscore::instance()
+//		->add_alias( 'AC\ListScreen', 'AC_ListScreen' )
+//		->add_alias( 'AC\Settings\FormatValue', 'AC_Settings_FormatValueInterface' )
+//		->add_alias( 'AC\Column\Media\MediaParent', 'AC_Column_Media_Parent' )
+//		->add_alias( 'AC\Column\Post\PostParent', 'AC_Column_Post_Parent' );
 
 	/**
 	 * For loading external resources, e.g. column settings.
