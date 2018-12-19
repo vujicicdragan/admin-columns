@@ -11,7 +11,7 @@ class ListScreenFactory {
 	 * @return ListScreen|false
 	 */
 	public static function create( $type, $id = null ) {
-		$list_screens = AC()->get_list_screens();
+		$list_screens = ListScreens::get_list_screens();
 
 		if ( ! isset( $list_screens[ $type ] ) ) {
 			return false;

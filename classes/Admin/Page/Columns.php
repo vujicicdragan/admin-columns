@@ -9,8 +9,8 @@ use AC\Column;
 use AC\ListScreen;
 use AC\ListScreenFactory;
 use AC\ListScreenGroups;
+use AC\ListScreens;
 use AC\Message\Notice;
-use AC\Preferences;
 use AC\Registrable;
 use AC\Request;
 use AC\View;
@@ -25,7 +25,12 @@ class Columns extends Admin\Page
 	 */
 	private $notices = array();
 
-	public function __construct() {
+	/** @var ListScreen */
+	private $list_screen;
+
+	public function __construct( ListScreen $list_screen ) {
+		$this->list_screen = $list_screen;
+
 		parent::__construct( self::NAME, __( 'Admin Columns', 'codepress-admin-columns' ) );
 	}
 
@@ -89,9 +94,9 @@ class Columns extends Admin\Page
 		do_action( 'ac/settings/handle_request', $this );
 	}
 
-	private function preferences() {
-		return new Preferences\Site( 'settings' );
-	}
+	//	private function preferences() {
+	//		return new Preferences\Site( 'settings' );
+	//	}
 
 	/**
 	 * Admin scripts
@@ -161,33 +166,7 @@ class Columns extends Admin\Page
 	}
 
 	public function get_list_screen() {
-		// User selected
-		$list_screen = ListScreenFactory::create( filter_input( INPUT_GET, 'list_screen' ) );
-
-		// Preference
-		$preference = ListScreenFactory::create( $this->preferences()->get( 'list_screen' ) );
-
-		if ( ! $list_screen ) {
-			$list_screen = $preference;
-		}
-
-		// First one
-		if ( ! $list_screen ) {
-			$list_screen = ListScreenFactory::create( key( AC()->get_list_screens() ) );
-		}
-
-		// Load table headers
-		if ( ! $list_screen->get_original_columns() ) {
-			$list_screen->set_original_columns( $list_screen->get_default_column_headers() );
-		}
-
-		if ( $preference !== $list_screen->get_key() ) {
-			$this->preferences()->set( 'list_screen', $list_screen->get_key() );
-		}
-
-		do_action( 'ac/settings/list_screen', $list_screen );
-
-		return $list_screen;
+		return $this->list_screen;
 	}
 
 	/**
@@ -217,7 +196,7 @@ class Columns extends Admin\Page
 	private function get_grouped_list_screens() {
 		$list_screens = array();
 
-		foreach ( AC()->get_list_screens() as $list_screen ) {
+		foreach ( ListScreens::get_list_screens() as $list_screen ) {
 			$list_screens[ $list_screen->get_group() ][ $list_screen->get_key() ] = $list_screen->get_label();
 		}
 
@@ -298,9 +277,7 @@ class Columns extends Admin\Page
 			<div class="ac-right">
 				<div class="ac-right-inner">
 
-					<?php if ( ! $list_screen->is_read_only() ) : ?>
-
-						<?php
+					<?php if ( ! $list_screen->is_read_only() ) :
 
 						$label_main = __( 'Store settings', 'codepress-admin-columns' );
 						$label_second = sprintf( '<span class="clear contenttype">%s</span>', esc_html( $list_screen->get_label() ) );
@@ -328,9 +305,7 @@ class Columns extends Admin\Page
 
 					<?php do_action( 'ac/settings/sidebox', $list_screen ); ?>
 
-					<?php if ( apply_filters( 'ac/show_banner', true ) ) : ?>
-
-						<?php
+					<?php if ( apply_filters( 'ac/show_banner', true ) ) :
 
 						echo new Admin\Parts\Banner();
 
@@ -348,8 +323,8 @@ class Columns extends Admin\Page
 
 					?>
 
-				</div><!--.ac-right-inner-->
-			</div><!--.ac-right-->
+				</div>
+			</div>
 
 			<div class="ac-left">
 				<?php

@@ -54,6 +54,8 @@ class AdminColumns extends Plugin {
 	private function __construct() {
 		$this->api = new API();
 
+		$this->register_list_screens();
+
 		$modules = array(
 			new Screen,
 			new Settings\General,
@@ -254,12 +256,15 @@ class AdminColumns extends Plugin {
 	/**
 	 * @return ListScreen[]
 	 */
+	// todo
 	public function get_list_screens() {
-		if ( null === $this->list_screens ) {
-			$this->register_list_screens();
-		}
+//		if ( null === $this->list_screens ) {
+//			$this->register_list_screens();
+//		}
+//
+//		return $this->list_screens;
 
-		return $this->list_screens;
+		return ListScreens::get_list_screens();
 	}
 
 	/**
@@ -293,10 +298,11 @@ class AdminColumns extends Plugin {
 		}
 
 		foreach ( $list_screens as $list_screen ) {
-			$this->register_list_screen( $list_screen );
+			ListScreens::register_list_screen( $list_screen );
 		}
 
-		do_action( 'ac/list_screens', $this );
+		// todo
+		//do_action( 'ac/list_screens', $this );
 	}
 
 	/**
@@ -359,7 +365,9 @@ class AdminColumns extends Plugin {
 				->register_section( GeneralSectionFactory::create() )
 				->register_section( new Restore() );
 
-			$page_columns = new Page\Columns();
+			$list_screen = Admin\Request\ListScreen::get_list_screen();
+
+			$page_columns = new Page\Columns( $list_screen );
 			$page_columns->register_ajax();
 
 			$this->admin->register_page( $page_columns )
