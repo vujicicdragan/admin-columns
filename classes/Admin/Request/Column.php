@@ -53,22 +53,13 @@ abstract class Column extends AC\Admin\Request\Handler {
 			) );
 		}
 
-		wp_send_json_success( $this->render_column( $column ) );
-	}
-
-	/**
-	 * @param AC\Column $column
-	 *
-	 * @return string
-	 */
-	private function render_column( AC\Column $column ) {
 		$view = new View( array(
 			'column' => $column,
 		) );
 
 		$view->set_template( 'admin/edit-column' );
 
-		return $view->render();
+		wp_send_json_success( $view->render() );
 	}
 
 }

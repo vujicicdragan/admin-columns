@@ -28,11 +28,6 @@ class AdminColumns extends Plugin {
 	private $api;
 
 	/**
-	 * @var ListScreen[]
-	 */
-	private $list_screens;
-
-	/**
 	 * @since 2.5
 	 */
 	private static $instance = null;
@@ -54,7 +49,7 @@ class AdminColumns extends Plugin {
 	private function __construct() {
 		$this->api = new API();
 
-		$this->register_list_screens();
+		$this->localize();
 
 		$modules = array(
 			new Screen,
@@ -72,14 +67,13 @@ class AdminColumns extends Plugin {
 			}
 		}
 
-		$this->register_admin();
-
+		add_action( 'init', array( $this, 'register_list_screens' ), 1 );
+		add_action( 'init', array( $this, 'register_admin' ) );
 		add_action( 'init', array( $this, 'init_capabilities' ) );
 		add_action( 'init', array( $this, 'install' ) );
 		add_action( 'init', array( $this, 'notice_checks' ) );
 
 		add_filter( 'plugin_action_links', array( $this, 'add_settings_link' ), 1, 2 );
-		add_action( 'plugins_loaded', array( $this, 'localize' ) );
 
 		add_action( 'ac/screen', array( $this, 'init_table_on_screen' ) );
 		add_action( 'ac/screen/quick_edit', array( $this, 'init_table_on_quick_edit' ) );
@@ -254,31 +248,6 @@ class AdminColumns extends Plugin {
 	}
 
 	/**
-	 * @return ListScreen[]
-	 */
-	// todo
-	public function get_list_screens() {
-//		if ( null === $this->list_screens ) {
-//			$this->register_list_screens();
-//		}
-//
-//		return $this->list_screens;
-
-		return ListScreens::get_list_screens();
-	}
-
-	/**
-	 * @param ListScreen $list_screen
-	 *
-	 * @return self
-	 */
-	public function register_list_screen( ListScreen $list_screen ) {
-		$this->list_screens[ $list_screen->get_key() ] = $list_screen;
-
-		return $this;
-	}
-
-	/**
 	 * Register List Screens
 	 */
 	public function register_list_screens() {
@@ -301,7 +270,7 @@ class AdminColumns extends Plugin {
 			ListScreens::register_list_screen( $list_screen );
 		}
 
-		// todo
+		// todo: search and replace
 		//do_action( 'ac/list_screens', $this );
 	}
 
@@ -352,7 +321,7 @@ class AdminColumns extends Plugin {
 	/**
 	 * @return void
 	 */
-	private function register_admin() {
+	public function register_admin() {
 		$is_network = is_network_admin();
 
 		$site_factory = new Admin\AdminFactory();
@@ -365,9 +334,7 @@ class AdminColumns extends Plugin {
 				->register_section( GeneralSectionFactory::create() )
 				->register_section( new Restore() );
 
-			$list_screen = Admin\Request\ListScreen::get_list_screen();
-
-			$page_columns = new Page\Columns( $list_screen );
+			$page_columns = new Page\Columns( Admin\Request\ListScreen\Select::get_list_screen() );
 			$page_columns->register_ajax();
 
 			$this->admin->register_page( $page_columns )
@@ -511,12 +478,33 @@ class AdminColumns extends Plugin {
 
 	/**
 	 * @deprecated NEWVERSION
-	 * @return Admin\Page\Columns
 	 */
 	public function admin_columns_screen() {
 		_deprecated_function( __METHOD__, 'NEWVERSION' );
+	}
 
-		return new Admin\Page\Columns();
+	/**
+	 * @param ListScreen $list_screen
+	 *
+	 * @deprecated NEWVERSION
+	 * @return $this
+	 */
+	public function register_list_screen( ListScreen $list_screen ) {
+		_deprecated_function( __METHOD__, 'NEWVERSION', 'ListScreens::register_list_screen' );
+
+		ListScreens::register_list_screen( $list_screen );
+
+		return $this;
+	}
+
+	/**
+	 * @deprecated NEWVERSION
+	 * @return ListScreen[]
+	 */
+	public function get_list_screens() {
+		_deprecated_function( __METHOD__, 'NEWVERSION', 'ListScreens::get_list_screens' );
+
+		return ListScreens::get_list_screens();
 	}
 
 }
