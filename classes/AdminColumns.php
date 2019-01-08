@@ -6,6 +6,10 @@ use AC\Check;
 use AC\Deprecated;
 use AC\Table;
 use AC\ThirdParty;
+use AC\Usage\Data\Columns;
+use AC\Usage\Data\MUPlugins;
+use AC\Usage\Data\Plugins;
+use AC\Usage\Data\Tables;
 
 class AdminColumns extends Plugin {
 
@@ -57,6 +61,7 @@ class AdminColumns extends Plugin {
 			new ThirdParty\NinjaForms,
 			new ThirdParty\WooCommerce,
 			new ThirdParty\WPML,
+			$this->usage_report(),
 		);
 
 		foreach ( $modules as $module ) {
@@ -65,7 +70,7 @@ class AdminColumns extends Plugin {
 			}
 		}
 
-		$this->api = new API();
+		$this->api = new StorageAPI();
 
 		$site_factory = new Admin\SiteFactory();
 		$site_factory->register();
@@ -89,6 +94,24 @@ class AdminColumns extends Plugin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'add_global_javascript_var' ), 1 );
 
 		add_filter( 'wp_redirect', array( $this, 'redirect_after_status_change' ) );
+	}
+
+	/**
+	 * @return Usage
+	 */
+	private function usage_report() {
+		$api = new API();
+		$api
+			->set_url( ac_get_site_url() )
+			->set_proxy( 'https://api.admincolumns.com' );
+
+		$usage = new Usage( $api );
+		$usage
+			->register_data( new Plugins() )
+			->register_data( new MUPlugins() )
+			->register_data( new Columns() );
+
+		return $usage;
 	}
 
 	/**
